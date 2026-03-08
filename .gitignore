@@ -24,3 +24,5 @@ Thumbs.db
 dist/
 build/
 tmp/
+
+package-lock.json
