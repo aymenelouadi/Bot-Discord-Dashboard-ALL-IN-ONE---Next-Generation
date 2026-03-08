@@ -53,7 +53,7 @@ Protection · Moderation · Tickets · Auto Roles · Levels · Dashboard · and 
 > | Field | Description |
 > |-------|-------------|
 > | `OWNERS` | Your Discord user ID(s). Owners have full access to the dashboard. Add multiple IDs as an array. |
-> | `SHIPS` | Discord user ID(s) that are considered "team/staff" members for the dashboard. |
+> | `SHIPS` | Discord user ID(s) with elevated/super-admin privileges on the dashboard. |
 > | `CODE` | The access code required to log into the dashboard (default is `"ADMIN"` — **change it!**). |
 >
 > **How to get your Discord User ID:**
