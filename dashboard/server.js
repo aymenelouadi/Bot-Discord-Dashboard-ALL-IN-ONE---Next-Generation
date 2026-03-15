@@ -125,6 +125,31 @@ try {
     });
 } catch (_e) { /* apexcharts not in node_modules, CDN fallback used */ }
 
+// ── Discord badge icons (CDN is 404 — serve locally as SVG) ─────────────
+const _BADGE_SVGS = {
+    'staff.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#5865F2" d="M10 1 3 4.5V10c0 4.3 3 7.8 7 9 4-1.2 7-4.7 7-9V4.5Z"/><path fill="white" d="M10 5.5A4 4 0 0 0 6.7 12a6.8 6.8 0 0 1 3.3-.8c1.2 0 2.4.3 3.3.8A4 4 0 0 0 10 5.5Zm0 1.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/></svg>`,
+    'partner.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#3498db" d="M10 1 3 4.5V10c0 4.3 3 7.8 7 9 4-1.2 7-4.7 7-9V4.5Z"/><path fill="white" stroke="white" stroke-width=".5" d="M7.5 10.2 9.2 12l3.8-4"/><path fill="none" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M7 10 9 12.2l4.3-4.8"/></svg>`,
+    'hypesquad.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#faa61a" d="M11.3 2 7 10.5h3.6L8.7 18l7.3-9.5h-3.8Z"/><path fill="#e08800" d="M11.3 2 9.4 5.8l.6 1.2H13Z"/></svg>`,
+    'bug_hunter_level_1.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><ellipse cx="10" cy="11" rx="4.5" ry="5.5" fill="#e67e22"/><ellipse cx="10" cy="11" rx="4.5" ry="5.5" fill="none" stroke="#b35500" stroke-width=".8"/><line x1="10" y1="5.5" x2="10" y2="11" stroke="#b35500" stroke-width=".8"/><ellipse cx="10" cy="6" rx="2" ry="2" fill="#c0392b"/><path fill="none" stroke="#b35500" stroke-width=".8" stroke-linecap="round" d="M5.5 10 3 8.5M5.5 12 3 12M5.5 14 3 15.5M14.5 10 17 8.5M14.5 12 17 12M14.5 14 17 15.5"/><path fill="none" stroke="#b35500" stroke-width=".8" stroke-linecap="round" d="M8.5 4.5 7 3M11.5 4.5 13 3"/></svg>`,
+    'hypesquad_house_1.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#e4405f" d="M10 1.5 4 6v5.5c0 3.2 2.2 6 6 7 3.8-1 6-3.8 6-7V6Zm0 1.8 4.5 3.5v4.2c0 2.2-1.6 4.2-4.5 5-2.9-.8-4.5-2.8-4.5-5V6.8Z"/><path fill="#e4405f" d="M10 1.5 4 6v5.5c0 3.2 2.2 6 6 7 3.8-1 6-3.8 6-7V6Z"/><path fill="white" d="M10 7 8 9.5l2 2 2-2Z"/></svg>`,
+    'hypesquad_house_2.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#9b59b6" d="M10 1.5 4 6v5.5c0 3.2 2.2 6 6 7 3.8-1 6-3.8 6-7V6Z"/><path fill="white" d="M7.5 9.5h2V8h1v1.5h2v1h-2V12h-1v-1.5h-2Z"/></svg>`,
+    'hypesquad_house_3.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#1abc9c" d="M10 1.5 4 6v5.5c0 3.2 2.2 6 6 7 3.8-1 6-3.8 6-7V6Z"/><path fill="none" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M7 10h6M10 7v6"/></svg>`,
+    'early_supporter.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#c0a0ff" d="M10 16.5 4.5 11a3.5 3.5 0 0 1 5-5c.2.2.3.3.5.5.2-.2.3-.3.5-.5a3.5 3.5 0 0 1 5 5Z"/><path fill="#9b57ff" d="M15 6.5c0-1.8 0-3.5-3-3.5-1.5 0-2 .8-2 .8S9.5 3 8 3C5 3 5 4.7 5 6.5c0 .5.2 1 .5 1.5A3.5 3.5 0 0 1 10 16.5a3.5 3.5 0 0 1 4.5-8.5c.3-.5.5-1 .5-1.5Z" opacity=".3"/></svg>`,
+    'bug_hunter_level_2.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><ellipse cx="10" cy="11.5" rx="4.5" ry="5" fill="#f1c40f"/><ellipse cx="10" cy="11.5" rx="4.5" ry="5" fill="none" stroke="#c89b00" stroke-width=".8"/><line x1="10" y1="6.5" x2="10" y2="11.5" stroke="#c89b00" stroke-width=".8"/><ellipse cx="10" cy="7" rx="2" ry="2" fill="#e6a817"/><path fill="none" stroke="#c89b00" stroke-width=".8" stroke-linecap="round" d="M5.5 10.5 3 9M5.5 12.5 3 12.5M5.5 14.5 3 16M14.5 10.5 17 9M14.5 12.5 17 12.5M14.5 14.5 17 16"/><path fill="#f39c12" d="M10 4 9 5.5h2Z"/><path d="M8 3.5 10 4l2-0.5" fill="none" stroke="#c89b00" stroke-width=".7" stroke-linecap="round"/></svg>`,
+    'verified_bot_developer.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><text x="2" y="14.5" font-family="monospace" font-size="10" font-weight="bold" fill="#5865F2">&lt;/&gt;</text></svg>`,
+    'certified_moderator.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#23a55a" d="M10 1.5 3 5v5c0 4.3 3 7.8 7 9 4-1.2 7-4.7 7-9V5Z"/><path fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M6.8 10.2 9 12.4l4.5-5"/></svg>`,
+    'active_developer.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="none" stroke="#23a55a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 6 4 10l4 4M12 6l4 4-4 4"/></svg>`,
+    'nitro.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#5865F2" d="M11.3 2 7 10.5h3.6L8.7 18l7.3-9.5h-3.8Z"/><circle cx="10" cy="10" r="9" fill="none" stroke="#5865F2" stroke-width="1.2"/></svg>`,
+    'quest_completed.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#f1c40f" d="M10 2 12.4 7.5l5.6.5-4.2 3.7 1.3 5.5L10 14.4l-5.1 2.8 1.3-5.5L2 8l5.6-.5Z"/></svg>`,
+};
+app.get('/badge-icons/:name', (req, res) => {
+    const svg = _BADGE_SVGS[req.params.name];
+    if (!svg) return res.status(404).end();
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=604800');
+    res.end(svg);
+});
+
 /* ── View engine ────────────────────────────────────── */
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');

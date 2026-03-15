@@ -1137,7 +1137,7 @@
       <!-- Badges -->
       <%
         const flags  = Number(user.publicFlags || 0);
-        const BDGC   = 'https://cdn.discordapp.com/badge-icons/';
+        const BDGC   = '/badge-icons/';
         const badges = [];
         if (flags & 1)       badges.push({ label: t.home.badgeStaff,       img: 'staff.png' });
         if (flags & 2)       badges.push({ label: t.home.badgePartner,      img: 'partner.png' });

@@ -56,7 +56,7 @@
       </div>
       <%
         var _flags = Number(user.publicFlags || 0);
-        var _BDGC  = 'https://cdn.discordapp.com/badge-icons/';
+        var _BDGC  = '/badge-icons/';
         var _badges = [];
         if (_flags & 1)       _badges.push({ label: t.home.badgeStaff,       img: 'staff.png' });
         if (_flags & 2)       _badges.push({ label: t.home.badgePartner,      img: 'partner.png' });
