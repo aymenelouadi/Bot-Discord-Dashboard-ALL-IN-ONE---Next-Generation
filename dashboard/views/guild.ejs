@@ -1447,6 +1447,8 @@
       border: 1px solid rgba(255,255,255,.1);
       color: var(--muted);
     }
+    .mod-icon.mod-on  { color: #4ade80; }
+    .mod-icon.mod-off { color: var(--muted); }
 
     /* ── Quick actions ──────────────────────────────── */
     .qa-grid { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -1645,7 +1647,7 @@
       <div class="module-grid">
         <div class="module-card">
           <div class="module-card-left">
-            <i data-lucide="shield-check" style="width:18px;height:18px;stroke:<%= moduleStatus.protection ? '#4ade80' : 'var(--muted)' %>;flex-shrink:0;"></i>
+            <i data-lucide="shield-check" class="mod-icon <%= moduleStatus.protection ? 'mod-on' : 'mod-off' %>" style="width:18px;height:18px;flex-shrink:0;"></i>
             <span class="module-card-label"><%= t.guild.modProtection %></span>
           </div>
           <span class="module-badge <%= moduleStatus.protection ? 'on' : 'off' %>">
@@ -1655,7 +1657,7 @@
 
         <div class="module-card">
           <div class="module-card-left">
-            <i data-lucide="ticket" style="width:18px;height:18px;stroke:<%= moduleStatus.tickets ? '#4ade80' : 'var(--muted)' %>;flex-shrink:0;"></i>
+            <i data-lucide="ticket" class="mod-icon <%= moduleStatus.tickets ? 'mod-on' : 'mod-off' %>" style="width:18px;height:18px;flex-shrink:0;"></i>
             <span class="module-card-label"><%= t.guild.modTickets %></span>
           </div>
           <span class="module-badge <%= moduleStatus.tickets ? 'on' : 'off' %>">
@@ -1665,7 +1667,7 @@
 
         <div class="module-card">
           <div class="module-card-left">
-            <i data-lucide="user-plus" style="width:18px;height:18px;stroke:<%= moduleStatus.autoRoles ? '#4ade80' : 'var(--muted)' %>;flex-shrink:0;"></i>
+            <i data-lucide="user-plus" class="mod-icon <%= moduleStatus.autoRoles ? 'mod-on' : 'mod-off' %>" style="width:18px;height:18px;flex-shrink:0;"></i>
             <span class="module-card-label"><%= t.guild.modAutoRoles %></span>
           </div>
           <span class="module-badge <%= moduleStatus.autoRoles ? 'on' : 'off' %>">
@@ -1675,7 +1677,7 @@
 
         <div class="module-card">
           <div class="module-card-left">
-            <i data-lucide="trending-up" style="width:18px;height:18px;stroke:<%= moduleStatus.levels ? '#4ade80' : 'var(--muted)' %>;flex-shrink:0;"></i>
+            <i data-lucide="trending-up" class="mod-icon <%= moduleStatus.levels ? 'mod-on' : 'mod-off' %>" style="width:18px;height:18px;flex-shrink:0;"></i>
             <span class="module-card-label"><%= t.guild.modLevels %></span>
           </div>
           <span class="module-badge <%= moduleStatus.levels ? 'on' : 'off' %>">
