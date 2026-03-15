@@ -54,18 +54,22 @@
 /* RTL — place card on the left */
 [dir="rtl"] #cn-promo { right: auto; left: 28px; }
 
-/* Mobile — full-width strip */
+/* Mobile — compact card centered above nav */
 @media (max-width: 600px) {
   #cn-promo {
-    bottom: 0;
-    right: 0;
-    left: 0;
-    width: 100%;
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
     max-width: 100%;
-    border-radius: 18px 18px 0 0;
-    border-bottom: none;
+    border-radius: 16px;
   }
-  [dir="rtl"] #cn-promo { right: 0; left: 0; }
+  [dir="rtl"] #cn-promo { right: 16px; left: 16px; }
+  .cn-promo-inner { padding: 14px 16px 16px; }
+  .cn-promo-desc  { display: none; }
+  .cn-promo-actions { flex-direction: row; flex-wrap: wrap; }
+  .cn-promo-btn   { flex: 1; font-size: .75rem; padding: 8px 10px; }
+  .cn-promo-btn-dismiss { width: 100%; flex: none; padding-top: 4px; }
 }
 
 /* ── Gradient top accent bar ── */
@@ -125,10 +129,6 @@
   border-radius: 20px;
   padding: 3px 9px;
   margin-bottom: 10px;
-}
-.cn-promo-tag svg {
-  opacity: .85;
-  flex-shrink: 0;
 }
 
 /* ── Title ── */
@@ -257,13 +257,7 @@ html[data-theme="light"] .cn-promo-btn-dismiss:hover { color: rgba(80,40,160,.6)
     </button>
 
     <!-- Tag -->
-    <div class="cn-promo-tag">
-      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
-           fill="currentColor">
-        <path d="M12 .587l3.668 7.568L24 9.306l-6 5.852 1.416 8.265L12 19.05l-7.416 4.373L6 15.158 0 9.306l8.332-1.151z"/>
-      </svg>
-      <%= t.promo.tag %>
-    </div>
+    <div class="cn-promo-tag"><%= t.promo.tag %></div>
 
     <!-- Title -->
     <div class="cn-promo-title"><%= t.promo.title %></div>
@@ -276,20 +270,11 @@ html[data-theme="light"] .cn-promo-btn-dismiss:hover { color: rgba(80,40,160,.6)
       <a href="https://github.com/aymenelouadi/next-generation"
          target="_blank" rel="noopener"
          class="cn-promo-btn cn-promo-btn-star"
-         id="cn-promo-star">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-             fill="currentColor"><path d="M12 .587l3.668 7.568L24 9.306l-6 5.852 1.416 8.265L12 19.05l-7.416 4.373L6 15.158 0 9.306l8.332-1.151z"/></svg>
-        <%= t.promo.starBtn %>
-      </a>
+         id="cn-promo-star"><%= t.promo.starBtn %></a>
       <a href="https://www.trustpilot.com/evaluate/codnex.xyz"
          target="_blank" rel="noopener"
          class="cn-promo-btn cn-promo-btn-review"
-         id="cn-promo-review">
-        <!-- Trustpilot star icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-             fill="currentColor"><path d="M12 .587l3.668 7.568L24 9.306l-6 5.852 1.416 8.265L12 19.05l-7.416 4.373L6 15.158 0 9.306l8.332-1.151z"/></svg>
-        <%= t.promo.reviewBtn %>
-      </a>
+         id="cn-promo-review"><%= t.promo.reviewBtn %></a>
       <!-- Don't show again -->
       <button class="cn-promo-btn-dismiss" id="cn-promo-dismiss">
         <%= t.promo.dismissBtn %>
