@@ -2106,32 +2106,19 @@
         var _gPrem  = Number(user.premiumType  || 0);
         var _BDGC   = 'https://cdn.discordapp.com/badge-icons/';
         var _gBadges = [];
-        // Flag 1       — DISCORD_EMPLOYEE
-        if (_gFlags & 1)       _gBadges.push({ label: t.home.badgeStaff,      img: 'staff.png' });
-        // Flag 2       — PARTNERED_SERVER_OWNER
-        if (_gFlags & 2)       _gBadges.push({ label: t.home.badgePartner,    img: 'partner.png' });
-        // Flag 4       — HYPESQUAD_EVENTS
-        if (_gFlags & 4)       _gBadges.push({ label: t.home.badgeHsEvents,   img: 'hypesquad.png' });
-        // Flag 8       — BUGHUNTER_LEVEL_1
-        if (_gFlags & 8)       _gBadges.push({ label: t.home.badgeBug1,       img: 'bug_hunter_level_1.png' });
-        // Flag 64      — HOUSE_BRAVERY
-        if (_gFlags & 64)      _gBadges.push({ label: t.home.badgeBravery,    img: 'hypesquad_house_1.png' });
-        // Flag 128     — HOUSE_BRILLIANCE
-        if (_gFlags & 128)     _gBadges.push({ label: t.home.badgeBrilliance, img: 'hypesquad_house_2.png' });
-        // Flag 256     — HOUSE_BALANCE
-        if (_gFlags & 256)     _gBadges.push({ label: t.home.badgeBalance,    img: 'hypesquad_house_3.png' });
-        // Flag 512     — EARLY_SUPPORTER
-        if (_gFlags & 512)     _gBadges.push({ label: t.home.badgeEarlySupp,  img: 'early_supporter.png' });
-        // Flag 16384   — BUGHUNTER_LEVEL_2
-        if (_gFlags & 16384)   _gBadges.push({ label: t.home.badgeBug2,       img: 'bug_hunter_level_2.png' });
-        // Flag 131072  — VERIFIED_BOT_DEVELOPER
-        if (_gFlags & 131072)  _gBadges.push({ label: t.home.badgeVerifDev,   img: 'verified_bot_developer.png' });
-        // Flag 262144  — DISCORD_CERTIFIED_MODERATOR
-        if (_gFlags & 262144)  _gBadges.push({ label: t.home.badgeModAlumni,  img: 'certified_moderator.png' });
-        // Flag 4194304 — ACTIVE_DEVELOPER
-        if (_gFlags & 4194304) _gBadges.push({ label: t.home.badgeActiveDev,  img: 'active_developer.png' });
-        // premium_type > 0 — Nitro subscriber (not in public_flags)
-        if (_gPrem > 0)        _gBadges.push({ label: t.home.badgeNitro,      img: 'nitro.png' });
+        if (_gFlags & 1)       _gBadges.push({ label: t.home.badgeStaff,       icon: 'shield',        color: '#7289da' });
+        if (_gFlags & 2)       _gBadges.push({ label: t.home.badgePartner,      icon: 'badge-check',   color: '#3ba55c' });
+        if (_gFlags & 4)       _gBadges.push({ label: t.home.badgeHsEvents,     icon: 'calendar-days', color: '#faa61a' });
+        if (_gFlags & 8)       _gBadges.push({ label: t.home.badgeBug1,         icon: 'bug',           color: '#f4b267' });
+        if (_gFlags & 64)      _gBadges.push({ label: t.home.badgeBravery,      icon: 'flame',         color: '#e4405f' });
+        if (_gFlags & 128)     _gBadges.push({ label: t.home.badgeBrilliance,   icon: 'sparkles',      color: '#a855f7' });
+        if (_gFlags & 256)     _gBadges.push({ label: t.home.badgeBalance,      icon: 'leaf',          color: '#2ecc71' });
+        if (_gFlags & 512)     _gBadges.push({ label: t.home.badgeEarlySupp,    icon: 'heart',         color: '#eb459e' });
+        if (_gFlags & 16384)   _gBadges.push({ label: t.home.badgeBug2,         icon: 'shield-alert',  color: '#f48024' });
+        if (_gFlags & 131072)  _gBadges.push({ label: t.home.badgeVerifDev,     icon: 'code-2',        color: '#5865f2' });
+        if (_gFlags & 262144)  _gBadges.push({ label: t.home.badgeModAlumni,    icon: 'shield-check',  color: '#5c6bc0' });
+        if (_gFlags & 4194304) _gBadges.push({ label: t.home.badgeActiveDev,    icon: 'terminal',      color: '#23a55a' });
+        if (_gPrem > 0)        _gBadges.push({ label: t.home.badgeNitro,        icon: 'zap',           color: '#5865f2' });
       %>
       <div class="prof-block">
         <div class="prof-block-label"><%= t.home.profileBadges %></div>
@@ -2141,8 +2128,7 @@
           <% } else { %>
             <% _gBadges.forEach(function(b) { %>
               <div class="prof-badge">
-                <img src="<%= _BDGC %><%= b.img %>" alt="<%= b.label %>"
-                  onerror="this.closest('.prof-badge').style.display='none'" />
+                <i data-lucide="<%= b.icon %>" style="width:16px;height:16px;stroke:<%= b.color %>;"></i>
                 <span class="prof-badge-tip"><%= b.label %></span>
               </div>
             <% }); %>

@@ -56,21 +56,20 @@
       </div>
       <%
         var _flags = Number(user.publicFlags || 0);
-        var _BADGE = 'https://cdn.discordapp.com/badge-icons/';
         var _badges = [];
-        if (_flags & 1)      _badges.push({ label: t.home.badgeStaff,      img: 'staff.png' });
-        if (_flags & 2)      _badges.push({ label: t.home.badgePartner,     img: 'partner.png' });
-        if (_flags & 4)      _badges.push({ label: t.home.badgeHsEvents,    img: 'hypesquad.png' });
-        if (_flags & 8)      _badges.push({ label: t.home.badgeBug1,        img: 'bug_hunter_level_1.png' });
-        if (_flags & 64)     _badges.push({ label: t.home.badgeBravery,     img: 'hypesquad_house_1.png' });
-        if (_flags & 128)    _badges.push({ label: t.home.badgeBrilliance,  img: 'hypesquad_house_2.png' });
-        if (_flags & 256)    _badges.push({ label: t.home.badgeBalance,     img: 'hypesquad_house_3.png' });
-        if (_flags & 512)    _badges.push({ label: t.home.badgeEarlySupp,   img: 'early_supporter.png' });
-        if (_flags & 16384)  _badges.push({ label: t.home.badgeBug2,        img: 'bug_hunter_level_2.png' });
-        if (_flags & 131072) _badges.push({ label: t.home.badgeVerifDev,    img: 'verified_bot_developer.png' });
-        if (_flags & 262144) _badges.push({ label: t.home.badgeModAlumni,   img: 'certified_moderator.png' });
-        if (_flags & 4194304)_badges.push({ label: t.home.badgeActiveDev,   img: 'active_developer.png' });
-        if (Number(user.premiumType || 0) > 0) _badges.push({ label: t.home.badgeNitro, img: 'nitro.png' });
+        if (_flags & 1)       _badges.push({ label: t.home.badgeStaff,       icon: 'shield',        color: '#7289da' });
+        if (_flags & 2)       _badges.push({ label: t.home.badgePartner,      icon: 'badge-check',   color: '#3ba55c' });
+        if (_flags & 4)       _badges.push({ label: t.home.badgeHsEvents,     icon: 'calendar-days', color: '#faa61a' });
+        if (_flags & 8)       _badges.push({ label: t.home.badgeBug1,         icon: 'bug',           color: '#f4b267' });
+        if (_flags & 64)      _badges.push({ label: t.home.badgeBravery,      icon: 'flame',         color: '#e4405f' });
+        if (_flags & 128)     _badges.push({ label: t.home.badgeBrilliance,   icon: 'sparkles',      color: '#a855f7' });
+        if (_flags & 256)     _badges.push({ label: t.home.badgeBalance,      icon: 'leaf',          color: '#2ecc71' });
+        if (_flags & 512)     _badges.push({ label: t.home.badgeEarlySupp,    icon: 'heart',         color: '#eb459e' });
+        if (_flags & 16384)   _badges.push({ label: t.home.badgeBug2,         icon: 'shield-alert',  color: '#f48024' });
+        if (_flags & 131072)  _badges.push({ label: t.home.badgeVerifDev,     icon: 'code-2',        color: '#5865f2' });
+        if (_flags & 262144)  _badges.push({ label: t.home.badgeModAlumni,    icon: 'shield-check',  color: '#5c6bc0' });
+        if (_flags & 4194304) _badges.push({ label: t.home.badgeActiveDev,    icon: 'terminal',      color: '#23a55a' });
+        if (Number(user.premiumType || 0) > 0) _badges.push({ label: t.home.badgeNitro, icon: 'zap', color: '#5865f2' });
       %>
       <% if (_badges.length > 0) { %>
         <div class="prof-block">
@@ -78,8 +77,7 @@
           <div class="prof-badges">
             <% _badges.forEach(function(b) { %>
               <div class="prof-badge">
-                <img src="<%= _BADGE %><%= b.img %>" alt="<%= b.label %>"
-                  onerror="this.closest('.prof-badge').style.display='none'" />
+                <i data-lucide="<%= b.icon %>" style="width:16px;height:16px;stroke:<%= b.color %>;"></i>
                 <span class="prof-badge-tip"><%= b.label %></span>
               </div>
             <% }); %>
