@@ -1160,7 +1160,7 @@
           <div class="prof-badges">
             <% badges.forEach(b => { %>
               <div class="prof-badge">
-                <i data-lucide="<%= b.icon %>" style="width:16px;height:16px;stroke:<%= b.color %>;"></i>
+                <i data-lucide="<%= b.icon %>" class="bdg-icon" width="16" height="16" data-stroke="<%= b.color %>"></i>
                 <span class="prof-badge-tip"><%= b.label %></span>
               </div>
             <% }) %>
@@ -1356,7 +1356,7 @@
 
   <!-- Lucide -->
   <script src="/js/lucide.min.js"></script>
-  <script>lucide.createIcons();</script>
+  <script>lucide.createIcons();document.querySelectorAll('.bdg-icon').forEach(function(el){if(el.dataset.stroke)el.style.stroke=el.dataset.stroke;});</script>
   <script>
   /* ── Guild card stats fetch ── */
   (function () {
