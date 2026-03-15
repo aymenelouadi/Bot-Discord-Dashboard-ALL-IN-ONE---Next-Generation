@@ -526,6 +526,25 @@ app.get('/dashboard/:guildId', require('./middleware/auth'), (req, res) => {
     const langLabels = { ar: 'عربي', en: 'English' };
     const supported  = ['ar', 'en'];
 
+    // Server stats from Discord cache
+    const discordGuild = botClient ? botClient.guilds.cache.get(guildId) : null;
+    const memberCount  = discordGuild ? discordGuild.memberCount : null;
+    const channelCount = discordGuild ? discordGuild.channels.cache.size : null;
+    const roleCount    = discordGuild ? discordGuild.roles.cache.size : null;
+    const botPing      = botClient ? Math.round(botClient.ws.ping) : null;
+
+    // Module status from DB
+    const ticketsData  = guildDb.read(guildId, 'tickets', {});
+    const protData     = guildDb.read(guildId, 'protection', {});
+    const autoRoleData = guildDb.read(guildId, 'auto_role', {});
+    const panelCount   = Object.keys((ticketsData && ticketsData.panels) || {}).length;
+    const moduleStatus = {
+        protection: Object.keys(protData || {}).length > 0,
+        tickets:    panelCount > 0,
+        autoRoles:  !!(autoRoleData && autoRoleData.enabled),
+        levels:     Object.keys(levelsData).length > 0,
+    };
+
     res.render('guild', {
         user:       req.session.user,
         guildInfo,
@@ -540,6 +559,11 @@ app.get('/dashboard/:guildId', require('./middleware/auth'), (req, res) => {
         supported,
         guildId,
         isShip:     getIsShip(req.session.user?.id),
+        memberCount,
+        channelCount,
+        roleCount,
+        botPing,
+        moduleStatus,
     });
 });
 

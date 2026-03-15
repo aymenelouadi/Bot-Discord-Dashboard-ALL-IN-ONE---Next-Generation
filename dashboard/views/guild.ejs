@@ -1308,6 +1308,201 @@
         opacity: .6;
       }
     }
+
+    /* ── Server info header ─────────────────────────── */
+    .server-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px 26px;
+      backdrop-filter: blur(20px);
+      position: relative;
+      overflow: hidden;
+    }
+    .server-header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--cyan), transparent);
+    }
+    .server-header-icon {
+      width: 66px;
+      height: 66px;
+      border-radius: 18px;
+      object-fit: cover;
+      flex-shrink: 0;
+      filter: drop-shadow(0 4px 18px rgba(124,58,237,.45));
+    }
+    .server-header-icon-fallback {
+      width: 66px;
+      height: 66px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(124,58,237,.35), rgba(6,182,212,.2));
+      border: 1px solid rgba(124,58,237,.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--purple-l);
+      flex-shrink: 0;
+    }
+    .server-header-body { flex: 1; min-width: 0; }
+    .server-header-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, var(--white) 40%, var(--purple-l));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .server-header-id {
+      font-size: .62rem;
+      color: var(--muted);
+      font-family: 'Orbitron', monospace;
+      letter-spacing: .06em;
+      margin-top: 4px;
+    }
+    .server-header-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .server-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: .67rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      background: rgba(124,58,237,.12);
+      border: 1px solid rgba(124,58,237,.25);
+      color: var(--purple-l);
+    }
+    .server-chip.cyan {
+      background: rgba(6,182,212,.08);
+      border-color: rgba(6,182,212,.22);
+      color: var(--cyan-l);
+    }
+    .server-chip.green {
+      background: rgba(34,197,94,.08);
+      border-color: rgba(34,197,94,.25);
+      color: #4ade80;
+    }
+
+    /* ── Module status grid ─────────────────────────── */
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 12px;
+    }
+    .module-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: border-color .22s, box-shadow .22s;
+    }
+    .module-card:hover {
+      border-color: var(--border-h);
+      box-shadow: 0 0 24px -6px rgba(124,58,237,.18);
+    }
+    .module-card-left { display: flex; align-items: center; gap: 10px; }
+    .module-card-label {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .module-badge {
+      font-size: .58rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+    .module-badge.on {
+      background: rgba(34,197,94,.12);
+      border: 1px solid rgba(34,197,94,.3);
+      color: #4ade80;
+    }
+    .module-badge.off {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      color: var(--muted);
+    }
+
+    /* ── Quick actions ──────────────────────────────── */
+    .qa-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .qa-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-decoration: none;
+      border: 1px solid;
+      transition: background .2s, transform .18s, box-shadow .2s;
+      font-family: inherit;
+      cursor: pointer;
+      background: none;
+    }
+    .qa-btn:hover { transform: translateY(-2px); }
+    .qa-btn.purple {
+      background: rgba(124,58,237,.12);
+      border-color: rgba(124,58,237,.35);
+      color: var(--purple-l);
+    }
+    .qa-btn.purple:hover {
+      background: rgba(124,58,237,.22);
+      box-shadow: 0 4px 20px rgba(124,58,237,.25);
+    }
+    .qa-btn.cyan {
+      background: rgba(6,182,212,.08);
+      border-color: rgba(6,182,212,.25);
+      color: var(--cyan-l);
+    }
+    .qa-btn.cyan:hover {
+      background: rgba(6,182,212,.15);
+      box-shadow: 0 4px 20px rgba(6,182,212,.2);
+    }
+    .qa-btn.gold {
+      background: rgba(217,119,6,.08);
+      border-color: rgba(217,119,6,.25);
+      color: var(--gold-l);
+    }
+    .qa-btn.gold:hover {
+      background: rgba(217,119,6,.15);
+      box-shadow: 0 4px 20px rgba(217,119,6,.18);
+    }
+    .qa-btn.green {
+      background: rgba(34,197,94,.08);
+      border-color: rgba(34,197,94,.25);
+      color: #4ade80;
+    }
+    .qa-btn.green:hover {
+      background: rgba(34,197,94,.15);
+      box-shadow: 0 4px 20px rgba(34,197,94,.18);
+    }
   </style>
 </head>
 
@@ -1320,33 +1515,228 @@
 
   <!-- Main content -->
   <main class="main">
-    <!-- Overview section -->
+
+    <!-- ── Server Info Header ───────────────────────── -->
+    <section>
+      <div class="section-heading">
+        <div class="section-heading-icon">
+          <i data-lucide="server" style="width:16px;height:16px;stroke:var(--purple-l);"></i>
+        </div>
+        <h2><%= t.guild.serverInfoTitle %></h2>
+      </div>
+
+      <div class="server-header">
+        <% if (guildInfo.icon) { %>
+          <img
+            class="server-header-icon"
+            src="https://cdn.discordapp.com/icons/<%= guildId %>/<%= guildInfo.icon %>.png?size=128"
+            alt=""
+          />
+        <% } else { %>
+          <div class="server-header-icon-fallback">
+            <%= (guildInfo.name || '?')[0].toUpperCase() %>
+          </div>
+        <% } %>
+
+        <div class="server-header-body">
+          <div class="server-header-name"><%= guildInfo.name %></div>
+          <div class="server-header-id"><%= t.guild.serverId %>: <%= guildId %></div>
+          <div class="server-header-chips">
+            <% if (memberCount !== null) { %>
+              <span class="server-chip">
+                <i data-lucide="users" style="width:11px;height:11px;"></i>
+                <%= memberCount.toLocaleString() %> <%= t.guild.memberCount %>
+              </span>
+            <% } %>
+            <% if (channelCount !== null) { %>
+              <span class="server-chip cyan">
+                <i data-lucide="hash" style="width:11px;height:11px;"></i>
+                <%= channelCount %> <%= t.guild.channelsLabel %>
+              </span>
+            <% } %>
+            <% if (roleCount !== null) { %>
+              <span class="server-chip green">
+                <i data-lucide="shield" style="width:11px;height:11px;"></i>
+                <%= roleCount %> <%= t.guild.rolesLabel %>
+              </span>
+            <% } %>
+            <% if (botPing !== null) { %>
+              <span class="server-chip" style="background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.22);color:var(--gold-l);">
+                <i data-lucide="activity" style="width:11px;height:11px;"></i>
+                <%= botPing %><%= t.guild.msUnit %> <%= t.guild.pingLabel %>
+              </span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Server Stats ──────────────────────────────── -->
+    <% if (memberCount !== null || channelCount !== null || roleCount !== null || botPing !== null) { %>
+    <section>
+      <div class="section-heading">
+        <div class="section-heading-icon">
+          <i data-lucide="bar-chart-2" style="width:16px;height:16px;stroke:var(--purple-l);"></i>
+        </div>
+        <h2><%= t.guild.overview %></h2>
+      </div>
+
+      <div class="stats-grid">
+        <% if (memberCount !== null) { %>
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-label"><%= t.guild.memberCount %></div>
+            <div class="stat-value"><%= memberCount.toLocaleString() %></div>
+          </div>
+          <div class="stat-icon-wrap">
+            <i data-lucide="users" style="width:22px;height:22px;stroke:var(--purple-l);fill:rgba(124,58,237,.12);"></i>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (channelCount !== null) { %>
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-label"><%= t.guild.channelsLabel %></div>
+            <div class="stat-value" style="background:linear-gradient(135deg,var(--white) 30%,var(--cyan-l));-webkit-background-clip:text;background-clip:text;"><%= channelCount %></div>
+          </div>
+          <div class="stat-icon-wrap cyan">
+            <i data-lucide="hash" style="width:22px;height:22px;stroke:var(--cyan-l);fill:rgba(6,182,212,.1);"></i>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (roleCount !== null) { %>
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-label"><%= t.guild.rolesLabel %></div>
+            <div class="stat-value" style="background:linear-gradient(135deg,var(--white) 30%,#4ade80);-webkit-background-clip:text;background-clip:text;"><%= roleCount %></div>
+          </div>
+          <div class="stat-icon-wrap" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.2);">
+            <i data-lucide="shield" style="width:22px;height:22px;stroke:#4ade80;fill:rgba(34,197,94,.1);"></i>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (botPing !== null) { %>
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-label"><%= t.guild.pingLabel %></div>
+            <div class="stat-value" style="background:linear-gradient(135deg,var(--white) 30%,var(--gold-l));-webkit-background-clip:text;background-clip:text;"><%= botPing %><span style="font-size:.9rem;font-weight:600;-webkit-text-fill-color:var(--gold-l);opacity:.7;">ms</span></div>
+          </div>
+          <div class="stat-icon-wrap" style="background:rgba(217,119,6,.1);border-color:rgba(217,119,6,.2);">
+            <i data-lucide="activity" style="width:22px;height:22px;stroke:var(--gold-l);fill:rgba(217,119,6,.08);"></i>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- ── Module Status ─────────────────────────────── -->
+    <section>
+      <div class="section-heading">
+        <div class="section-heading-icon">
+          <i data-lucide="puzzle" style="width:16px;height:16px;stroke:var(--purple-l);"></i>
+        </div>
+        <h2><%= t.guild.moduleStatusTitle %></h2>
+      </div>
+
+      <div class="module-grid">
+        <div class="module-card">
+          <div class="module-card-left">
+            <i data-lucide="shield-check" style="width:18px;height:18px;stroke:<%= moduleStatus.protection ? '#4ade80' : 'var(--muted)' %>;flex-shrink:0;"></i>
+            <span class="module-card-label"><%= t.guild.modProtection %></span>
+          </div>
+          <span class="module-badge <%= moduleStatus.protection ? 'on' : 'off' %>">
+            <%= moduleStatus.protection ? t.guild.enabledBadge : t.guild.disabledBadge %>
+          </span>
+        </div>
+
+        <div class="module-card">
+          <div class="module-card-left">
+            <i data-lucide="ticket" style="width:18px;height:18px;stroke:<%= moduleStatus.tickets ? '#4ade80' : 'var(--muted)' %>;flex-shrink:0;"></i>
+            <span class="module-card-label"><%= t.guild.modTickets %></span>
+          </div>
+          <span class="module-badge <%= moduleStatus.tickets ? 'on' : 'off' %>">
+            <%= moduleStatus.tickets ? t.guild.enabledBadge : t.guild.disabledBadge %>
+          </span>
+        </div>
+
+        <div class="module-card">
+          <div class="module-card-left">
+            <i data-lucide="user-plus" style="width:18px;height:18px;stroke:<%= moduleStatus.autoRoles ? '#4ade80' : 'var(--muted)' %>;flex-shrink:0;"></i>
+            <span class="module-card-label"><%= t.guild.modAutoRoles %></span>
+          </div>
+          <span class="module-badge <%= moduleStatus.autoRoles ? 'on' : 'off' %>">
+            <%= moduleStatus.autoRoles ? t.guild.enabledBadge : t.guild.disabledBadge %>
+          </span>
+        </div>
+
+        <div class="module-card">
+          <div class="module-card-left">
+            <i data-lucide="trending-up" style="width:18px;height:18px;stroke:<%= moduleStatus.levels ? '#4ade80' : 'var(--muted)' %>;flex-shrink:0;"></i>
+            <span class="module-card-label"><%= t.guild.modLevels %></span>
+          </div>
+          <span class="module-badge <%= moduleStatus.levels ? 'on' : 'off' %>">
+            <%= moduleStatus.levels ? t.guild.enabledBadge : t.guild.disabledBadge %>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Quick Actions ─────────────────────────────── -->
+    <section>
+      <div class="section-heading">
+        <div class="section-heading-icon">
+          <i data-lucide="zap" style="width:16px;height:16px;stroke:var(--purple-l);"></i>
+        </div>
+        <h2><%= t.guild.quickActionsTitle %></h2>
+      </div>
+
+      <div class="qa-grid">
+        <a href="/dashboard/<%= guildId %>/protection" class="qa-btn purple">
+          <i data-lucide="shield-check" style="width:15px;height:15px;"></i>
+          <%= t.guild.qaProtection %>
+        </a>
+        <a href="/dashboard/<%= guildId %>/tickets" class="qa-btn cyan">
+          <i data-lucide="ticket" style="width:15px;height:15px;"></i>
+          <%= t.guild.qaTickets %>
+        </a>
+        <a href="/dashboard/<%= guildId %>/auto-role" class="qa-btn green">
+          <i data-lucide="user-plus" style="width:15px;height:15px;"></i>
+          <%= t.guild.qaAutoRoles %>
+        </a>
+        <a href="/dashboard/<%= guildId %>/levels" class="qa-btn gold">
+          <i data-lucide="trending-up" style="width:15px;height:15px;"></i>
+          <%= t.guild.qaLevels %>
+        </a>
+        <a href="/dashboard/<%= guildId %>/settings" class="qa-btn purple" style="opacity:.75;">
+          <i data-lucide="settings" style="width:15px;height:15px;"></i>
+          <%= t.guild.qaSettings %>
+        </a>
+      </div>
+    </section>
+
+    <!-- ── Your Activity ─────────────────────────────── -->
     <section>
       <div class="section-heading">
         <div class="section-heading-icon">
           <i data-lucide="layout-dashboard" style="width:16px;height:16px;stroke:var(--purple-l);"></i>
         </div>
-        <h2>
-          <%= t.guild.overview %>
-        </h2>
+        <h2><%= t.guild.yourStatsTitle %></h2>
       </div>
 
       <div class="stats-grid">
         <!-- Level card -->
         <div class="stat-card">
           <div class="stat-info">
-            <div class="stat-label">
-              <%= t.guild.levelLabel %>
-            </div>
-            <% if (userLevel && userLevel.level !=null) { %>
-              <div class="stat-value">
-                <%= userLevel.level %>
-              </div>
-              <% } else { %>
-                <div class="stat-value no-data">
-                  <%= t.guild.noData %>
-                </div>
-                <% } %>
+            <div class="stat-label"><%= t.guild.levelLabel %></div>
+            <% if (userLevel && userLevel.level != null) { %>
+              <div class="stat-value"><%= userLevel.level %></div>
+            <% } else { %>
+              <div class="stat-value no-data"><%= t.guild.noData %></div>
+            <% } %>
           </div>
           <div class="stat-icon-wrap">
             <i data-lucide="zap" style="width:22px;height:22px;stroke:var(--purple-l);fill:rgba(124,58,237,.12);"></i>
@@ -1356,18 +1746,12 @@
         <!-- Rank card -->
         <div class="stat-card">
           <div class="stat-info">
-            <div class="stat-label">
-              <%= t.guild.rankLabel %>
-            </div>
-            <% if (rank !=null) { %>
-              <div class="stat-value">
-                <%= rank %>
-              </div>
-              <% } else { %>
-                <div class="stat-value no-data">
-                  <%= t.guild.noData %>
-                </div>
-                <% } %>
+            <div class="stat-label"><%= t.guild.rankLabel %></div>
+            <% if (rank != null) { %>
+              <div class="stat-value"><%= rank %></div>
+            <% } else { %>
+              <div class="stat-value no-data"><%= t.guild.noData %></div>
+            <% } %>
           </div>
           <div class="stat-icon-wrap cyan">
             <i data-lucide="award" style="width:22px;height:22px;stroke:var(--cyan-l);fill:rgba(6,182,212,.1);"></i>
@@ -1375,6 +1759,7 @@
         </div>
       </div>
     </section>
+
   </main>
 
   <%- include('partials/promo_card') %>
