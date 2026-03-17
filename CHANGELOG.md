@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v5.1.1] — 2026-03-17 ✨ New Systems & Improvements
+
+### ✨ New Systems
+
+#### 🤖 Auto Responder
+- Rule-based auto-reply system — configure trigger keywords and bot responses per guild
+- Match modes: exact, contains, starts-with, and regex
+- Full dashboard admin page (`/dashboard/:id/auto-responder`)
+
+#### 💡 Suggestions System
+- Members can submit suggestions to a dedicated channel
+- Dashboard controls: approve, reject, and manage suggestion entries
+- Full dashboard admin page (`/dashboard/:id/suggestions`)
+
+#### ⭐ Staff Points
+- Reward staff members with points for activity and contributions
+- Leaderboard view and per-member history
+- Full dashboard admin page (`/dashboard/:id/staff-points`)
+
+#### 🎟️ Ticket Points
+- Award points to staff for handling and closing tickets
+- Integrates with the existing ticket system
+- Full dashboard admin page (`/dashboard/:id/ticket-points`)
+
+#### 💬 Interaction Points
+- Track and reward member engagement (messages, reactions, voice time)
+- Per-guild leaderboard with configurable role reward thresholds
+- Full dashboard admin page (`/dashboard/:id/interaction-points`)
+
+### 📊 Activity Tracking
+- New `activityTracker` utility records hourly guild stats to `dashboard/database/<guildId>/activity.json`
+- Tracked metrics: member joins, member leaves, messages sent, voice channel joins
+- New API endpoint: `GET /dashboard/:guildId/stats/activity`
+
+### 🌐 Dashboard Improvements
+- **Guild overview** — 4 ApexCharts sparkline cards (Joins / Leaves / Messages / Voice) fed by the activity tracker
+- **Module Status** expanded from 4 to 8 cards: Protection, Tickets, Auto Roles, Levels, Auto Responder, Suggestions, Staff Points, Interaction Points
+- **Quick Actions** expanded with 4 new buttons linking to the new system pages
+
+### 🌍 Multi-Language Expansion
+- Added 9 new language packs: French (`fr`), German (`de`), Spanish (`es`), Russian (`ru`), Portuguese (`pt`), Hindi (`hi`), Bengali (`bn`), Urdu (`ur`), Chinese (`zh`)
+- Total supported languages: **11** (en, ar, fr, de, es, ru, pt, hi, bn, ur, zh)
+
+### 🎨 Intro Screen v2
+- Redesigned intro screen with loading bar animation, fact card, and version badge
+- Title: `System Pro — v5.1.1`, badge: `VERSION 5.1.1 · STABLE`
+
+---
+
 ## [v5.0.0] — 2026-03-08 🚀 Initial Public Release
 
 ### ✨ Features

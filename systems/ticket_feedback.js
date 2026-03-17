@@ -186,6 +186,15 @@ async function handleFeedbackButton(interaction, client) {
     guildDb.write(fbGuildId, 'ticket_feedback', db);
     _emitFeedbackUpdate(fbGuildId);
 
+    // ── Staff Points: award rating-based points to ticket claimer ─────────
+    try {
+        const staffPoints = require('./staff_points');
+        await staffPoints.awardRatingPoints(
+            client, fbGuildId, ticket?.claimedBy,
+            rating, ticketId, interaction.user.id
+        );
+    } catch (_e) { /* non-critical */ }
+
     // Post to feedback results channel if configured
     if (panel?.feedbackChannel && client) {
         try {
@@ -258,6 +267,15 @@ async function handleFeedbackModal(interaction, client) {
     });
     guildDb.write(guildId, 'ticket_feedback', db);
     _emitFeedbackUpdate(guildId);
+
+    // ── Staff Points: award rating-based points to ticket claimer ─────────
+    try {
+        const staffPoints = require('./staff_points');
+        await staffPoints.awardRatingPoints(
+            client, guildId, ticket?.claimedBy,
+            rating, ticketId, interaction.user.id
+        );
+    } catch (_e) { /* non-critical */ }
 
     // Confirmation card (ephemeral to user)
     const stars     = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);

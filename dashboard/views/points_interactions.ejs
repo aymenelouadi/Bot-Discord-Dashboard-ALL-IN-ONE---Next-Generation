@@ -1,0 +1,1016 @@
+﻿<%#
+  This project was programmed by the Code Nexus team.
+  If you encounter any problems, open an Issue or log into the Discord server:
+  https://discord.gg/UvEYbFd2rj
+%>
+<!DOCTYPE html>
+<html lang="<%= t.lang %>" dir="<%= t.dir %>">
+<head>
+  <%- include('partials/head_theme') %>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= guildInfo.name %> &mdash; Interaction Points</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Tajawal:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#040010;--surface:rgba(255,255,255,.04);--surface-2:rgba(255,255,255,.07);
+      --card:rgba(10,3,30,.78);--purple:#7c3aed;--purple-l:#a78bfa;
+      --cyan:#06b6d4;--cyan-l:#67e8f9;--gold:#d97706;--gold-l:#fcd34d;
+      --green:#22c55e;--border:rgba(124,58,237,.2);--border-h:rgba(124,58,237,.5);
+      --muted:rgba(203,194,255,.5);--white:#f8fafc;--nav-w:64px;--mgmt-w:220px;
+    }
+    html,body{min-height:100%;}
+    body{background:var(--bg);color:var(--white);font-family:'<%= t.fontBody %>','Tajawal','Inter',system-ui,sans-serif;line-height:1.6;overflow-x:hidden;}
+    #c{position:fixed;inset:0;z-index:0;pointer-events:none;}
+    .glow{position:fixed;border-radius:50%;pointer-events:none;z-index:1;filter:blur(120px);animation:glow-drift 22s ease-in-out infinite alternate;}
+    .glow-a{width:min(600px,80vw);height:min(600px,80vw);top:-20%;right:-16%;background:radial-gradient(circle,rgba(124,58,237,.28) 0%,transparent 65%);}
+    .glow-b{width:min(500px,70vw);height:min(500px,70vw);bottom:-18%;left:-12%;background:radial-gradient(circle,rgba(6,182,212,.18) 0%,transparent 65%);animation-delay:-11s;}
+    @keyframes glow-drift{from{transform:translate(0,0) scale(1);}to{transform:translate(20px,15px) scale(1.06);}}
+    /* Topbar */
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(4,0,16,.8);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);gap:12px;}
+    .topbar-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+    .guild-icon-top{width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid rgba(124,58,237,.35);box-shadow:0 2px 12px rgba(124,58,237,.25);}
+    .guild-icon-top-fallback{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,.35),rgba(6,182,212,.2));border:1px solid rgba(124,58,237,.35);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:.85rem;font-weight:800;color:var(--purple-l);flex-shrink:0;}
+    .guild-meta{min-width:0;}
+    .guild-meta-name{font-size:.88rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+    .guild-meta-id{font-size:.6rem;color:var(--muted);font-family:'Orbitron',monospace;letter-spacing:.05em;white-space:nowrap;}
+    .topbar-sep{width:1px;height:28px;background:rgba(255,255,255,.08);flex-shrink:0;}
+    .topbar-brand{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+    .topbar-brand img{width:26px;height:26px;border-radius:7px;box-shadow:0 2px 10px rgba(124,58,237,.3);}
+    .topbar-brand span{font-family:'Orbitron',monospace;font-size:.78rem;font-weight:800;letter-spacing:.1em;background:linear-gradient(135deg,var(--white),var(--purple-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .user-chip{display:flex;align-items:center;gap:7px;padding:4px 10px 4px 5px;border-radius:99px;background:var(--surface);border:1px solid rgba(255,255,255,.08);cursor:pointer;}
+    .user-chip-av{width:26px;height:26px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;}
+    .user-chip-av-fallback{width:26px;height:26px;border-radius:50%;background:rgba(124,58,237,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .user-chip span{font-size:.78rem;font-weight:500;}
+    .lang-select{background:var(--surface);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--white);font-size:.8rem;font-weight:600;padding:6px 30px 6px 10px;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;background-size:12px;transition:border-color .18s,background-color .18s;min-width:100px;}
+    .lang-select:hover{border-color:rgba(124,58,237,.5);background-color:rgba(124,58,237,.08);}
+    .lang-select option{background:#0a0022;color:var(--white);}
+    .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:var(--surface);border:1px solid rgba(255,255,255,.08);color:var(--white);cursor:pointer;transition:background .18s;flex-shrink:0;}
+    .menu-toggle:hover{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4);}
+    .nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:88;backdrop-filter:blur(2px);}
+    .nav-overlay.open{display:block;}
+    /* Nav Sidebar */
+    .nav-sidebar{position:fixed;top:60px;bottom:0;left:0;width:var(--nav-w);z-index:90;background:rgba(4,0,16,.92);border-right:1px solid rgba(255,255,255,.06);backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;padding:10px 0 16px;gap:4px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;transition:width .28s cubic-bezier(.22,1,.36,1);}
+    .nav-sidebar::-webkit-scrollbar{display:none;}
+    .nav-sidebar:hover{width:220px;align-items:stretch;overflow-x:unset;}
+    [dir="rtl"] .nav-sidebar{left:auto;right:0;border-right:none;border-left:1px solid rgba(255,255,255,.06);}
+    .nav-back{display:flex;align-items:center;gap:0;width:40px;min-height:40px;color:var(--purple-l);text-decoration:none;transition:width 350ms cubic-bezier(0.4,0,0.2,1),gap 350ms cubic-bezier(0.4,0,0.2,1),padding 350ms cubic-bezier(0.4,0,0.2,1);flex-shrink:0;overflow:visible;padding:0;justify-content:flex-start;border-radius:0;background:none;border:none;}
+    .nav-back .nav-icon{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--purple);border-radius:.6rem;padding:7px;box-sizing:border-box;transition:background 350ms cubic-bezier(0.4,0,0.2,1);}
+    .nav-back:hover .nav-icon{background:#8b5cf6;}
+    .nav-back .nav-label{font-size:.78rem;font-weight:600;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity 350ms cubic-bezier(0.4,0,0.2,1),visibility 350ms cubic-bezier(0.4,0,0.2,1);pointer-events:none;color:var(--white);}
+    .nav-sidebar:hover .nav-back{width:100%;gap:10px;padding:0 12px 0 8px;}
+    [dir="rtl"] .nav-sidebar:hover .nav-back{padding:0 8px 0 12px;}
+    .nav-sidebar:hover .nav-back .nav-label{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-divider{width:32px;height:1px;background:rgba(255,255,255,.08);margin:4px 0;flex-shrink:0;transition:width .28s;}
+    .nav-sidebar:hover .nav-divider{width:calc(100% - 24px);}
+    .nav-item{display:flex;align-items:center;gap:0;width:40px;min-height:40px;border-radius:0;background:none;text-decoration:none;flex-shrink:0;position:relative;overflow:visible;transition:gap 350ms cubic-bezier(0.4,0,0.2,1),width 350ms cubic-bezier(0.4,0,0.2,1),padding 350ms cubic-bezier(0.4,0,0.2,1);padding:0;justify-content:flex-start;}
+    .nav-item-icon{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;position:relative;}
+    .nav-item-icon img{width:40px;height:40px;object-fit:cover;display:block;border-radius:50%;}
+    .nav-item-fallback{width:40px;height:40px;background:linear-gradient(135deg,rgba(124,58,237,.5),rgba(6,182,212,.3));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:.8rem;font-weight:800;color:var(--white);border-radius:50%;}
+    .nav-status{position:absolute;bottom:2px;right:2px;width:10px;height:10px;border-radius:50%;border:2px solid rgba(4,0,16,.92);flex-shrink:0;transition:opacity .2s;}
+    .nav-status.on{background:#23a55a;box-shadow:0 0 5px rgba(35,165,90,.7);}
+    .nav-status.off{background:#ef4444;box-shadow:0 0 5px rgba(239,68,68,.6);}
+    .nav-item-label{display:flex;align-items:center;gap:8px;min-width:0;flex:1;opacity:0;visibility:hidden;transition:opacity 350ms cubic-bezier(0.4,0,0.2,1),visibility 350ms cubic-bezier(0.4,0,0.2,1);pointer-events:none;}
+    .nav-item-name{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--white);}
+    .nav-item-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-left:auto;}
+    .nav-item-dot.on{background:#23a55a;box-shadow:0 0 4px rgba(35,165,90,.7);}
+    .nav-item-dot.off{background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);}
+    .nav-sidebar:hover .nav-item{width:100%;gap:10px;padding:0 12px 0 8px;justify-content:flex-start;border-radius:10px;}
+    [dir="rtl"] .nav-sidebar:hover .nav-item{padding:0 8px 0 12px;}
+    .nav-sidebar:hover .nav-item-label{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-sidebar:hover .nav-status{opacity:0;}
+    .nav-item.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:22px;border-radius:0 3px 3px 0;background:var(--purple-l);flex-shrink:0;}
+    [dir="rtl"] .nav-item.active::before{left:auto;right:-8px;border-radius:3px 0 0 3px;}
+    /* Mgmt Sidebar */
+    .mgmt-sidebar{position:fixed;top:60px;bottom:0;left:var(--nav-w);width:var(--mgmt-w);z-index:92;background:rgba(6,2,20,.97);border-right:1px solid rgba(255,255,255,.06);backdrop-filter:blur(20px);display:flex;flex-direction:column;overflow:hidden;transition:transform 350ms cubic-bezier(0.4,0,0.2,1);}
+    [dir="rtl"] .mgmt-sidebar{left:auto;right:var(--nav-w);border-right:none;border-left:1px solid rgba(255,255,255,.06);}
+    .mgmt-header{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.05);}
+    .mgmt-header-inner{display:flex;align-items:center;gap:8px;min-width:0;}
+    .mgmt-header-icon{display:flex;align-items:center;justify-content:center;background:rgba(136,144,161,.12);border-radius:11px;width:35px;height:35px;flex-shrink:0;color:var(--muted);}
+    .mgmt-header-title{font-size:.78rem;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .mgmt-sort-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;padding:0;flex-shrink:0;transition:background .15s,color .15s;}
+    .mgmt-sort-btn:hover{background:rgba(255,255,255,.06);color:var(--white);}
+    .mgmt-body{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,.25) transparent;padding-bottom:8px;}
+    .mgmt-body::-webkit-scrollbar{width:3px;}
+    .mgmt-body::-webkit-scrollbar-track{background:transparent;}
+    .mgmt-body::-webkit-scrollbar-thumb{background:rgba(124,58,237,.3);border-radius:3px;}
+    .mgmt-nav{padding:8px 10px 0;}
+    .mgmt-section{margin-bottom:2px;}
+    .mgmt-section-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:none;border:none;border-radius:10px;cursor:pointer;color:var(--white);font-family:inherit;font-size:.76rem;font-weight:700;letter-spacing:.02em;transition:background .15s;}
+    .mgmt-section-btn:hover{background:rgba(255,255,255,.04);}
+    .mgmt-sec-chevron{color:var(--muted);flex-shrink:0;transform:rotate(180deg);transition:transform 300ms cubic-bezier(0.4,0,0.2,1);}
+    .mgmt-section-btn.open .mgmt-sec-chevron{transform:rotate(0deg);}
+    .mgmt-sec-body{overflow:hidden;max-height:0;transition:max-height 350ms cubic-bezier(0.4,0,0.2,1);}
+    .mgmt-sec-body.open{max-height:800px;}
+    .mgmt-item{display:flex;align-items:center;gap:0;padding:5px 8px 5px 0;border-radius:8px;text-decoration:none;color:var(--muted);font-size:.78rem;font-weight:600;position:relative;cursor:pointer;transition:background .15s,color .15s;width:100%;border:none;background:none;font-family:inherit;}
+    .mgmt-item:hover:not(.disabled){background:rgba(255,255,255,.04);color:var(--white);}
+    .mgmt-item.active{color:var(--white);}
+    .mgmt-item.disabled{cursor:default;opacity:.6;}
+    .mgmt-item-indicator{width:3px;height:0;border-radius:0 3px 3px 0;background:var(--purple);box-shadow:0 0 10px rgba(104,31,209,.6);margin-right:8px;flex-shrink:0;transition:height 300ms cubic-bezier(0.4,0,0.2,1);}
+    .mgmt-item.active .mgmt-item-indicator{height:1.6rem;}
+    [dir="rtl"] .mgmt-item-indicator{border-radius:3px 0 0 3px;margin-right:0;margin-left:8px;}
+    .mgmt-item-icon{display:flex;align-items:center;justify-content:center;width:28px;height:28px;flex-shrink:0;border-radius:8px;margin-right:8px;color:inherit;}
+    [dir="rtl"] .mgmt-item-icon{margin-right:0;margin-left:8px;}
+    .mgmt-item-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .mgmt-badge{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid rgba(255,255,255,.1);color:var(--muted);background:rgba(255,255,255,.05);flex-shrink:0;letter-spacing:.03em;margin-left:4px;}
+    [dir="rtl"] .mgmt-badge{margin-left:0;margin-right:4px;}
+    .mgmt-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--purple);border-radius:16px 16px 0 0;flex-shrink:0;position:sticky;bottom:0;}
+    .mgmt-footer-user{display:flex;align-items:center;gap:8px;min-width:0;}
+    .mgmt-footer-av{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.25);}
+    .mgmt-footer-av-fallback{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;color:var(--white);flex-shrink:0;}
+    .mgmt-footer-name{font-size:.78rem;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+    .mgmt-footer-dots{background:none;border:none;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:6px;flex-shrink:0;transition:background .15s;}
+    .mgmt-footer-dots:hover{background:rgba(255,255,255,.18);}
+    /* Main */
+    .main{position:relative;z-index:10;min-height:calc(100vh - 60px);margin-top:60px;margin-left:calc(var(--nav-w) + var(--mgmt-w));padding:36px 32px 60px;max-width:calc(1100px + var(--nav-w) + var(--mgmt-w));}
+    [dir="rtl"] .main{margin-left:0;margin-right:calc(var(--nav-w) + var(--mgmt-w));}
+    /* Page transitions */
+    @keyframes pIn{from{opacity:1}to{opacity:0}}
+    @keyframes pOut{from{opacity:0}to{opacity:1}}
+    #ov{position:fixed;inset:0;z-index:9999;background:#040010;animation:pIn .45s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none;}
+    #ov.leave{animation:pOut .35s cubic-bezier(.4,0,.2,1) forwards;pointer-events:all;}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    /* Toast */
+    .toast{position:fixed;bottom:90px;right:24px;z-index:999;padding:12px 20px;border-radius:12px;display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);transition:all .3s;transform:translateY(20px);opacity:0;pointer-events:none;}
+    .toast.show{transform:translateY(0);opacity:1;pointer-events:auto;}
+    .toast.success{background:rgba(22,163,74,.9);border:1px solid rgba(34,197,94,.4);color:#fff;}
+    .toast.error{background:rgba(185,28,28,.9);border:1px solid rgba(239,68,68,.4);color:#fff;}
+    [dir="rtl"] .toast{right:auto;left:24px;}
+    /* Page header */
+    .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:28px;}
+    .page-header-left{display:flex;align-items:center;gap:14px;}
+    .page-header-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(6,182,212,.15));border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--purple-l);}
+    .page-header-left h2{font-size:1.35rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px;}
+    .page-header-left p{font-size:.82rem;color:var(--muted);}
+    .divider{height:1px;background:linear-gradient(90deg,var(--border),transparent);margin-bottom:28px;}
+    /* Card */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;backdrop-filter:blur(20px);}
+    /* ── Switch ── */
+    .sw-wrap{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
+    .sw-input{display:none;}
+    .sw-track{width:46px;height:26px;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.12);position:relative;flex-shrink:0;transition:background .22s,border-color .22s;cursor:pointer;}
+    .sw-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.55);transition:transform .22s cubic-bezier(.34,1.56,.64,1),background .22s;}
+    .sw-input:checked ~ .sw-track{background:var(--purple);border-color:var(--purple);}
+    .sw-input:checked ~ .sw-track .sw-thumb{transform:translateX(20px);background:#fff;}
+    .sw-label{font-size:.88rem;font-weight:600;color:var(--white);}
+    /* ── System enable banner ── */
+    .sys-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.22);border-radius:16px;margin-bottom:22px;}
+    .sys-banner-info{display:flex;align-items:center;gap:14px;min-width:0;}
+    .sys-banner-icon{width:42px;height:42px;border-radius:12px;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--purple-l);}
+    .sys-banner-title{font-size:1rem;font-weight:700;}
+    .sys-banner-sub{font-size:.8rem;color:var(--muted);margin-top:2px;}
+    /* ── Section card ── */
+    .sec-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:visible;margin-bottom:16px;transition:border-color .2s;}
+    .sec-card:hover{border-color:var(--border-h);}
+    .sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;cursor:pointer;}
+    .sec-head-left{display:flex;align-items:center;gap:12px;min-width:0;}
+    .sec-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .sec-icon.purple{background:rgba(124,58,237,.15);color:var(--purple-l);}
+    .sec-icon.cyan{background:rgba(6,182,212,.12);color:var(--cyan-l);}
+    .sec-icon.gold{background:rgba(217,119,6,.12);color:var(--gold-l);}
+    .sec-icon.green{background:rgba(34,197,94,.1);color:var(--green);}
+    .sec-icon.red{background:rgba(239,68,68,.1);color:#fca5a5;}
+    .sec-icon.blue{background:rgba(59,130,246,.12);color:#93c5fd;}
+    .sec-icon.rose{background:rgba(244,63,94,.1);color:#fda4af;}
+    .sec-title{font-size:.9rem;font-weight:700;}
+    .sec-sub{font-size:.76rem;color:var(--muted);margin-top:1px;}
+    .sec-chevron{color:var(--muted);flex-shrink:0;transition:transform .25s;}
+    .sec-card.open .sec-chevron{transform:rotate(180deg);}
+    .sec-body{display:none;padding:0 20px 20px;border-top:1px solid rgba(255,255,255,.05);padding-top:18px;}
+    .sec-card.open .sec-body{display:block;}
+    /* ── Form fields ── */
+    .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+    .field-grid.solo{grid-template-columns:1fr;}
+    .field-grid.thirds{grid-template-columns:1fr 1fr 1fr;}
+    .field{display:flex;flex-direction:column;gap:6px;}
+    .field-label{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+    .field-input,.field-select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--white);font-family:inherit;font-size:.88rem;padding:10px 13px;outline:none;transition:border-color .18s,background .18s;width:100%;}
+    .field-input:focus,.field-select:focus{border-color:rgba(124,58,237,.55);background:rgba(124,58,237,.07);}
+    .field-select{-webkit-appearance:none;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;background-size:12px;padding-right:32px;}
+    .field-select option{background:#0a0022;color:var(--white);}
+    /* ── Toggle row ── */
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+    .toggle-row:last-child{border-bottom:none;}
+    .toggle-row-label{font-size:.86rem;font-weight:600;}
+    .toggle-row-sub{font-size:.76rem;color:var(--muted);margin-top:1px;}
+    /* ── Channel/role picker ── */
+    .picker-wrap{position:relative;}
+    .picker-input-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 10px;min-height:44px;cursor:text;transition:border-color .18s;}
+    .picker-input-row:focus-within{border-color:rgba(124,58,237,.55);}
+    .picker-search{background:none;border:none;outline:none;color:var(--white);font-family:inherit;font-size:.84rem;min-width:80px;flex:1;padding:2px 4px;}
+    .picker-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 10px;border-radius:99px;font-size:.75rem;font-weight:600;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.35);color:var(--cyan-l);white-space:nowrap;}
+    .picker-chip.role-chip{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.35);color:var(--purple-l);}
+    .picker-chip-del{background:none;border:none;color:inherit;opacity:.6;cursor:pointer;padding:0 1px;display:flex;align-items:center;}
+    .picker-chip-del:hover{opacity:1;}
+    .picker-dropdown{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:50;background:rgba(8,2,22,.97);border:1px solid rgba(124,58,237,.3);border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.6);max-height:220px;overflow-y:auto;display:none;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,.25) transparent;}
+    .picker-dropdown.open{display:block;}
+    .picker-opt{padding:9px 14px;font-size:.84rem;cursor:pointer;color:var(--white);transition:background .13s;display:flex;align-items:center;gap:8px;}
+    .picker-opt:hover{background:rgba(124,58,237,.15);}
+    .picker-empty{padding:14px;font-size:.82rem;color:var(--muted);text-align:center;}
+    /* ── Bonus role row ── */
+    .bonus-row{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;margin-bottom:8px;flex-wrap:wrap;}
+    .bonus-role-sel{flex:1;min-width:140px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--white);font-family:inherit;font-size:.84rem;padding:7px 30px 7px 10px;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;background-size:12px;}
+    .bonus-role-sel option{background:#0a0022;}
+    .bonus-mult-input{width:80px;flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--white);font-family:inherit;font-size:.84rem;padding:7px 10px;outline:none;transition:border-color .18s;text-align:center;}
+    .bonus-mult-input:focus{border-color:rgba(34,197,94,.45);}
+    .btn-del-bonus{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;border-radius:8px;cursor:pointer;padding:7px 9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
+    .btn-del-bonus:hover{background:rgba(239,68,68,.2);}
+    .btn-add-bonus{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;margin-top:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--green);border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;}
+    .btn-add-bonus:hover{background:rgba(34,197,94,.18);}
+    /* ── Save bar ── */
+    .save-bar{position:fixed;bottom:0;left:calc(var(--nav-w) + var(--mgmt-w));right:0;z-index:80;background:rgba(4,0,16,.92);border-top:1px solid rgba(124,58,237,.25);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 32px;transition:transform .28s cubic-bezier(.22,1,.36,1);transform:translateY(110%);}
+    [dir="rtl"] .save-bar{left:0;right:calc(var(--nav-w) + var(--mgmt-w));}
+    .save-bar.visible{transform:translateY(0);}
+    .save-bar-text{font-size:.88rem;font-weight:600;color:var(--muted);}
+    .save-bar-actions{display:flex;gap:10px;}
+    .btn-discard{padding:9px 18px;border-radius:10px;background:var(--surface);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:.84rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .18s,color .18s;}
+    .btn-discard:hover{background:var(--surface-2);color:var(--white);}
+    .btn-save-main{padding:9px 22px;border-radius:10px;background:var(--purple);border:none;color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .18s;display:flex;align-items:center;gap:7px;}
+    .btn-save-main:hover{background:#8b5cf6;}
+    .btn-save-main.loading{opacity:.7;pointer-events:none;}
+    /* ── Misc ── */
+    .sec-divider{height:1px;background:rgba(255,255,255,.06);margin:14px 0;}
+    .tip{font-size:.78rem;color:var(--muted);background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:9px;padding:8px 12px;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;}
+    .tip svg{flex-shrink:0;margin-top:1px;color:var(--purple-l);}
+    /* Responsive */
+    @media (max-width: 900px) {
+      :root{--nav-w:0px;}
+      .menu-toggle{display:flex;}
+      .nav-sidebar{transform:translateX(-100%);width:220px!important;align-items:stretch;overflow-x:unset;z-index:95;transition:transform 350ms cubic-bezier(0.4,0,0.2,1);}
+      [dir="rtl"] .nav-sidebar{transform:translateX(100%);}
+      .nav-sidebar.open{transform:translateX(0)!important;box-shadow:4px 0 24px rgba(0,0,0,.5);}
+      .nav-sidebar.open .nav-back{width:100%;gap:10px;padding:0 12px 0 8px;}
+      .nav-sidebar.open .nav-back .nav-label{opacity:1;visibility:visible;pointer-events:auto;}
+      .nav-sidebar.open .nav-item{width:100%;gap:10px;padding:0 12px 0 8px;justify-content:flex-start;border-radius:10px;}
+      .nav-sidebar.open .nav-item-label{opacity:1;visibility:visible;pointer-events:auto;}
+      .nav-sidebar.open .nav-status{opacity:0;}
+      .nav-sidebar.open .nav-divider{width:calc(100% - 24px);}
+      .mgmt-sidebar{transform:translateX(-110%);}
+      [dir="rtl"] .mgmt-sidebar{transform:translateX(110%);}
+      .mgmt-sidebar.open{transform:translateX(0);}
+      .main{margin-left:0;margin-right:0;padding:24px 16px 100px;}
+      .topbar{padding:0 12px;gap:8px;}
+      .topbar-brand{display:none;}
+      .guild-meta-id{display:none!important;}
+      .guild-meta-name{max-width:90px;}
+      .user-chip span{display:none;}
+      .user-chip{padding:4px 7px;}
+      .topbar-sep{display:none;}
+      .lang-select{display:none;}
+      .save-bar{left:0!important;right:0!important;}
+    }
+    @media (max-width: 768px) {
+      .field-grid{grid-template-columns:1fr;}
+      .field-grid.thirds{grid-template-columns:1fr;}
+      .bonus-row{flex-wrap:wrap;}
+      .bonus-role-sel,.bonus-mult-input{flex:1 1 100%;}
+      .save-bar{left:0!important;right:0!important;flex-wrap:wrap;gap:8px;padding:12px 16px;}
+      .save-bar-text{width:100%;font-size:.82rem;}
+      .save-bar-actions{width:100%;justify-content:flex-end;}
+    }
+    @media (max-width: 600px) {
+      .main{padding:20px 12px 100px;}
+      .cn-ks-hint{display:none;}
+    }
+    /* Profile Sidebar */
+    .profile-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0);pointer-events:none;transition:background .28s;}
+    .profile-backdrop.open{background:rgba(0,0,0,.55);pointer-events:all;}
+    .profile-sidebar{position:fixed;top:0;right:0;bottom:0;z-index:201;width:300px;max-width:92vw;background:rgba(8,2,22,.97);border-left:1px solid rgba(124,58,237,.18);box-shadow:-12px 0 60px rgba(0,0,0,.7);display:flex;flex-direction:column;transform:translateX(110%);transition:transform .32s cubic-bezier(.22,1,.36,1);overflow:hidden;}
+    [dir="rtl"] .profile-sidebar{right:auto;left:0;border-left:none;border-right:1px solid rgba(124,58,237,.18);box-shadow:12px 0 60px rgba(0,0,0,.7);transform:translateX(-110%);}
+    .profile-sidebar.open{transform:translateX(0);}
+    .prof-banner{width:100%;height:100px;flex-shrink:0;position:relative;background:linear-gradient(135deg,#2d0b6b 0%,#0a0020 60%,#06b6d4 100%);}
+    .prof-banner-solid{width:100%;height:100%;}
+    .prof-banner-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(8,2,22,.95) 100%);}
+    .prof-close{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:background .18s,color .18s;z-index:5;}
+    [dir="rtl"] .prof-close{right:auto;left:10px;}
+    .prof-close:hover{background:rgba(220,38,38,.25);color:#fca5a5;}
+    .prof-avatar-wrap{position:relative;margin:-38px 0 0 20px;width:80px;height:80px;flex-shrink:0;}
+    [dir="rtl"] .prof-avatar-wrap{margin:-38px 20px 0 0;}
+    .prof-avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;display:block;border:3px solid rgba(8,2,22,.97);box-shadow:0 0 0 2px rgba(124,58,237,.5);}
+    .prof-avatar-fallback{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,rgba(124,58,237,.4),rgba(6,182,212,.2));border:3px solid rgba(8,2,22,.97);box-shadow:0 0 0 2px rgba(124,58,237,.5);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:800;color:var(--purple-l);}
+    .prof-online-dot{position:absolute;bottom:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#23a55a;border:3px solid rgba(8,2,22,.97);box-shadow:0 0 6px rgba(35,165,90,.7);z-index:4;}
+    .prof-body{flex:1;overflow-y:auto;padding:12px 20px 24px;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,.3) transparent;}
+    .prof-names{margin-bottom:14px;}
+    .prof-display-name{font-size:1.15rem;font-weight:700;color:var(--white);letter-spacing:-.01em;line-height:1.2;}
+    .prof-username{font-size:.75rem;color:var(--muted);margin-top:2px;}
+    .prof-block{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+    .prof-block-label{font-size:.6rem;font-weight:700;letter-spacing:.12em;color:rgba(203,194,255,.5);text-transform:uppercase;margin-bottom:8px;font-family:'Orbitron',monospace;}
+    .prof-id-text{font-size:.75rem;font-family:'Orbitron',monospace;color:var(--muted);letter-spacing:.06em;cursor:pointer;transition:color .15s;}
+    .prof-id-text:hover{color:var(--purple-l);}
+    .prof-badges{display:flex;flex-wrap:wrap;gap:8px;}
+    .prof-badge{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);position:relative;cursor:default;transition:transform .15s,background .15s,box-shadow .15s;}
+    .prof-badge:hover{transform:translateY(-2px) scale(1.08);background:rgba(255,255,255,.09);box-shadow:0 4px 14px rgba(0,0,0,.4);}
+    .prof-badge img{width:20px;height:20px;object-fit:contain;}
+    .prof-badge-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(10,3,30,.97);border:1px solid rgba(124,58,237,.3);border-radius:7px;padding:5px 10px;font-size:.65rem;white-space:nowrap;color:var(--white);opacity:0;pointer-events:none;transition:opacity .15s;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+    .prof-badge:hover .prof-badge-tip{opacity:1;}
+    .prof-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:8px;}
+    .prof-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:.82rem;font-weight:600;text-decoration:none;cursor:pointer;border:1px solid transparent;transition:background .18s,border-color .18s,transform .12s;font-family:inherit;}
+    .prof-btn:active{transform:scale(.97);}
+    .prof-btn.help{background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.3);color:var(--cyan-l);}
+    .prof-btn.help:hover{background:rgba(6,182,212,.14);border-color:rgba(6,182,212,.5);}
+    .prof-btn.logout{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.25);color:#fca5a5;}
+    .prof-btn.logout:hover{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.45);}
+  </style>
+</head>
+<body>
+  <div id="ov"></div>
+  <canvas id="c"></canvas>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+
+  <%- include('partials/layout', { activePage: 'points/interactions' }) %>
+
+  <main class="main">
+
+    <%# ── Page header ── %>
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-header-icon">
+          <i data-lucide="zap" style="width:26px;height:26px;stroke:currentColor;fill:none;"></i>
+        </div>
+        <div>
+          <h2><%= lang === 'ar' ? 'نقاط التفاعل' : 'Interaction Points' %></h2>
+          <p><%= lang === 'ar' ? 'منح نقاط على الرسائل والردود والصوت والميديا' : 'Award points for messages, reactions, voice, and media' %></p>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <%# ── Master toggle banner ── %>
+    <div class="sys-banner">
+      <div class="sys-banner-info">
+        <div class="sys-banner-icon">
+          <i data-lucide="zap" style="width:20px;height:20px;stroke:currentColor;fill:none;"></i>
+        </div>
+        <div>
+          <div class="sys-banner-title"><%= lang === 'ar' ? 'نظام نقاط التفاعل' : 'Interaction Points System' %></div>
+          <div class="sys-banner-sub"><%= lang === 'ar' ? 'تفعيل أو إيقاف النظام بالكامل' : 'Enable or disable the entire system' %></div>
+        </div>
+      </div>
+      <label class="sw-wrap">
+        <input type="checkbox" class="sw-input cfg-field" id="sys-enabled" data-path="enabled" <%= interactionConfig.enabled ? 'checked' : '' %>>
+        <div class="sw-track"><div class="sw-thumb"></div></div>
+      </label>
+    </div>
+
+    <%# ── Section 1: Message Points ── %>
+    <div class="sec-card open" id="sec-msg">
+      <div class="sec-head" onclick="toggleSec('sec-msg')">
+        <div class="sec-head-left">
+          <div class="sec-icon purple"><i data-lucide="message-square" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'نقاط الرسائل' : 'Message Points' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'نقاط عند إرسال رسالة (مع كولداون)' : 'Points per message sent (with cooldown)' %></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <label class="sw-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sw-input cfg-field" data-path="messagePoints.enabled" <%= interactionConfig.messagePoints.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+          <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="field-grid thirds">
+          <div class="field">
+            <label class="field-label"><%= lang === 'ar' ? 'النقاط لكل رسالة' : 'Points per message' %></label>
+            <input type="number" class="field-input cfg-field" data-path="messagePoints.points" value="<%= interactionConfig.messagePoints.points %>" min="0" max="9999">
+          </div>
+          <div class="field">
+            <label class="field-label"><%= lang === 'ar' ? 'كولداون (ثانية)' : 'Cooldown (seconds)' %></label>
+            <input type="number" class="field-input cfg-field" data-path="messagePoints.cooldownSeconds" value="<%= interactionConfig.messagePoints.cooldownSeconds %>" min="0" max="86400">
+          </div>
+          <div class="field">
+            <label class="field-label"><%= lang === 'ar' ? 'الحد الأدنى للأحرف' : 'Min characters' %></label>
+            <input type="number" class="field-input cfg-field" data-path="messagePoints.minLength" value="<%= interactionConfig.messagePoints.minLength %>" min="0" max="4000">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Section 2: Reaction Points ── %>
+    <div class="sec-card" id="sec-react">
+      <div class="sec-head" onclick="toggleSec('sec-react')">
+        <div class="sec-head-left">
+          <div class="sec-icon gold"><i data-lucide="smile" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'نقاط الردود (ريأكشن)' : 'Reaction Points' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'نقاط عند إضافة أو استقبال ريأكشن' : 'Points for adding or receiving a reaction' %></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <label class="sw-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sw-input cfg-field" data-path="reactionPoints.enabled" <%= interactionConfig.reactionPoints.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+          <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="field-grid">
+          <div class="field">
+            <label class="field-label"><%= lang === 'ar' ? 'نقاط المُرسِل' : 'Giver points' %></label>
+            <input type="number" class="field-input cfg-field" data-path="reactionPoints.givePoints" value="<%= interactionConfig.reactionPoints.givePoints %>" min="0" max="9999">
+          </div>
+          <div class="field">
+            <label class="field-label"><%= lang === 'ar' ? 'نقاط المُستقبِل' : 'Receiver points' %></label>
+            <input type="number" class="field-input cfg-field" data-path="reactionPoints.receivePoints" value="<%= interactionConfig.reactionPoints.receivePoints %>" min="0" max="9999">
+          </div>
+        </div>
+        <div class="tip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <%= lang === 'ar' ? 'لا تُمنح نقاط إذا تفاعل الشخص مع رسالته الخاصة.' : 'No points are given when a user reacts to their own message.' %>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Section 3: Voice Points ── %>
+    <div class="sec-card" id="sec-voice">
+      <div class="sec-head" onclick="toggleSec('sec-voice')">
+        <div class="sec-head-left">
+          <div class="sec-icon cyan"><i data-lucide="mic" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'نقاط الصوت' : 'Voice Points' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'نقاط كل دقيقة في قناة صوتية' : 'Points per minute in a voice channel' %></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <label class="sw-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sw-input cfg-field" data-path="voicePoints.enabled" <%= interactionConfig.voicePoints.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+          <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="field-grid solo" style="margin-bottom:16px;">
+          <div class="field">
+            <label class="field-label"><%= lang === 'ar' ? 'نقاط في الدقيقة' : 'Points per minute' %></label>
+            <input type="number" class="field-input cfg-field" data-path="voicePoints.pointsPerMinute" value="<%= interactionConfig.voicePoints.pointsPerMinute %>" min="0" max="9999">
+          </div>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label"><%= lang === 'ar' ? 'تجاهل قناة AFK' : 'Ignore AFK Channel' %></div>
+            <div class="toggle-row-sub"><%= lang === 'ar' ? 'لا نقاط في قناة AFK' : 'No points when in AFK channel' %></div>
+          </div>
+          <label class="sw-wrap">
+            <input type="checkbox" class="sw-input cfg-field" data-path="voicePoints.ignoreAfk" <%= interactionConfig.voicePoints.ignoreAfk ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label"><%= lang === 'ar' ? 'تجاهل المكتوم' : 'Ignore Self-Muted' %></div>
+            <div class="toggle-row-sub"><%= lang === 'ar' ? 'لا نقاط عند كتم الميكروفون' : 'No points when self-muted' %></div>
+          </div>
+          <label class="sw-wrap">
+            <input type="checkbox" class="sw-input cfg-field" data-path="voicePoints.ignoreMuted" <%= interactionConfig.voicePoints.ignoreMuted ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Section 4: Media Points ── %>
+    <div class="sec-card" id="sec-media">
+      <div class="sec-head" onclick="toggleSec('sec-media')">
+        <div class="sec-head-left">
+          <div class="sec-icon blue"><i data-lucide="image" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'نقاط الميديا' : 'Media Points' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'نقاط إضافية عند إرسال صور أو روابط' : 'Bonus points for images or links' %></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <label class="sw-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sw-input cfg-field" data-path="mediaPoints.enabled" <%= interactionConfig.mediaPoints.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+          <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="field-grid">
+          <div class="field">
+            <label class="field-label"><%= lang === 'ar' ? 'نقاط الصور/الفيديو' : 'Image/Video points' %></label>
+            <input type="number" class="field-input cfg-field" data-path="mediaPoints.imagePoints" value="<%= interactionConfig.mediaPoints.imagePoints %>" min="0" max="9999">
+          </div>
+          <div class="field">
+            <label class="field-label"><%= lang === 'ar' ? 'نقاط الروابط' : 'Link points' %></label>
+            <input type="number" class="field-input cfg-field" data-path="mediaPoints.linkPoints" value="<%= interactionConfig.mediaPoints.linkPoints %>" min="0" max="9999">
+          </div>
+        </div>
+        <div class="tip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <%= lang === 'ar' ? 'تُمنح نقاط الميديا بالإضافة إلى نقاط الرسائل إذا كانت كلتاهما مفعلتين.' : 'Media points stack with message points if both are enabled.' %>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Section 5: Channel Filters ── %>
+    <div class="sec-card" id="sec-channels">
+      <div class="sec-head" onclick="toggleSec('sec-channels')">
+        <div class="sec-head-left">
+          <div class="sec-icon green"><i data-lucide="hash" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'فلتر القنوات' : 'Channel Filters' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'حدد القنوات المستثناة أو المسموح بها' : 'Set ignored or allowed channels (optional)' %></div>
+          </div>
+        </div>
+        <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+      </div>
+      <div class="sec-body">
+        <div class="tip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <%= lang === 'ar' ? 'إذا كانت "مسموحة" فارغة — يعمل النظام في كل القنوات ما عدا المستثناة.' : 'If "Allowed" list is empty — the system works in all channels except ignored ones.' %>
+        </div>
+        <div class="field" style="margin-bottom:18px;">
+          <label class="field-label"><%= lang === 'ar' ? '🚫 قنوات مستثناة' : '🚫 Ignored channels' %></label>
+          <div class="picker-wrap" id="ign-ch-picker">
+            <div class="picker-input-row" id="ign-ch-row">
+              <input class="picker-search" id="ign-ch-search" type="text" placeholder="<%= lang === 'ar' ? 'ابحث عن قناة...' : 'Search channel...' %>" autocomplete="off">
+            </div>
+            <div class="picker-dropdown" id="ign-ch-dropdown"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label"><%= lang === 'ar' ? '✅ قنوات مسموح بها فقط' : '✅ Allowed channels only' %></label>
+          <div class="picker-wrap" id="allow-ch-picker">
+            <div class="picker-input-row" id="allow-ch-row">
+              <input class="picker-search" id="allow-ch-search" type="text" placeholder="<%= lang === 'ar' ? 'ابحث عن قناة...' : 'Search channel...' %>" autocomplete="off">
+            </div>
+            <div class="picker-dropdown" id="allow-ch-dropdown"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Section 6: Role Filters ── %>
+    <div class="sec-card" id="sec-roles">
+      <div class="sec-head" onclick="toggleSec('sec-roles')">
+        <div class="sec-head-left">
+          <div class="sec-icon rose"><i data-lucide="shield" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'فلتر الرتب' : 'Role Filters' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'رتب مستثناة أو مضاعفة النقاط' : 'Ignored roles & bonus multipliers' %></div>
+          </div>
+        </div>
+        <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+      </div>
+      <div class="sec-body">
+        <div class="field" style="margin-bottom:18px;">
+          <label class="field-label"><%= lang === 'ar' ? '🚫 رتب مستثناة' : '🚫 Ignored roles' %></label>
+          <div class="picker-wrap" id="ign-role-picker">
+            <div class="picker-input-row" id="ign-role-row">
+              <input class="picker-search" id="ign-role-search" type="text" placeholder="<%= lang === 'ar' ? 'ابحث عن رتبة...' : 'Search role...' %>" autocomplete="off">
+            </div>
+            <div class="picker-dropdown" id="ign-role-dropdown"></div>
+          </div>
+        </div>
+        <div class="sec-divider"></div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:.85rem;font-weight:700;margin-bottom:2px;"><%= lang === 'ar' ? '✨ رتب مضاعفة النقاط' : '✨ Bonus roles (multiplier)' %></div>
+          <div style="font-size:.76rem;color:var(--muted);margin-bottom:12px;"><%= lang === 'ar' ? 'حاملو هذه الرتب يحصلون على نقاط مضاعفة' : 'Members with these roles earn multiplied points' %></div>
+        </div>
+        <div id="bonus-roles-list">
+          <% (interactionConfig.roles.bonus || []).forEach(function(bonus, idx) { %>
+          <div class="bonus-row" data-bid="<%= idx %>">
+            <select class="bonus-role-sel">
+              <option value=""><%= lang === 'ar' ? 'اختر رتبة...' : 'Select role...' %></option>
+              <% guildRoles.forEach(function(r) { %>
+              <option value="<%= r.id %>" <%= bonus.roleId === r.id ? 'selected' : '' %>>@<%= r.name %></option>
+              <% }); %>
+            </select>
+            <span style="font-size:.85rem;color:var(--muted);flex-shrink:0;">×</span>
+            <input type="number" class="bonus-mult-input" value="<%= bonus.multiplier || 1.5 %>" min="0.1" max="10" step="0.1" placeholder="1.5">
+            <span style="font-size:.75rem;color:var(--muted);flex-shrink:0;"><%= lang === 'ar' ? 'مضاعف' : 'x pts' %></span>
+            <button class="btn-del-bonus" type="button" onclick="delBonusRole(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+          <% }); %>
+        </div>
+        <button class="btn-add-bonus" type="button" onclick="addBonusRole()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <%= lang === 'ar' ? 'إضافة رتبة مضاعفة' : 'Add bonus role' %>
+        </button>
+      </div>
+    </div>
+
+    <%# ── Section 7: Logs ── %>
+    <div class="sec-card" id="sec-logs">
+      <div class="sec-head" onclick="toggleSec('sec-logs')">
+        <div class="sec-head-left">
+          <div class="sec-icon purple"><i data-lucide="file-text" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'قناة السجل' : 'Logs Channel' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'إرسال سجل النقاط (CV2)' : 'Send point logs to a channel (CV2)' %></div>
+          </div>
+        </div>
+        <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+      </div>
+      <div class="sec-body">
+        <div class="field">
+          <label class="field-label"><%= lang === 'ar' ? '📋 قناة اللوق' : '📋 Log channel' %></label>
+          <div class="picker-wrap" id="logs-picker">
+            <div class="picker-input-row" id="logs-input-row">
+              <% if (interactionConfig.logsChannelId) {
+                const foundCh = guildChannels.find(c => c.id === interactionConfig.logsChannelId); %>
+              <span class="picker-chip" data-id="<%= interactionConfig.logsChannelId %>">
+                #<%= foundCh ? foundCh.name : interactionConfig.logsChannelId %>
+                <button class="picker-chip-del" type="button">✕</button>
+              </span>
+              <% } %>
+              <input class="picker-search" id="logs-search" type="text" placeholder="<%= lang === 'ar' ? 'ابحث عن قناة...' : 'Search channel...' %>" autocomplete="off">
+            </div>
+            <input type="hidden" id="logs-channel-val" value="<%= interactionConfig.logsChannelId || '' %>">
+            <div class="picker-dropdown" id="logs-dropdown">
+              <% if (guildChannels.length === 0) { %>
+              <div class="picker-empty"><%= lang === 'ar' ? 'لا توجد قنوات' : 'No channels found' %></div>
+              <% } else { guildChannels.forEach(function(ch) { %>
+              <div class="picker-opt" data-id="<%= ch.id %>" data-name="#<%= ch.name %>">#<%= ch.name %></div>
+              <% }); } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <%# ── Save bar ── %>
+  <div class="save-bar" id="save-bar">
+    <span class="save-bar-text"><%= lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %></span>
+    <div class="save-bar-actions">
+      <button class="btn-discard" onclick="discardChanges()"><%= lang === 'ar' ? 'إلغاء' : 'Discard' %></button>
+      <button class="btn-save-main" id="btn-save" onclick="saveConfig()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+        <%= lang === 'ar' ? 'حفظ' : 'Save' %>
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <%- include('partials/bg_stars') %>
+  <script type="application/json" id="_channels"><%- JSON.stringify(guildChannels) %></script>
+  <script type="application/json" id="_roles"><%- JSON.stringify(guildRoles) %></script>
+  <script type="application/json" id="_icfg"><%- JSON.stringify({ ignoredCh: interactionConfig.channels.ignored, allowedCh: interactionConfig.channels.allowed, ignoredRoles: interactionConfig.roles.ignored }) %></script>
+  <script>
+    const IS_AR      = '<%= lang %>' === 'ar';
+    const GUILD_ID   = '<%= guildId %>';
+    const GUILD_CHANNELS = JSON.parse(document.getElementById('_channels').textContent);
+    const GUILD_ROLES    = JSON.parse(document.getElementById('_roles').textContent);
+
+    /* ── Language select ── */
+    document.getElementById('lang-select').addEventListener('change', function () {
+      const u = new URL(window.location.href);
+      u.searchParams.set('lang', this.value);
+      window.location.href = u.toString();
+    });
+
+    /* ── Mobile nav ── */
+    const menuToggle  = document.getElementById('menu-toggle');
+    const mgmtSidebar = document.getElementById('mgmt-sidebar');
+    const navSidebar  = document.querySelector('.nav-sidebar');
+    const navOverlay  = document.getElementById('nav-overlay');
+    const sortBtn     = document.getElementById('mgmt-sort-btn');
+    function openMgmt()  { mgmtSidebar.classList.add('open'); navOverlay.classList.add('open'); document.body.style.overflow='hidden'; }
+    function closeMgmt() { mgmtSidebar.classList.remove('open'); navOverlay.classList.remove('open'); document.body.style.overflow=''; }
+    function openNav()   { if (navSidebar) { navSidebar.classList.add('open'); navOverlay.classList.add('open'); document.body.style.overflow='hidden'; } }
+    function closeNav()  { if (navSidebar) { navSidebar.classList.remove('open'); navOverlay.classList.remove('open'); document.body.style.overflow=''; } }
+    if (menuToggle) menuToggle.addEventListener('click', function(e){ e.stopPropagation(); mgmtSidebar.classList.contains('open') ? closeMgmt() : openMgmt(); });
+    if (navOverlay) navOverlay.addEventListener('click', function(){ closeMgmt(); closeNav(); });
+    if (sortBtn)    sortBtn.addEventListener('click', function(e){ e.stopPropagation(); if (navSidebar && navSidebar.classList.contains('open')){ closeNav(); } else { closeMgmt(); openNav(); } });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ closeMgmt(); closeNav(); } });
+
+    /* ── Mgmt section collapse ── */
+    document.querySelectorAll('.mgmt-section-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        const body = this.nextElementSibling;
+        const isOpen = body.classList.contains('open');
+        body.classList.toggle('open', !isOpen);
+        this.classList.toggle('open', !isOpen);
+      });
+    });
+
+    /* ── Page transitions ── */
+    function fadeOut(href) {
+      const ov = document.getElementById('ov');
+      ov.classList.add('leave');
+      setTimeout(function(){ window.location.href = href; }, 360);
+    }
+    document.querySelectorAll('a.nav-link').forEach(function(a){
+      a.addEventListener('click', function(e){
+        if (this.target === '_blank') return;
+        e.preventDefault(); fadeOut(this.href);
+      });
+    });
+
+    /* ── Toast ── */
+    function showToast(msg, type) {
+      type = type || 'success';
+      const el = document.getElementById('toast');
+      const icon = type === 'success'
+        ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+      el.className = 'toast ' + type;
+      el.innerHTML = icon + ' ' + msg;
+      el.classList.add('show');
+      setTimeout(function(){ el.classList.remove('show'); }, 3500);
+    }
+
+    /* ── Profile sidebar ── */
+    const profSidebar  = document.getElementById('prof-sidebar');
+    const profBackdrop = document.getElementById('prof-backdrop');
+    const openBtn      = document.getElementById('open-profile');
+    const closeBtn     = document.getElementById('close-profile');
+    const copyId       = document.getElementById('prof-copy-id');
+    const bannerSolid  = document.querySelector('.prof-banner-solid');
+    if (bannerSolid && bannerSolid.dataset.bg) bannerSolid.style.background = bannerSolid.dataset.bg;
+    function openProfile()  { if (!profSidebar) return; profSidebar.classList.add('open'); profBackdrop.classList.add('open'); profSidebar.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+    function closeProfile() { if (!profSidebar) return; profSidebar.classList.remove('open'); profBackdrop.classList.remove('open'); profSidebar.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+    if (openBtn) openBtn.addEventListener('click', openProfile);
+    document.querySelectorAll('.open-profile-btn').forEach(function(b){ b.addEventListener('click', openProfile); });
+    if (closeBtn) closeBtn.addEventListener('click', closeProfile);
+    if (profBackdrop) profBackdrop.addEventListener('click', closeProfile);
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeProfile(); });
+    if (copyId) {
+      copyId.addEventListener('click', function(){
+        navigator.clipboard.writeText(copyId.textContent.trim()).then(function(){
+          const orig = copyId.textContent;
+          copyId.textContent = 'Copied!'; copyId.style.color = 'var(--cyan-l)';
+          setTimeout(function(){ copyId.textContent = orig; copyId.style.color = ''; }, 1500);
+        });
+      });
+    }
+
+    /* ── Section accordion ── */
+    function toggleSec(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('open');
+    }
+
+    /* ── Change tracking ── */
+    let dirty = false;
+    function markDirty() {
+      dirty = true;
+      document.getElementById('save-bar').classList.add('visible');
+    }
+    function clearDirty() {
+      dirty = false;
+      document.getElementById('save-bar').classList.remove('visible');
+    }
+    document.querySelectorAll('.cfg-field').forEach(function(el){
+      el.addEventListener('change', markDirty);
+      el.addEventListener('input', markDirty);
+    });
+
+    /* ── Multi-picker factory ── */
+    function initMultiPicker(opts) {
+      /* opts: wrapperId, searchId, dropdownId, inputRowId, items, initialIds, chipClass, formatName */
+      const picker   = document.getElementById(opts.wrapperId);
+      const search   = document.getElementById(opts.searchId);
+      const dropdown = document.getElementById(opts.dropdownId);
+      const inputRow = document.getElementById(opts.inputRowId);
+      const selected = new Set(opts.initialIds || []);
+
+      function getName(item) { return opts.formatName ? opts.formatName(item) : item.name; }
+
+      function makeChip(id, name) {
+        const chip = document.createElement('span');
+        chip.className = 'picker-chip ' + (opts.chipClass || '');
+        chip.dataset.id = id;
+        chip.innerHTML = name.replace(/</g,'&lt;') + ' <button class="picker-chip-del" type="button">✕</button>';
+        chip.querySelector('.picker-chip-del').addEventListener('click', function(e){
+          e.stopPropagation();
+          selected.delete(id);
+          chip.remove();
+          renderDrop(search.value);
+          markDirty();
+        });
+        return chip;
+      }
+
+      function renderDrop(query) {
+        const q = (query || '').toLowerCase();
+        const filtered = opts.items.filter(function(c){ return !selected.has(c.id) && getName(c).toLowerCase().includes(q); });
+        dropdown.innerHTML = filtered.length
+          ? filtered.map(function(c){
+              const n = getName(c);
+              return '<div class="picker-opt" data-id="' + c.id + '" data-name="' + n.replace(/"/g,'&quot;') + '">' + n.replace(/</g,'&lt;') + '</div>';
+            }).join('')
+          : '<div class="picker-empty">' + (IS_AR ? 'لا توجد نتائج' : 'No results') + '</div>';
+        dropdown.querySelectorAll('.picker-opt').forEach(function(opt){
+          opt.addEventListener('click', function(){
+            if (selected.has(opt.dataset.id)) return;
+            selected.add(opt.dataset.id);
+            inputRow.insertBefore(makeChip(opt.dataset.id, opt.dataset.name), search);
+            search.value = '';
+            renderDrop('');
+            dropdown.classList.remove('open');
+            markDirty();
+          });
+        });
+      }
+
+      /* Render initial chips */
+      (opts.initialIds || []).forEach(function(id){
+        const item = opts.items.find(function(c){ return c.id === id; });
+        if (item) inputRow.insertBefore(makeChip(id, getName(item)), search);
+      });
+
+      search.addEventListener('focus', function(){ renderDrop(search.value); dropdown.classList.add('open'); });
+      search.addEventListener('input', function(){ renderDrop(search.value); dropdown.classList.add('open'); });
+      document.addEventListener('click', function(e){ if (!picker.contains(e.target)) dropdown.classList.remove('open'); });
+
+      return { getSelected: function(){ return Array.from(selected); } };
+    }
+
+    /* ── Single-select picker (logs channel) ── */
+    (function initLogsPicker(){
+      const picker   = document.getElementById('logs-picker');
+      const search   = document.getElementById('logs-search');
+      const dropdown = document.getElementById('logs-dropdown');
+      const hidden   = document.getElementById('logs-channel-val');
+      const inputRow = document.getElementById('logs-input-row');
+
+      function renderDrop(query) {
+        const q = (query || '').toLowerCase();
+        const filtered = GUILD_CHANNELS.filter(function(c){ return c.name.toLowerCase().includes(q); });
+        dropdown.innerHTML = filtered.length
+          ? filtered.map(function(c){ return '<div class="picker-opt" data-id="'+c.id+'" data-name="#'+c.name+'">#'+c.name+'</div>'; }).join('')
+          : '<div class="picker-empty">' + (IS_AR ? 'لا توجد نتائج' : 'No results') + '</div>';
+        dropdown.querySelectorAll('.picker-opt').forEach(function(opt){
+          opt.addEventListener('click', function(){ selectCh(opt.dataset.id, opt.dataset.name); });
+        });
+      }
+
+      function selectCh(id, name) {
+        hidden.value = id;
+        inputRow.querySelectorAll('.picker-chip').forEach(function(c){ c.remove(); });
+        const chip = document.createElement('span');
+        chip.className = 'picker-chip';
+        chip.dataset.id = id;
+        chip.innerHTML = name + ' <button class="picker-chip-del" type="button">✕</button>';
+        chip.querySelector('.picker-chip-del').addEventListener('click', function(e){
+          e.stopPropagation(); chip.remove(); hidden.value = ''; search.value = ''; markDirty();
+        });
+        inputRow.insertBefore(chip, search);
+        search.value = '';
+        dropdown.classList.remove('open');
+        markDirty();
+      }
+
+      inputRow.querySelectorAll('.picker-chip .picker-chip-del').forEach(function(btn){
+        btn.addEventListener('click', function(e){ e.stopPropagation(); btn.closest('.picker-chip').remove(); hidden.value = ''; markDirty(); });
+      });
+
+      search.addEventListener('focus', function(){ renderDrop(search.value); dropdown.classList.add('open'); });
+      search.addEventListener('input', function(){ renderDrop(search.value); });
+      document.addEventListener('click', function(e){ if (!picker.contains(e.target)) dropdown.classList.remove('open'); });
+    })();
+
+    /* ── Init multi-pickers ── */
+    const _icfg = JSON.parse(document.getElementById('_icfg').textContent);
+
+    const pickerIgnCh = initMultiPicker({
+      wrapperId: 'ign-ch-picker', searchId: 'ign-ch-search', dropdownId: 'ign-ch-dropdown', inputRowId: 'ign-ch-row',
+      items: GUILD_CHANNELS, initialIds: _icfg.ignoredCh,
+      formatName: function(c){ return '#' + c.name; }
+    });
+    const pickerAllowCh = initMultiPicker({
+      wrapperId: 'allow-ch-picker', searchId: 'allow-ch-search', dropdownId: 'allow-ch-dropdown', inputRowId: 'allow-ch-row',
+      items: GUILD_CHANNELS, initialIds: _icfg.allowedCh,
+      formatName: function(c){ return '#' + c.name; }
+    });
+    const pickerIgnRole = initMultiPicker({
+      wrapperId: 'ign-role-picker', searchId: 'ign-role-search', dropdownId: 'ign-role-dropdown', inputRowId: 'ign-role-row',
+      items: GUILD_ROLES, initialIds: _icfg.ignoredRoles,
+      chipClass: 'role-chip',
+      formatName: function(r){ return '@' + r.name; }
+    });
+
+    /* ── Bonus roles ── */
+    function addBonusRole() {
+      const list    = document.getElementById('bonus-roles-list');
+      const id      = Date.now();
+      const row     = document.createElement('div');
+      row.className = 'bonus-row'; row.dataset.bid = id;
+      const roleOpts = GUILD_ROLES.map(function(r){ return '<option value="'+r.id+'">@'+r.name.replace(/</g,'&lt;')+'</option>'; }).join('');
+      row.innerHTML =
+        '<select class="bonus-role-sel">' +
+          '<option value="">' + (IS_AR ? 'اختر رتبة...' : 'Select role...') + '</option>' + roleOpts +
+        '</select>' +
+        '<span style="font-size:.85rem;color:var(--muted);flex-shrink:0;">×</span>' +
+        '<input type="number" class="bonus-mult-input" value="1.5" min="0.1" max="10" step="0.1" placeholder="1.5">' +
+        '<span style="font-size:.75rem;color:var(--muted);flex-shrink:0;">' + (IS_AR ? 'مضاعف' : 'x pts') + '</span>' +
+        '<button class="btn-del-bonus" type="button" onclick="delBonusRole(this)">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>' +
+        '</button>';
+      list.appendChild(row);
+      row.querySelector('.bonus-role-sel').addEventListener('change', markDirty);
+      row.querySelector('.bonus-mult-input').addEventListener('input', markDirty);
+      markDirty();
+    }
+    function delBonusRole(btn) { btn.closest('.bonus-row').remove(); markDirty(); }
+    document.querySelectorAll('#bonus-roles-list .bonus-role-sel, #bonus-roles-list .bonus-mult-input').forEach(function(el){
+      el.addEventListener('change', markDirty); el.addEventListener('input', markDirty);
+    });
+
+    /* ── Build config from DOM ── */
+    function buildConfig() {
+      function bField(path) {
+        const el = document.querySelector('.cfg-field[data-path="' + path + '"]');
+        return el ? el.checked : false;
+      }
+      function nField(path, def) {
+        const el = document.querySelector('.cfg-field[data-path="' + path + '"]');
+        if (!el) return def;
+        const v = parseFloat(el.value);
+        return isNaN(v) ? def : v;
+      }
+      const bonusRoles = [];
+      document.querySelectorAll('#bonus-roles-list .bonus-row').forEach(function(row){
+        const roleId = row.querySelector('.bonus-role-sel').value;
+        const mult   = parseFloat(row.querySelector('.bonus-mult-input').value) || 1;
+        if (roleId) bonusRoles.push({ roleId: roleId, multiplier: mult });
+      });
+      return {
+        enabled: bField('enabled'),
+        messagePoints: {
+          enabled:         bField('messagePoints.enabled'),
+          points:          nField('messagePoints.points', 1),
+          cooldownSeconds: nField('messagePoints.cooldownSeconds', 30),
+          minLength:       nField('messagePoints.minLength', 3),
+        },
+        reactionPoints: {
+          enabled:       bField('reactionPoints.enabled'),
+          givePoints:    nField('reactionPoints.givePoints', 1),
+          receivePoints: nField('reactionPoints.receivePoints', 2),
+        },
+        voicePoints: {
+          enabled:         bField('voicePoints.enabled'),
+          pointsPerMinute: nField('voicePoints.pointsPerMinute', 2),
+          ignoreAfk:       bField('voicePoints.ignoreAfk'),
+          ignoreMuted:     bField('voicePoints.ignoreMuted'),
+        },
+        mediaPoints: {
+          enabled:     bField('mediaPoints.enabled'),
+          imagePoints: nField('mediaPoints.imagePoints', 3),
+          linkPoints:  nField('mediaPoints.linkPoints', 1),
+        },
+        channels: {
+          ignored: pickerIgnCh.getSelected(),
+          allowed: pickerAllowCh.getSelected(),
+        },
+        roles: {
+          ignored: pickerIgnRole.getSelected(),
+          bonus:   bonusRoles,
+        },
+        logsChannelId: document.getElementById('logs-channel-val').value || null,
+      };
+    }
+
+    /* ── Save ── */
+    async function saveConfig() {
+      const btn = document.getElementById('btn-save');
+      btn.classList.add('loading');
+      btn.textContent = IS_AR ? 'جاري الحفظ...' : 'Saving...';
+      try {
+        const cfg  = buildConfig();
+        const resp = await fetch('/dashboard/' + GUILD_ID + '/points/interactions/save', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(cfg),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          clearDirty();
+          showToast(IS_AR ? '✅ تم الحفظ بنجاح' : '✅ Saved successfully', 'success');
+        } else {
+          showToast(IS_AR ? '❌ فشل الحفظ' : '❌ Failed to save', 'error');
+        }
+      } catch (_) {
+        showToast(IS_AR ? '❌ خطأ في الاتصال' : '❌ Connection error', 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg> ' + (IS_AR ? 'حفظ' : 'Save');
+      }
+    }
+
+    function discardChanges() { window.location.reload(); }
+    window.addEventListener('beforeunload', function(e){ if (dirty){ e.preventDefault(); e.returnValue = ''; } });
+  </script>
+  <script src="/js/lucide.min.js"></script>
+  <script>lucide.createIcons();</script>
+  <%- include('partials/promo_card') %>
+  <%- include('partials/footer') %>
+</body>
+</html>

@@ -12,6 +12,13 @@ database/*.json
 dashboard/database/
 dashboard/public/uploads/
 
+# Dashboard runtime data (logs, etc.)
+dashboard/data/
+
+# Development/util scripts — not part of the distributable
+dashboard/i18n_transform.js
+dashboard/i18n_transform2.js
+
 # Vendored large libs
 dashboard/public/js/three.min.js
 
@@ -29,6 +36,7 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+.VSCodeCounter/
 
 # Build / temp
 dist/

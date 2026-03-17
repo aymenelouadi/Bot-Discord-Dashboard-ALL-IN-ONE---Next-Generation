@@ -7,7 +7,7 @@
    *   activePage {string} — key to highlight the correct sidebar item:
    *     'overview' | 'levels' | 'tickets' | 'tickets-general' |
    *     'tickets-panels' | 'utility' | 'moderation' | 'protection' |
-   *     'auto-roles' | 'setting'
+ *     'auto-roles' | 'suggestions' | 'auto-responder' | 'setting'
    * ──────────────────────────────────────────────────────────────────────── */
   var _ap = (typeof activePage !== 'undefined') ? activePage : '';
   function _ac(page) { return _ap === page ? 'active ' : ''; }
@@ -33,60 +33,66 @@
         <i data-lucide="x" style="width:14px;height:14px;stroke:currentColor;"></i>
       </button>
     </div>
-    <div class="prof-avatar-wrap">
-      <% if (user.avatar) { %>
-        <img class="prof-avatar"
-          src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=160"
-          alt="<%= user.displayName || user.username %>" />
-      <% } else { %>
-        <div class="prof-avatar-fallback">
-          <%= (user.displayName || user.username).charAt(0).toUpperCase() %>
-        </div>
-      <% } %>
-      <div class="prof-online-dot"></div>
-    </div>
-    <div class="prof-body">
-      <div class="prof-names">
-        <div class="prof-display-name"><%= user.displayName || user.username %></div>
-        <div class="prof-username">@<%= user.username %></div>
-      </div>
-      <div class="prof-block">
-        <div class="prof-block-label"><%= t.home.profileId %></div>
-        <div class="prof-id-text" id="prof-copy-id"><%= user.id %></div>
+    <div class="prof-avatar-row">
+      <div class="prof-avatar-wrap">
+        <% if (user.avatar) { %>
+          <img class="prof-avatar"
+            src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=160"
+            alt="<%= user.displayName || user.username %>" />
+        <% } else { %>
+          <div class="prof-avatar-fallback">
+            <%= (user.displayName || user.username).charAt(0).toUpperCase() %>
+          </div>
+        <% } %>
+        <div class="prof-online-dot" id="prof-online-dot"></div>
       </div>
       <%
         var _flags = Number(user.publicFlags || 0);
-        var _BDGC  = '/badge-icons/';
+        var _BDGC  = '/img/badges/';
         var _badges = [];
-        if (_flags & 1)       _badges.push({ label: t.home.badgeStaff,       img: 'staff.png' });
+        if (_flags & 1)       _badges.push({ label: t.home.badgeStaff,       img: 'Discord_Staff.png' });
         if (_flags & 2)       _badges.push({ label: t.home.badgePartner,      img: 'partner.png' });
         if (_flags & 4)       _badges.push({ label: t.home.badgeHsEvents,     img: 'hypesquad.png' });
-        if (_flags & 8)       _badges.push({ label: t.home.badgeBug1,         img: 'bug_hunter_level_1.png' });
+        if (_flags & 8)       _badges.push({ label: t.home.badgeBug1,         img: 'BUG_HUNTER_LEVEL_1.png' });
         if (_flags & 64)      _badges.push({ label: t.home.badgeBravery,      img: 'hypesquad_house_1.png' });
         if (_flags & 128)     _badges.push({ label: t.home.badgeBrilliance,   img: 'hypesquad_house_2.png' });
         if (_flags & 256)     _badges.push({ label: t.home.badgeBalance,      img: 'hypesquad_house_3.png' });
-        if (_flags & 512)     _badges.push({ label: t.home.badgeEarlySupp,    img: 'early_supporter.png' });
-        if (_flags & 16384)   _badges.push({ label: t.home.badgeBug2,         img: 'bug_hunter_level_2.png' });
-        if (_flags & 131072)  _badges.push({ label: t.home.badgeVerifDev,     img: 'verified_bot_developer.png' });
+        if (_flags & 512)     _badges.push({ label: t.home.badgeEarlySupp,    img: 'Discord_Early_Supporter.png' });
+        if (_flags & 16384)   _badges.push({ label: t.home.badgeBug2,         img: 'BUG_HUNTER_LEVEL_2.png' });
+        if (_flags & 131072)  _badges.push({ label: t.home.badgeVerifDev,     img: 'blurple_verified_bot_developer.png' });
         if (_flags & 262144)  _badges.push({ label: t.home.badgeModAlumni,    img: 'certified_moderator.png' });
         if (_flags & 4194304) _badges.push({ label: t.home.badgeActiveDev,    img: 'active_developer.png' });
         if (_flags & 8388608) _badges.push({ label: t.home.badgeQuest,        img: 'quest_completed.png' });
         if (Number(user.premiumType || 0) > 0) _badges.push({ label: t.home.badgeNitro, img: 'nitro.png' });
       %>
       <% if (_badges.length > 0) { %>
-        <div class="prof-block">
-          <div class="prof-block-label"><%= t.home.profileBadges %></div>
-          <div class="prof-badges">
-            <% _badges.forEach(function(b) { %>
-              <div class="prof-badge">
-                <img src="<%= _BDGC %><%= b.img %>" alt="<%= b.label %>"
-                  onerror="this.closest('.prof-badge').style.display='none'" />
-                <span class="prof-badge-tip"><%= b.label %></span>
-              </div>
-            <% }); %>
-          </div>
+        <div class="prof-badges-right">
+          <% _badges.forEach(function(b) { %>
+            <div class="prof-badge">
+              <img src="<%= _BDGC %><%= b.img %>" alt="<%= b.label %>"
+                onerror="this.closest('.prof-badge').style.display='none'" />
+              <span class="prof-badge-tip"><%= b.label %></span>
+            </div>
+          <% }); %>
         </div>
       <% } %>
+    </div>
+    <div class="prof-body">
+      <div class="prof-display-name"><%= user.displayName || user.username %></div>
+      <div class="prof-username">@<%= user.username %></div>
+      <div class="prof-custom-status" id="prof-custom-status" style="display:none;"></div>
+      <div class="prof-divider"></div>
+      <div class="prof-actrow" id="prof-status-row">
+        <div class="prof-actdot status-offline" id="prof-actdot"></div>
+        <span id="prof-status-label"><%= lang === 'ar' ? 'جاري التحميل...' : 'Loading...' %></span>
+      </div>
+      <div class="prof-actrow" id="prof-copy-id" data-uid="<%= user.id %>">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.7;">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <span id="prof-copy-label"><%= lang === 'ar' ? 'نسخ معرف المستخدم' : 'Copy User ID' %></span>
+      </div>
     </div>
     <div class="prof-footer">
       <% if (typeof isShip !== 'undefined' && isShip) { %>
@@ -96,7 +102,6 @@
           <%= lang === 'ar' ? 'إعدادات النظام' : 'System Settings' %>
         </a>
       <% } %>
-      <!-- Theme toggle -->
       <button class="theme-toggle-btn" aria-label="Toggle theme">
         <i data-lucide="sun" style="width:16px;height:16px;stroke:currentColor;flex-shrink:0;"></i>
         <span class="ttb-label"><%= lang === 'ar' ? 'الوضع النهاري' : 'Light Mode' %></span>
@@ -173,7 +178,7 @@
           <option value="<%= code %>" <%= lang === code ? 'selected' : '' %>><%= code %></option>
         <% }); %>
       </select>
-<% var _lcscdn = { ar: 'sa', en: 'us' }; %>
+<% var _lcscdn = flagMap || {}; %>
       <div class="lcs-wrap" id="lcs-wrap">
         <button class="lcs-btn" id="lcs-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Language">
           <span class="lcs-flag" id="lcs-flag"><span class="fi fi-<%= _lcscdn[lang] || 'us' %>"></span></span>
@@ -378,6 +383,17 @@
               </div>
               <span class="mgmt-item-label"><%= lang === 'ar' ? 'الأوامر الإدارية' : 'Moderation' %></span>
             </a>
+            <a href="/dashboard/<%= guildId %>/auto-responder" class="mgmt-item <%= _ac('auto-responder') %>nav-link">
+              <div class="mgmt-item-indicator"></div>
+              <div class="mgmt-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M8 10h.01M12 10h.01M16 10h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M17 18l2.5 2.5M17 18l-2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span class="mgmt-item-label"><%= lang === 'ar' ? 'الردود التلقائية' : 'Auto Responder' %></span>
+            </a>
           </div>
         </div>
 
@@ -420,6 +436,41 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 18 18"><path d="M9 2a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zm0 9c4 0 6 2 6 3v1H3v-1c0-1 2-3 6-3z" fill="currentColor" fill-opacity="0.4"/><path d="M13.5 8a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm1.5 2c2 0 3 1 3 2v1h-3v-1c0-.6-.2-1.2-.5-1.7.3-.2.7-.3 1-.3l-.5.5z" fill="currentColor"/></svg>
               </div>
               <span class="mgmt-item-label"><%= lang === 'ar' ? 'الرتب التلقائية' : 'Auto Roles' %></span>
+            </a>
+            <a href="/dashboard/<%= guildId %>/suggestions" class="mgmt-item <%= _ac('suggestions') %>nav-link">
+              <div class="mgmt-item-indicator"></div>
+              <div class="mgmt-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6l-.7 3H9l-.7-3A7 7 0 0 1 5 9a7 7 0 0 1 7-7z" fill="currentColor" fill-opacity="0.35" stroke="none"/><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6l-.7 3H9l-.7-3A7 7 0 0 1 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="9.5" y1="21" x2="14.5" y2="21"/></svg>
+              </div>
+              <span class="mgmt-item-label"><%= t.suggestions.nav %></span>
+            </a>
+          </div>
+        </div>
+
+        <!-- ── Section: Points ── -->
+        <div class="mgmt-section">
+          <button class="mgmt-section-btn open">
+            <span><%= lang === 'ar' ? 'النقاط' : 'Points' %></span>
+            <svg class="mgmt-sec-chevron" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 18 18">
+              <path d="M9.53,4.72c-.293-.293-.768-.293-1.061,0L2.22,10.97c-.293,.293-.293,.768,0,1.061s.768,.293,1.061,0l5.72-5.72,5.72,5.72c.146,.146,.338,.22,.53,.22s.384-.073,.53-.22c.293-.293,.293-.768,0-1.061l-6.25-6.25Z" fill="currentColor"/>
+            </svg>
+          </button>
+          <div class="mgmt-sec-body open">
+            <!-- Ticket Points -->
+            <a href="/dashboard/<%= guildId %>/points/tickets" class="mgmt-item <%= _ac('points/tickets') %>nav-link">
+              <div class="mgmt-item-indicator"></div>
+              <div class="mgmt-item-icon">
+                <i data-lucide="ticket-check" style="width:22px;height:22px;stroke:currentColor;fill:none;pointer-events:none;"></i>
+              </div>
+              <span class="mgmt-item-label"><%= lang === 'ar' ? 'نقاط التذاكر' : 'Ticket Points' %></span>
+            </a>
+            <!-- Interaction Points -->
+            <a href="/dashboard/<%= guildId %>/points/interactions" class="mgmt-item <%= _ac('points/interactions') %>nav-link">
+              <div class="mgmt-item-indicator"></div>
+              <div class="mgmt-item-icon">
+                <i data-lucide="zap" style="width:22px;height:22px;stroke:currentColor;fill:none;pointer-events:none;"></i>
+              </div>
+              <span class="mgmt-item-label"><%= lang === 'ar' ? 'نقاط التفاعل' : 'Interaction Points' %></span>
             </a>
           </div>
         </div>
@@ -470,6 +521,33 @@
     </div>
   </aside>
 <style>
+  /* ── Discord-style profile redesign ── */
+  .prof-avatar-row {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 16px 0 0; margin-top: -44px; margin-bottom: 0; position: relative; z-index: 2;
+  }
+  [dir="rtl"] .prof-avatar-row { padding: 0 0 0 16px; }
+  .prof-avatar-wrap { position: relative; margin: 0 0 0 16px; width: 80px; height: 80px; flex-shrink: 0; }
+  [dir="rtl"] .prof-avatar-wrap { margin: 0 16px 0 0; }
+  .prof-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; border: 4px solid rgba(8,2,22,.97); }
+  .prof-avatar-fallback { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg,rgba(124,58,237,.4),rgba(6,182,212,.2)); border: 4px solid rgba(8,2,22,.97); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; color: var(--purple-l); }
+  .prof-online-dot { position: absolute; bottom: 3px; right: 3px; width: 16px; height: 16px; border-radius: 50%; background: #23a55a; border: 3px solid rgba(8,2,22,.97); box-shadow: 0 0 6px rgba(35,165,90,.7); z-index: 4; transition: background .3s, box-shadow .3s; }
+  [dir="rtl"] .prof-online-dot { right: auto; left: 3px; }
+  .prof-badges-right { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; align-self: flex-end; padding-bottom: 6px; max-width: 160px; }
+  .prof-badge { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09); position: relative; cursor: default; transition: transform .12s, background .12s; }
+  .prof-badge:hover { transform: translateY(-2px) scale(1.1); background: rgba(255,255,255,.11); }
+  .prof-badge img { width: 18px; height: 18px; object-fit: contain; }
+  .prof-badge-tip { position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); background: rgba(10,3,30,.97); border: 1px solid rgba(124,58,237,.3); border-radius: 7px; padding: 4px 9px; font-size: .65rem; white-space: nowrap; color: var(--white); opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 20; box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+  .prof-badge:hover .prof-badge-tip { opacity: 1; }
+  .prof-body { flex: 1; overflow-y: auto; padding: 10px 16px 16px; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.3) transparent; }
+  .prof-display-name { font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: -.01em; line-height: 1.3; margin-top: 6px; }
+  .prof-username { font-size: .74rem; color: var(--muted); margin-bottom: 4px; }
+  .prof-custom-status { font-size: .76rem; color: rgba(203,194,255,.65); margin-bottom: 4px; margin-top: 2px; line-height: 1.4; }
+  .prof-divider { height: 1px; background: rgba(255,255,255,.08); margin: 10px 0 6px; }
+  .prof-actrow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: .83rem; color: var(--white); cursor: pointer; transition: background .14s; user-select: none; }
+  .prof-actrow:hover { background: rgba(255,255,255,.07); }
+  .prof-actdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: #80848e; transition: background .3s; }
+
   /* ── Guild stats row (replaces guild-meta-id plain text) ── */
   .guild-stats-row { display: flex; align-items: center; gap: 6px; }
   @media (max-width: 768px) { .guild-stats-row { display: none !important; } }
@@ -564,6 +642,37 @@
       if (onl && d.onlineCount  != null) onl.textContent = Number(d.onlineCount).toLocaleString();
       if (typeof lucide !== 'undefined') lucide.createIcons();
     })
+    .catch(function () {});
+})();
+
+/* ── Profile presence fetch ── */
+(function () {
+  var STATUS_COLORS = { online: '#23a55a', idle: '#f0b232', dnd: '#f23f43', offline: '#80848e', invisible: '#80848e' };
+  var STATUS_LABELS = {
+    online:    (document.documentElement.lang === 'ar') ? 'متصل' : 'Online',
+    idle:      (document.documentElement.lang === 'ar') ? 'بعيد' : 'Away',
+    dnd:       (document.documentElement.lang === 'ar') ? 'لا تزعجني' : 'Do Not Disturb',
+    offline:   (document.documentElement.lang === 'ar') ? 'غير متصل' : 'Offline',
+    invisible: (document.documentElement.lang === 'ar') ? 'غير مرئي' : 'Invisible',
+  };
+  function applyPresence(data) {
+    var status  = data.status || 'offline';
+    var color   = STATUS_COLORS[status] || STATUS_COLORS.offline;
+    var dot     = document.getElementById('prof-online-dot');
+    var actDot  = document.getElementById('prof-actdot');
+    var lbl     = document.getElementById('prof-status-label');
+    var cust    = document.getElementById('prof-custom-status');
+    if (dot)    { dot.style.background = color; dot.style.boxShadow = '0 0 6px ' + color + 'cc'; }
+    if (actDot) { actDot.style.background = color; actDot.className = 'prof-actdot'; }
+    if (lbl)    lbl.textContent = STATUS_LABELS[status] || STATUS_LABELS.offline;
+    if (cust)   {
+      if (data.customStatus) { cust.textContent = data.customStatus; cust.style.display = ''; }
+      else                   { cust.style.display = 'none'; }
+    }
+  }
+  fetch('/api/me/presence')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) { if (d) applyPresence(d); })
     .catch(function () {});
 })();
 </script>

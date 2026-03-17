@@ -9,7 +9,7 @@
   <%- include('partials/head_theme') %>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= lang === 'ar' ? 'الأوامر العامة' : 'Utility' %> — <%= guildInfo.name %></title>
+  <title><%= t.utility.utility %> — <%= guildInfo.name %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -365,6 +365,9 @@
     .alias-chip button:hover { color: #f87171; }
     .alias-real-input { background: none; border: none; outline: none; color: var(--white); font-size: .82rem; font-family: inherit; min-width: 80px; flex: 1; }
     .alias-real-input::placeholder { color: rgba(255,255,255,.25); }
+    .alias-add-btn { display: none; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(124,58,237,.35); border: 1px solid rgba(124,58,237,.5); color: #fff; font-size: 1.1rem; line-height: 1; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+    .alias-add-btn:hover { background: rgba(124,58,237,.6); }
+    @media (hover: none) and (pointer: coarse) { .alias-add-btn { display: flex; } }
 
     /* Variables box */
     .edit-vars-box { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; padding: 10px 14px; margin-top: 6px; }
@@ -534,10 +537,10 @@
     <!-- ── Module header ── -->
     <div class="util-module-header">
       <div>
-        <h2><%= lang === 'ar' ? 'الأوامر العامة' : 'Utility' %></h2>
-        <p><%= lang === 'ar' ? 'يحتوي على أوامر عامة متنوعة للمهام الشائعة ومعلومات السيرفر.' : 'Contains various general commands for common tasks and server information.' %></p>
+        <h2><%= t.utility.utility %></h2>
+        <p><%= t.utility.containsVariousGeneralCommandsForCommon %></p>
       </div>
-      <label class="sw-wrap" title="<%= lang === 'ar' ? 'تفعيل / إيقاف' : 'Enable / Disable' %>">
+      <label class="sw-wrap" title="<%= t.utility.enableDisable %>">
         <input type="checkbox" class="sw-input" data-field="moduleEnabled" checked>
         <span class="sw-track"><span class="sw-thumb"></span></span>
       </label>
@@ -547,14 +550,14 @@
 
     <!-- ── Tabs ── -->
     <div class="util-tabs">
-      <button class="util-tab active"><%= lang === 'ar' ? 'الأوامر' : 'Commands' %></button>
+      <button class="util-tab active"><%= t.utility.commands %></button>
     </div>
 
     <!-- ── Commands Card ── -->
     <div class="card" style="padding:0; overflow:hidden;">
       <div style="padding:18px 20px 14px; display:flex; align-items:center; gap:10px;">
         <i data-lucide="terminal" style="width:17px;height:17px;color:#a78bfa;flex-shrink:0;stroke:currentColor;fill:none;"></i>
-        <h3 style="font-size:1rem;font-weight:700;"><%= lang === 'ar' ? 'الأوامر' : 'Commands' %></h3>
+        <h3 style="font-size:1rem;font-weight:700;"><%= t.utility.commands %></h3>
       </div>
       <div class="divider" style="margin:0;"></div>
 
@@ -589,10 +592,10 @@
               <div class="cmd-desc"><%= (cmdMeta[cmd.key] || {})[lang] || '' %></div>
             </div>
             <div class="cmd-actions">
-              <button class="cmd-edit-btn" data-target="edit-<%= cmd.key %>" onclick="toggleEditPanel(this)" title="<%= lang === 'ar' ? 'تعديل' : 'Edit' %>">
+              <button class="cmd-edit-btn" data-target="edit-<%= cmd.key %>" onclick="toggleEditPanel(this)" title="<%= t.utility.edit %>">
                 <i data-lucide="pencil" style="width:15px;height:15px;stroke:currentColor;fill:none;pointer-events:none;"></i>
               </button>
-              <label class="sw-wrap" title="<%= lang === 'ar' ? 'تفعيل / إيقاف' : 'Enable / Disable' %>">
+              <label class="sw-wrap" title="<%= t.utility.enableDisable %>">
                 <input type="checkbox" class="sw-input cmd-main-toggle" data-cmd-key="<%= cmd.key %>" <%= cmd.enabled ? 'checked' : '' %>>
                 <span class="sw-track"><span class="sw-thumb"></span></span>
               </label>
@@ -603,32 +606,33 @@
           <div class="cmd-edit-panel" id="edit-<%= cmd.key %>">
             <div class="edit-panel-title">
               <i data-lucide="settings-2" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i>
-              <%= lang === 'ar' ? 'الصلاحيات والمستعارات' : 'Permissions & Aliases' %>
+              <%= t.utility.permissionsAliases %>
             </div>
             <div class="edit-grid">
 
               <!-- Aliases (full width) -->
               <div class="edit-field" style="grid-column:1/-1;">
-                <span class="edit-label"><%= lang === 'ar' ? 'المستعارات' : 'Aliases' %></span>
+                <span class="edit-label"><%= t.utility.aliases %></span>
                 <div class="alias-input-wrap" onclick="this.querySelector('.alias-real-input').focus()">
                   <% (cmd.aliases || []).forEach(function(alias) { %>
                     <span class="alias-chip"><%= alias %><button type="button" onclick="removeAlias(this)" tabindex="-1">×</button></span>
                   <% }); %>
                   <input class="alias-real-input" type="text"
-                    placeholder="<%= lang === 'ar' ? 'أضف مستعاراً ثم اضغط Enter...' : 'Type then press Enter to add...' %>"
+                    placeholder="<%= t.utility.typeThenPressEnterToAdd %>"
                     onkeydown="handleAliasKey(event,this)">
+                  <button type="button" class="alias-add-btn" onclick="addAliasFromBtn(this)" tabindex="-1">+</button>
                 </div>
                 <div class="edit-vars-box">
-                  <span class="edit-vars-title"><%= lang === 'ar' ? 'المتغيرات' : 'Variables' %></span>
+                  <span class="edit-vars-title"><%= t.utility.variables %></span>
                   <div class="edit-var-row">
                     <span class="edit-var-code"><%= typeof botPrefix !== 'undefined' ? botPrefix : '!' %></span>
                     <span class="edit-var-sep">–</span>
                     <span class="edit-var-desc">
-                      <%= lang === 'ar' ? 'بادئة البوت' : "Bot's prefix" %>
+                      <%= t.utility.bot %>
                       &nbsp;·&nbsp;
                       <a href="/dashboard/<%= guildId %>/setting" class="nav-link" style="color:#a78bfa;font-size:.78rem;text-decoration:none;opacity:.85;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
                         <i data-lucide="external-link" style="width:11px;height:11px;stroke:currentColor;fill:none;display:inline;vertical-align:middle;"></i>
-                        <%= lang === 'ar' ? 'تغيير' : 'Change' %>
+                        <%= t.utility.change %>
                       </a>
                     </span>
                   </div>
@@ -637,10 +641,10 @@
 
               <!-- Ignored Channels -->
               <div class="edit-field">
-                <span class="edit-label"><%= lang === 'ar' ? 'القنوات المتجاهلة' : 'Ignored Channels' %></span>
+                <span class="edit-label"><%= t.utility.ignoredChannels %></span>
                 <div class="csel-wrap" data-field="ignoredChannels">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر...' : 'Select...' %></span>
+                    <span class="csel-placeholder"><%= t.utility.select %></span>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
@@ -650,17 +654,17 @@
                         <span>#<%= ch.name %></span>
                       </div>
                     <% }); %>
-                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang==='ar'?'لا توجد قنوات':'No channels' %></div><% } %>
+                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= t.utility.noChannels %></div><% } %>
                   </div>
                 </div>
               </div>
 
               <!-- Ignored Roles -->
               <div class="edit-field">
-                <span class="edit-label"><%= lang === 'ar' ? 'الرتب المتجاهلة' : 'Ignored Roles' %></span>
+                <span class="edit-label"><%= t.utility.ignoredRoles %></span>
                 <div class="csel-wrap" data-field="ignoredRoles">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر...' : 'Select...' %></span>
+                    <span class="csel-placeholder"><%= t.utility.select %></span>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
@@ -670,17 +674,17 @@
                         <span><%= r.name %></span>
                       </div>
                     <% }); %>
-                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang==='ar'?'لا توجد رتب':'No roles' %></div><% } %>
+                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= t.utility.noRoles %></div><% } %>
                   </div>
                 </div>
               </div>
 
               <!-- Enabled Channels -->
               <div class="edit-field">
-                <span class="edit-label"><%= lang === 'ar' ? 'القنوات المفعلة' : 'Enabled Channels' %></span>
+                <span class="edit-label"><%= t.utility.enabledChannels %></span>
                 <div class="csel-wrap" data-field="enabledChannels">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر...' : 'Select...' %></span>
+                    <span class="csel-placeholder"><%= t.utility.select %></span>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
@@ -690,17 +694,17 @@
                         <span>#<%= ch.name %></span>
                       </div>
                     <% }); %>
-                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang==='ar'?'لا توجد قنوات':'No channels' %></div><% } %>
+                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= t.utility.noChannels %></div><% } %>
                   </div>
                 </div>
               </div>
 
               <!-- Allowed Roles -->
               <div class="edit-field">
-                <span class="edit-label"><%= lang === 'ar' ? 'الرتب المسموحة' : 'Allowed Roles' %></span>
+                <span class="edit-label"><%= t.utility.allowedRoles %></span>
                 <div class="csel-wrap" data-field="allowedRoles">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر...' : 'Select...' %></span>
+                    <span class="csel-placeholder"><%= t.utility.select %></span>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
@@ -710,7 +714,7 @@
                         <span><%= r.name %></span>
                       </div>
                     <% }); %>
-                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang==='ar'?'لا توجد رتب':'No roles' %></div><% } %>
+                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= t.utility.noRoles %></div><% } %>
                   </div>
                 </div>
               </div>
@@ -718,7 +722,7 @@
               <!-- Auto Delete Author's Message -->
               <div class="edit-field">
                 <div class="edit-toggle-row">
-                  <span class="edit-toggle-label"><%= lang === 'ar' ? 'حذف رسالة المستخدم تلقائياً' : "Auto Delete Author's Message" %></span>
+                  <span class="edit-toggle-label"><%= t.utility.autoDeleteAuthor %></span>
                   <label class="sw-wrap">
                     <input type="checkbox" class="sw-input" data-field="autoDeleteAuthor">
                     <span class="sw-track"><span class="sw-thumb"></span></span>
@@ -729,7 +733,7 @@
               <!-- Auto Delete Bot Reply -->
               <div class="edit-field">
                 <div class="edit-toggle-row">
-                  <span class="edit-toggle-label"><%= lang === 'ar' ? 'حذف رد البوت عند حذف الرسالة' : "Auto Delete Bot's Reply on Deletion" %></span>
+                  <span class="edit-toggle-label"><%= t.utility.autoDeleteBot %></span>
                   <label class="sw-wrap">
                     <input type="checkbox" class="sw-input" data-field="autoDeleteReply">
                     <span class="sw-track"><span class="sw-thumb"></span></span>
@@ -744,7 +748,7 @@
 
         <% if (!acts.length) { %>
         <div style="padding:48px 20px; text-align:center; color:var(--muted); font-size:.88rem;">
-          <%= lang === 'ar' ? 'لا توجد أوامر عامة.' : 'No public commands found.' %>
+          <%= t.utility.noPublicCommandsFound %>
         </div>
         <% } %>
       </div><!-- /cmd-list -->
@@ -752,15 +756,15 @@
 
     <!-- Save Bar -->
     <div class="save-bar" id="save-bar">
-      <span class="save-bar-text" id="save-bar-text"><%= lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %></span>
+      <span class="save-bar-text" id="save-bar-text"><%= t.utility.youHaveUnsavedChanges %></span>
       <div class="save-bar-actions">
         <button class="btn btn-ghost" id="reset-btn" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-          <%= lang === 'ar' ? 'تراجع' : 'Reset' %>
+          <%= t.utility.reset %>
         </button>
         <button class="btn btn-primary" id="save-btn" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <%= lang === 'ar' ? 'حفظ التغييرات' : 'Save Changes' %>
+          <%= t.utility.saveChanges %>
         </button>
       </div>
     </div>
@@ -866,6 +870,19 @@
     }
 
     /* ── Alias chip input ── */
+    function addAliasFromBtn(btn) {
+      const input = btn.closest('.alias-input-wrap').querySelector('.alias-real-input');
+      const val = input.value.trim();
+      if (!val) { input.focus(); return; }
+      const wrap = input.closest('.alias-input-wrap');
+      const chip = document.createElement('span');
+      chip.className = 'alias-chip';
+      chip.innerHTML = val + '<button type="button" onclick="removeAlias(this)" tabindex="-1">×</button>';
+      wrap.insertBefore(chip, input);
+      input.value = '';
+      input.focus();
+      markDirty();
+    }
     function handleAliasKey(e, input) {
       if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
         e.preventDefault();
@@ -944,7 +961,7 @@
     saveBtn?.addEventListener('click', async () => {
       saveBtn.disabled = true;
       const origHTML = saveBtn.innerHTML;
-      saveBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>&nbsp;<%= lang === "ar" ? "جاري الحفظ..." : "Saving..." %>';
+      saveBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>&nbsp;<%= t.utility.saving %>';
       try {
         const cmdsPayload = {};
         document.querySelectorAll('.cmd-row').forEach(row => {
@@ -974,9 +991,9 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Error');
         saveBar.classList.remove('visible');
-        showToast('<%= lang === "ar" ? "تم الحفظ بنجاح ✓" : "Saved successfully ✓" %>');
+        showToast('<%= t.utility.savedSuccessfully %>');
       } catch (err) {
-        showToast(err.message || '<%= lang === "ar" ? "حدث خطأ" : "An error occurred" %>', 'error');
+        showToast(err.message || '<%= t.utility.anErrorOccurred %>', 'error');
       } finally {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origHTML;

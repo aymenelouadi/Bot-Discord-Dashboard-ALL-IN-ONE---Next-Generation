@@ -1,0 +1,1243 @@
+<%#
+  This project was programmed by the Code Nexus team.
+  If you encounter any problems, open an Issue or log into the Discord server:
+  https://discord.gg/UvEYbFd2rj
+%>
+<%
+  /* deep-merge defaults so old DB data never causes undefined */
+  var sg = suggestions || {};
+  var sv = sg.voting || {};
+  var sa = sg.autoThreshold || {};
+  var sp = sg.permissions || {};
+  var ss = sg.spam || {};
+  var sm = sg.moderation || {};
+  var st = sg.statusTags || {};
+%>
+<!DOCTYPE html>
+<html lang="<%= t.lang %>" dir="<%= t.dir %>">
+<head>
+  <%- include('partials/head_theme') %>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= t.suggestions.nav %> — <%= guildInfo.name %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Tajawal:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #040010; --surface: rgba(255,255,255,.04); --surface-2: rgba(255,255,255,.07);
+      --card: rgba(10,3,30,.78); --purple: #7c3aed; --purple-l: #a78bfa;
+      --cyan: #06b6d4; --cyan-l: #67e8f9; --gold: #d97706; --gold-l: #fcd34d;
+      --green: #22c55e; --red: #ef4444; --orange: #f97316; --yellow: #eab308;
+      --border: rgba(124,58,237,.2); --border-h: rgba(124,58,237,.5);
+      --muted: rgba(203,194,255,.5); --white: #f8fafc;
+      --nav-w: 64px; --mgmt-w: 220px;
+    }
+    html, body { min-height: 100%; overflow-x: hidden; }
+    body {
+      background: var(--bg); color: var(--white);
+      font-family: '<%= t.fontBody %>', 'Tajawal', 'Inter', system-ui, sans-serif;
+      line-height: 1.6; overflow-x: hidden;
+    }
+    #c { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .glow { position: fixed; border-radius: 50%; pointer-events: none; z-index: 1; filter: blur(120px); animation: glow-drift 22s ease-in-out infinite alternate; }
+    .glow-a { width: min(600px, 80vw); height: min(600px, 80vw); top: -20%; right: -16%; background: radial-gradient(circle, rgba(124,58,237,.28) 0%, transparent 65%); }
+    .glow-b { width: min(500px, 70vw); height: min(500px, 70vw); bottom: -18%; left: -12%; background: radial-gradient(circle, rgba(6,182,212,.18) 0%, transparent 65%); animation-delay: -11s; }
+    @keyframes glow-drift { from { transform: translate(0,0) scale(1); } to { transform: translate(20px,15px) scale(1.06); } }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 60px;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+      background: rgba(4, 0, 16, .8); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, .06); gap: 12px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+    .guild-icon-top { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; flex-shrink: 0; filter: drop-shadow(0 4px 18px rgba(124, 58, 237, 0.35)); }
+    .guild-icon-top-fallback { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, rgba(124,58,237,.35), rgba(6,182,212,.2)); border: 1px solid rgba(124,58,237,.35); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-size: .85rem; font-weight: 800; color: var(--purple-l); flex-shrink: 0; }
+    .guild-meta { min-width: 0; }
+    .guild-meta-name { font-size: .88rem; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+    .guild-meta-id { font-size: .6rem; color: var(--muted); font-family: 'Orbitron', monospace; letter-spacing: .05em; white-space: nowrap; }
+    .topbar-sep { width: 1px; height: 28px; background: rgba(255,255,255,.08); flex-shrink: 0; }
+    .topbar-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
+    .topbar-brand img { width: 26px; height: 26px; border-radius: 7px; box-shadow: 0 2px 10px rgba(124,58,237,.3); }
+    .topbar-brand span { font-family: 'Orbitron', monospace; font-size: .78rem; font-weight: 800; letter-spacing: .1em; background: linear-gradient(135deg, var(--white), var(--purple-l)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .user-chip { display: flex; align-items: center; gap: 7px; padding: 4px 10px 4px 5px; border-radius: 99px; background: var(--surface); border: 1px solid rgba(255,255,255,.08); cursor: pointer; }
+    .user-chip-av { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; display: block; flex-shrink: 0; }
+    .user-chip-av-fallback { width: 26px; height: 26px; border-radius: 50%; background: rgba(124,58,237,.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .user-chip span { font-size: .78rem; font-weight: 500; }
+    .lang-select {
+      background: var(--surface); border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+      color: var(--white); font-size: .8rem; font-weight: 600; padding: 6px 30px 6px 10px;
+      cursor: pointer; outline: none; -webkit-appearance: none; appearance: none; font-family: inherit;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 9px center; background-size: 12px;
+      transition: border-color .18s; min-width: 100px;
+    }
+    .lang-select:hover { border-color: rgba(124,58,237,.5); }
+    .lang-select option { background: #0a0022; color: var(--white); }
+    .menu-toggle { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid rgba(255,255,255,.08); color: var(--white); cursor: pointer; transition: background .18s; flex-shrink: 0; }
+    .menu-toggle:hover { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.4); }
+    .nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 88; backdrop-filter: blur(2px); }
+    .nav-overlay.open { display: block; }
+
+    /* ── Nav Sidebar ── */
+    .nav-sidebar {
+      position: fixed; top: 60px; bottom: 0; left: 0; width: var(--nav-w); z-index: 90;
+      background: rgba(4,0,16,.92); border-right: 1px solid rgba(255,255,255,.06);
+      backdrop-filter: blur(20px); display: flex; flex-direction: column; align-items: center;
+      padding: 10px 0 16px; gap: 4px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+      transition: width .28s cubic-bezier(.22,1,.36,1);
+    }
+    .nav-sidebar::-webkit-scrollbar { display: none; }
+    .nav-sidebar:hover { width: 220px; align-items: stretch; overflow-x: unset; }
+    [dir="rtl"] .nav-sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid rgba(255,255,255,.06); }
+    .nav-back { display: flex; align-items: center; gap: 0; width: 40px; min-height: 40px; color: var(--purple-l); text-decoration: none; transition: width 350ms cubic-bezier(0.4,0,0.2,1), gap 350ms, padding 350ms; flex-shrink: 0; overflow: visible; padding: 0; justify-content: flex-start; border-radius: 0; background: none; border: none; }
+    .nav-back .nav-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--purple); border-radius: .6rem; padding: 7px; box-sizing: border-box; transition: background 350ms; }
+    .nav-back:hover .nav-icon { background: #8b5cf6; }
+    .nav-back .nav-label { font-size: .78rem; font-weight: 600; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 350ms, visibility 350ms; pointer-events: none; color: var(--white); }
+    .nav-sidebar:hover .nav-back { width: 100%; gap: 10px; padding: 0 12px 0 8px; }
+    .nav-sidebar:hover .nav-back .nav-label { opacity: 1; visibility: visible; pointer-events: auto; }
+    [dir="rtl"] .nav-sidebar:hover .nav-back { padding: 0 8px 0 12px; }
+    .nav-divider { width: 32px; height: 1px; background: rgba(255,255,255,.08); margin: 4px 0; flex-shrink: 0; transition: width .28s; }
+    .nav-sidebar:hover .nav-divider { width: calc(100% - 24px); }
+    .nav-item { display: flex; align-items: center; gap: 0; width: 40px; min-height: 40px; border-radius: 0; background: none; text-decoration: none; flex-shrink: 0; position: relative; overflow: visible; transition: gap 350ms, width 350ms, padding 350ms; padding: 0; justify-content: flex-start; }
+    .nav-item-icon { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; position: relative; }
+    .nav-item-icon img { width: 40px; height: 40px; object-fit: cover; display: block; border-radius: 50%; }
+    .nav-item-fallback { width: 40px; height: 40px; background: linear-gradient(135deg, rgba(124,58,237,.5), rgba(6,182,212,.3)); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-size: .8rem; font-weight: 800; color: var(--white); border-radius: 50%; }
+    .nav-status { position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(4,0,16,.92); flex-shrink: 0; transition: opacity .2s; }
+    .nav-status.on { background: #23a55a; box-shadow: 0 0 5px rgba(35,165,90,.7); }
+    .nav-status.off { background: #ef4444; box-shadow: 0 0 5px rgba(239,68,68,.6); }
+    .nav-item-label { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; opacity: 0; visibility: hidden; transition: opacity 350ms, visibility 350ms; pointer-events: none; }
+    .nav-item-name { font-size: .78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--white); }
+    .nav-item-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-left: auto; }
+    .nav-item-dot.on { background: #23a55a; box-shadow: 0 0 4px rgba(35,165,90,.7); }
+    .nav-item-dot.off { background: #ef4444; box-shadow: 0 0 4px rgba(239,68,68,.6); }
+    .nav-sidebar:hover .nav-item { width: 100%; gap: 10px; padding: 0 12px 0 8px; justify-content: flex-start; border-radius: 10px; }
+    [dir="rtl"] .nav-sidebar:hover .nav-item { padding: 0 8px 0 12px; }
+    .nav-sidebar:hover .nav-item-label { opacity: 1; visibility: visible; pointer-events: auto; }
+    .nav-sidebar:hover .nav-status { opacity: 0; }
+    .nav-item.active::before { content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); width: 3px; height: 22px; border-radius: 0 3px 3px 0; background: var(--purple-l); }
+
+    /* ── Mgmt Sidebar ── */
+    .mgmt-sidebar {
+      position: fixed; top: 60px; bottom: 0; left: var(--nav-w); width: var(--mgmt-w); z-index: 85;
+      background: rgba(6,2,20,.97); border-right: 1px solid rgba(255,255,255,.06);
+      backdrop-filter: blur(20px); display: flex; flex-direction: column; overflow: hidden;
+      transition: transform 350ms cubic-bezier(0.4,0,0.2,1);
+    }
+    [dir="rtl"] .mgmt-sidebar { left: auto; right: var(--nav-w); border-right: none; border-left: 1px solid rgba(255,255,255,.06); }
+    .mgmt-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 12px 10px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .mgmt-header-inner { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .mgmt-header-icon { display: flex; align-items: center; justify-content: center; background: rgba(136,144,161,.12); border-radius: 11px; width: 35px; height: 35px; flex-shrink: 0; color: var(--muted); }
+    .mgmt-header-title { font-size: .78rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mgmt-sort-btn { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 7px; padding: 0; flex-shrink: 0; transition: background .15s, color .15s; }
+    .mgmt-sort-btn:hover { background: rgba(255,255,255,.06); color: var(--white); }
+    .mgmt-body { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; padding-bottom: 8px; }
+    .mgmt-body::-webkit-scrollbar { width: 3px; }
+    .mgmt-body::-webkit-scrollbar-thumb { background: rgba(124,58,237,.3); border-radius: 3px; }
+    .mgmt-nav { padding: 8px 10px 0; }
+    .mgmt-section { margin-bottom: 2px; }
+    .mgmt-section-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: none; border: none; border-radius: 10px; cursor: pointer; color: var(--white); font-family: inherit; font-size: .76rem; font-weight: 700; letter-spacing: .02em; transition: background .15s; }
+    .mgmt-section-btn:hover { background: rgba(255,255,255,.04); }
+    .mgmt-sec-chevron { color: var(--muted); flex-shrink: 0; transform: rotate(180deg); transition: transform 300ms cubic-bezier(0.4,0,0.2,1); }
+    .mgmt-section-btn.open .mgmt-sec-chevron { transform: rotate(0deg); }
+    .mgmt-sec-body { overflow: hidden; max-height: 0; transition: max-height 350ms cubic-bezier(0.4,0,0.2,1); }
+    .mgmt-sec-body.open { max-height: 800px; }
+    .mgmt-item { display: flex; align-items: center; gap: 0; padding: 5px 8px 5px 0; border-radius: 8px; text-decoration: none; color: var(--muted); font-size: .78rem; font-weight: 600; position: relative; cursor: pointer; transition: background .15s, color .15s; width: 100%; border: none; background: none; font-family: inherit; }
+    .mgmt-item:hover:not(.disabled) { background: rgba(255,255,255,.04); color: var(--white); }
+    .mgmt-item.active { color: var(--white); }
+    .mgmt-item.disabled { cursor: default; opacity: .6; }
+    .mgmt-item-indicator { width: 3px; height: 0; border-radius: 0 3px 3px 0; background: var(--purple); box-shadow: 0 0 10px rgba(104,31,209,.6); margin-right: 8px; flex-shrink: 0; transition: height 300ms; }
+    .mgmt-item.active .mgmt-item-indicator { height: 1.6rem; }
+    [dir="rtl"] .mgmt-item-indicator { border-radius: 3px 0 0 3px; margin-right: 0; margin-left: 8px; }
+    .mgmt-item-icon { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; margin-right: 8px; color: inherit; }
+    [dir="rtl"] .mgmt-item-icon { margin-right: 0; margin-left: 8px; }
+    .mgmt-item-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mgmt-badge { font-size: .6rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,.1); color: var(--muted); background: rgba(255,255,255,.05); flex-shrink: 0; letter-spacing: .03em; margin-left: 4px; }
+    [dir="rtl"] .mgmt-badge { margin-left: 0; margin-right: 4px; }
+    .mgmt-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--purple); border-radius: 16px 16px 0 0; flex-shrink: 0; position: sticky; bottom: 0; }
+    .mgmt-footer-user { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .mgmt-footer-av { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(255,255,255,.25); }
+    .mgmt-footer-av-fallback { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: .82rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
+    .mgmt-footer-name { font-size: .78rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .mgmt-footer-dots { background: none; border: none; color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; flex-shrink: 0; transition: background .15s; }
+    .mgmt-footer-dots:hover { background: rgba(255,255,255,.18); }
+
+    /* ── Profile Sidebar ── */
+    .profile-backdrop { position: fixed; inset: 0; z-index: 200; background: transparent; pointer-events: none; transition: background .25s; }
+    .profile-backdrop.open { background: rgba(0,0,0,.55); pointer-events: all; }
+    .profile-sidebar { position: fixed; top: 0; right: 0; bottom: 0; z-index: 201; width: 300px; max-width: 92vw; background: rgba(8,2,22,.97); border-left: 1px solid rgba(124,58,237,.18); box-shadow: -12px 0 60px rgba(0,0,0,.7); display: flex; flex-direction: column; transform: translateX(110%); transition: transform .32s cubic-bezier(.22,1,.36,1); overflow: hidden; }
+    [dir="rtl"] .profile-sidebar { right: auto; left: 0; border-left: none; border-right: 1px solid rgba(124,58,237,.18); box-shadow: 12px 0 60px rgba(0,0,0,.7); transform: translateX(-110%); }
+    .profile-sidebar.open { transform: translateX(0); }
+    .prof-banner { width: 100%; height: 100px; flex-shrink: 0; position: relative; background: linear-gradient(135deg,#2d0b6b 0%,#0a0020 60%,#06b6d4 100%); }
+    .prof-banner-solid { width: 100%; height: 100%; }
+    .prof-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom,transparent 50%,rgba(8,2,22,.95) 100%); }
+    .prof-close { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); transition: background .18s, color .18s; z-index: 5; }
+    [dir="rtl"] .prof-close { right: auto; left: 10px; }
+    .prof-close:hover { background: rgba(220,38,38,.25); color: #fca5a5; }
+    .prof-avatar-wrap { position: relative; margin: -38px 0 0 20px; width: 80px; height: 80px; flex-shrink: 0; }
+    [dir="rtl"] .prof-avatar-wrap { margin: -38px 20px 0 0; }
+    .prof-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; border: 3px solid rgba(8,2,22,.97); box-shadow: 0 0 0 2px rgba(124,58,237,.5); }
+    .prof-avatar-fallback { width: 80px; height: 80px; border-radius: 50%; background: rgba(124,58,237,.25); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; border: 3px solid rgba(8,2,22,.97); }
+    .prof-online-dot { position: absolute; bottom: 4px; right: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--green); border: 2px solid rgba(8,2,22,.97); }
+    [dir="rtl"] .prof-online-dot { right: auto; left: 4px; }
+    .prof-body { flex: 1; overflow-y: auto; padding: 12px 20px 0; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; }
+    .prof-names { margin-bottom: 14px; }
+    .prof-display-name { font-size: 1rem; font-weight: 700; color: var(--white); }
+    .prof-username { font-size: .82rem; color: var(--muted); }
+    .prof-block { margin-bottom: 14px; }
+    .prof-block-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 5px; }
+    .prof-id-text { font-size: .78rem; font-family: monospace; color: var(--purple-l); background: rgba(124,58,237,.1); border: 1px solid rgba(124,58,237,.2); border-radius: 8px; padding: 6px 10px; cursor: pointer; transition: background .18s; word-break: break-all; }
+    .prof-id-text:hover { background: rgba(124,58,237,.2); }
+    .prof-footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 8px; }
+    .prof-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; font-size: .83rem; font-weight: 600; text-decoration: none; color: var(--muted); background: var(--surface); border: 1px solid rgba(255,255,255,.06); transition: all .18s; cursor: pointer; }
+    .prof-btn:hover { background: var(--surface-2); color: var(--white); }
+    .prof-btn.help:hover { color: var(--cyan-l); border-color: rgba(6,182,212,.3); }
+    .prof-btn.logout:hover { color: #fca5a5; background: rgba(220,38,38,.12); border-color: rgba(220,38,38,.3); }
+
+    /* ── Main content ── */
+    .main {
+      position: relative; z-index: 10; min-height: calc(100vh - 60px);
+      margin-top: 60px; margin-left: calc(var(--nav-w) + var(--mgmt-w));
+      padding: 36px 32px 60px;
+    }
+    [dir="rtl"] .main { margin-left: 0; margin-right: calc(var(--nav-w) + var(--mgmt-w)); }
+
+    /* ── Page header ── */
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; gap: 16px; flex-wrap: wrap; }
+    .page-header-left { display: flex; flex-direction: column; gap: 6px; }
+    .page-header h2 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+    .page-header p { font-size: .88rem; color: var(--muted); }
+    .page-header-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.3); color: var(--purple-l); font-size: .72rem; font-weight: 700; margin-top: 4px; align-self: flex-start; }
+
+    /* ── Toggle ── */
+    .sw-wrap { display: inline-flex; align-items: center; cursor: pointer; position: relative; flex-shrink: 0; user-select: none; }
+    .sw-input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .sw-track { width: 44px; height: 24px; background: rgba(255,255,255,.14); border-radius: 12px; position: relative; transition: background .22s; display: block; flex-shrink: 0; }
+    .sw-input:checked + .sw-track { background: #7c3aed; }
+    .sw-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform .22s cubic-bezier(.4,0,.2,1); box-shadow: 0 1px 4px rgba(0,0,0,.45); }
+    .sw-input:checked + .sw-track .sw-thumb { transform: translateX(20px); }
+
+    /* ── Cards ── */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; backdrop-filter: blur(20px); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+    .card-header-left { display: flex; align-items: center; gap: 12px; }
+    .card-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-icon.purple { background: rgba(124,58,237,.15); color: var(--purple-l); border: 1px solid rgba(124,58,237,.25); }
+    .card-icon.green { background: rgba(34,197,94,.1); color: #86efac; border: 1px solid rgba(34,197,94,.2); }
+    .card-icon.cyan { background: rgba(6,182,212,.1); color: var(--cyan-l); border: 1px solid rgba(6,182,212,.2); }
+    .card-icon.gold { background: rgba(217,119,6,.1); color: var(--gold-l); border: 1px solid rgba(217,119,6,.2); }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--white); }
+    .card-sub { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+    .divider { width: 100%; height: 1px; background: rgba(255,255,255,.07); margin: 18px 0; }
+
+    /* ── Buttons ── */
+    .btn { padding: 9px 20px; border-radius: 10px; font-size: .85rem; font-weight: 600; cursor: pointer; border: none; transition: all .18s; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--purple); color: var(--white); }
+    .btn-primary:hover { background: #8b5cf6; }
+    .btn-primary:disabled { opacity: .5; cursor: default; }
+    .btn-ghost { background: var(--surface); color: var(--muted); border: 1px solid rgba(255,255,255,.1); }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--white); }
+
+    /* ── Save bar ── */
+    .save-bar { position: fixed; bottom: 0; left: calc(var(--nav-w) + var(--mgmt-w)); right: 0; z-index: 80; background: rgba(6,2,20,.95); border-top: 1px solid rgba(124,58,237,.25); backdrop-filter: blur(20px); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transform: translateY(100%); transition: transform .28s cubic-bezier(.22,1,.36,1); }
+    [dir="rtl"] .save-bar { left: 0; right: calc(var(--nav-w) + var(--mgmt-w)); }
+    .save-bar.visible { transform: translateY(0); }
+    .save-bar-hint { font-size: .82rem; color: var(--muted); }
+    .save-bar-actions { display: flex; gap: 10px; }
+
+    /* ── Toast ── */
+    .toast { position: fixed; bottom: 80px; right: 24px; z-index: 999; padding: 12px 20px; border-radius: 12px; font-size: .84rem; font-weight: 600; display: flex; align-items: center; gap: 10px; opacity: 0; transform: translateY(8px); transition: opacity .22s, transform .22s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.3); color: #86efac; }
+    .toast.error { background: rgba(220,38,38,.15); border: 1px solid rgba(220,38,38,.3); color: #fca5a5; }
+    [dir="rtl"] .toast { right: auto; left: 24px; }
+
+    /* ── Page transition ── */
+    #ov { position: fixed; inset: 0; z-index: 9999; background: var(--bg); opacity: 0; pointer-events: none; }
+    @keyframes pIn  { from { opacity: 1 } to { opacity: 0 } }
+    @keyframes pOut { from { opacity: 0 } to { opacity: 1 } }
+    #ov.leave { animation: pOut .35s cubic-bezier(.4,0,.2,1) forwards; pointer-events: all; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Form select ── */
+    .form-select {
+      width: 100%; padding: 9px 36px 9px 12px; border-radius: 10px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      color: var(--white); font-size: .85rem; font-family: inherit; cursor: pointer;
+      outline: none; -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; background-size: 12px;
+      transition: border-color .18s;
+    }
+    .form-select:focus { border-color: var(--purple); }
+    .form-select option { background: #0a0022; color: var(--white); }
+    [dir="rtl"] .form-select { padding: 9px 12px 9px 36px; background-position: left 10px center; }
+
+    /* ── Setting row ── */
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; }
+    .setting-row + .setting-row { border-top: 1px solid rgba(255,255,255,.05); }
+    .setting-info { flex: 1; min-width: 0; }
+    .setting-label { font-size: .88rem; font-weight: 600; color: var(--white); }
+    .setting-desc  { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Field group ── */
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    .field-label { font-size: .8rem; font-weight: 600; color: var(--muted); }
+
+    /* ── Grid 2 ── */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 540px) { .grid2 { grid-template-columns: 1fr; } }
+
+    /* ── Voting type cards ── */
+    .type-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+    @media (max-width: 600px) { .type-cards { grid-template-columns: 1fr; } }
+    .type-card-input { display: none; }
+    .type-card {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 16px 10px; border-radius: 12px; cursor: pointer; text-align: center;
+      border: 1.5px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03);
+      transition: border-color .18s, background .18s;
+    }
+    .type-card-input:checked + .type-card {
+      border-color: var(--purple); background: rgba(124,58,237,.12);
+    }
+    .type-card-icon { display: flex; align-items: center; justify-content: center; color: var(--muted); transition: color .18s; }
+    .type-card-input:checked + .type-card .type-card-icon { color: var(--purple-l); }
+    .type-card-label { font-size: .78rem; font-weight: 600; color: var(--muted); transition: color .18s; }
+    .type-card-input:checked + .type-card .type-card-label { color: var(--white); }
+
+    /* ── Emoji row ── */
+    .emoji-row { display: flex; align-items: center; gap: 10px; }
+    .emoji-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.1);
+      cursor: pointer; font-size: 1.2rem; transition: border-color .18s, background .18s;
+    }
+    .emoji-btn:hover { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.4); }
+    .emoji-display { font-size: 1.3rem; line-height: 1; pointer-events: none; }
+
+    /* ── Multi reactions ── */
+    .multi-reactions-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+    .reaction-chip {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px; font-size: .85rem; cursor: default;
+    }
+    .reaction-chip-remove { background: none; border: none; cursor: pointer; color: var(--muted); display: flex; align-items: center; padding: 0; transition: color .15s; }
+    .reaction-chip-remove:hover { color: var(--red); }
+    .add-reaction-btn {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+      background: rgba(124,58,237,.1); border: 1.5px dashed rgba(124,58,237,.35);
+      border-radius: 8px; color: var(--purple-l); font-size: .82rem; font-weight: 600;
+      cursor: pointer; transition: background .18s, border-color .18s;
+    }
+    .add-reaction-btn:hover { background: rgba(124,58,237,.18); border-color: rgba(124,58,237,.6); }
+
+    /* ── Number input ── */
+    .num-wrap { display: flex; align-items: center; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05); }
+    .num-input {
+      flex: 1; min-width: 0; background: none; border: none; color: var(--white);
+      font-size: .88rem; font-family: inherit; padding: 9px 10px; outline: none; -moz-appearance: textfield;
+    }
+    .num-input::-webkit-inner-spin-button, .num-input::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; }
+    .num-wrap:focus-within { border-color: var(--purple); }
+    .num-suffix { padding: 0 12px; color: var(--muted); font-size: .78rem; border-left: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+    [dir="rtl"] .num-suffix { border-left: none; border-right: 1px solid rgba(255,255,255,.08); }
+
+    /* ── Role tags ── */
+    .roles-tags-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; align-items: center; min-height: 36px; }
+    .role-tag {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 7px; font-size: .8rem;
+    }
+    .role-tag-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .role-tag-remove { background: none; border: none; cursor: pointer; color: var(--muted); display: flex; align-items: center; padding: 0; transition: color .15s; }
+    .role-tag-remove:hover { color: var(--red); }
+    .roles-empty { font-size: .78rem; color: var(--muted); font-style: italic; }
+
+    /* ── Role picker ── */
+    .role-picker-wrap { position: relative; margin-top: 8px; }
+    .role-picker-input-row { display: flex; gap: 8px; }
+    .role-picker-field {
+      flex: 1; padding: 8px 12px; border-radius: 10px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      color: var(--white); font-size: .84rem; font-family: inherit; outline: none;
+      transition: border-color .18s;
+    }
+    .role-picker-field:focus { border-color: var(--purple); }
+    .role-picker-dropdown {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
+      background: #0d0826; border: 1px solid rgba(124,58,237,.3); border-radius: 10px;
+      max-height: 200px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent;
+      display: none;
+    }
+    .role-picker-dropdown.open { display: block; }
+    .role-picker-opt {
+      display: flex; align-items: center; gap: 9px; padding: 9px 14px;
+      cursor: pointer; font-size: .83rem; transition: background .14s;
+    }
+    .role-picker-opt:hover { background: rgba(124,58,237,.15); }
+    .role-picker-opt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Conditional sections ── */
+    .cond { overflow: hidden; max-height: 0; opacity: 0; transition: max-height .32s cubic-bezier(.4,0,.2,1), opacity .25s; pointer-events: none; }
+    .cond.visible { max-height: 800px; opacity: 1; pointer-events: auto; }
+
+    /* ── Status tag row ── */
+    .status-tag-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; flex-wrap: wrap; }
+    .status-tag-row + .status-tag-row { border-top: 1px solid rgba(255,255,255,.05); }
+    .status-tag-row .field-label { min-width: 110px; flex-shrink: 0; }
+    .status-tag-row .tag-input { flex: 1; min-width: 120px; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .tag-input {
+      flex: 1; padding: 8px 12px; border-radius: 9px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      color: var(--white); font-size: .85rem; font-family: inherit; outline: none;
+      transition: border-color .18s;
+    }
+    .tag-input:focus { border-color: var(--purple); }
+
+    /* ── Emoji picker popup ── */
+    #emoji-picker {
+      position: fixed; z-index: 500; width: 300px;
+      background: #0d0826; border: 1px solid rgba(124,58,237,.3);
+      border-radius: 14px; box-shadow: 0 24px 64px rgba(0,0,0,.7);
+      display: none; flex-direction: column; overflow: hidden;
+    }
+    #emoji-picker.open { display: flex; }
+    .ep-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 6px; gap: 8px; }
+    .ep-search {
+      flex: 1; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px; padding: 6px 10px; color: var(--white); font-size: .82rem;
+      font-family: inherit; outline: none; transition: border-color .18s;
+    }
+    .ep-search:focus { border-color: var(--purple); }
+    .ep-close { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; padding: 4px; border-radius: 6px; transition: color .15s; }
+    .ep-close:hover { color: var(--white); }
+    .ep-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.06); padding: 0 10px; }
+    .ep-tab { padding: 6px 12px; font-size: .78rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color .18s, border-color .18s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
+    .ep-tab.active { color: var(--purple-l); border-bottom-color: var(--purple); }
+    .ep-body { padding: 8px; max-height: 200px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.2) transparent; }
+    .ep-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+    .ep-emoji { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 7px; cursor: pointer; font-size: 1.1rem; transition: background .14s; }
+    .ep-emoji:hover { background: rgba(124,58,237,.18); }
+    .ep-custom { width: 34px; height: 34px; border-radius: 7px; cursor: pointer; transition: opacity .14s; object-fit: contain; }
+    .ep-custom:hover { opacity: .7; }
+    .ep-manual { padding: 8px 10px; border-top: 1px solid rgba(255,255,255,.06); display: flex; gap: 7px; }
+    .ep-manual-input {
+      flex: 1; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px; padding: 6px 10px; color: var(--white); font-size: .82rem;
+      font-family: inherit; outline: none; transition: border-color .18s;
+    }
+    .ep-manual-input:focus { border-color: var(--purple); }
+    .ep-manual-ok {
+      padding: 6px 12px; background: var(--purple); border: none; border-radius: 8px;
+      color: var(--white); font-size: .78rem; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background .18s;
+    }
+    .ep-manual-ok:hover { background: #8b5cf6; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .menu-toggle { display: flex !important; }
+      .nav-sidebar { transform: translateX(-100%); width: 220px !important; align-items: stretch; overflow-x: unset; z-index: 95; transition: transform 350ms cubic-bezier(0.4,0,0.2,1); }
+      [dir="rtl"] .nav-sidebar { transform: translateX(100%); }
+      .nav-sidebar.open { transform: translateX(0) !important; }
+      .nav-sidebar.open .nav-back { width: 100%; gap: 10px; padding: 0 12px 0 8px; }
+      .nav-sidebar.open .nav-back .nav-label { opacity: 1; visibility: visible; pointer-events: auto; }
+      .nav-sidebar.open .nav-item { width: 100%; gap: 10px; padding: 0 12px 0 8px; justify-content: flex-start; border-radius: 10px; }
+      .nav-sidebar.open .nav-item-label { opacity: 1; visibility: visible; pointer-events: auto; }
+      .nav-sidebar.open .nav-status { opacity: 0; }
+      .nav-sidebar.open .nav-divider { width: calc(100% - 24px); }
+      .mgmt-sidebar { left: 0 !important; right: auto !important; transform: translateX(-100%); width: 260px !important; z-index: 92; }
+      [dir="rtl"] .mgmt-sidebar { left: auto !important; right: 0 !important; transform: translateX(100%); }
+      .mgmt-sidebar.open { transform: translateX(0) !important; }
+      .main { margin-left: 0 !important; margin-right: 0 !important; padding: 24px 16px 48px; }
+      .save-bar { left: 0 !important; right: 0 !important; padding: 12px 16px; }
+      .topbar { padding: 0 12px; gap: 8px; }
+      .topbar-brand { display: none; }
+      .guild-meta-id { display: none !important; }
+      .guild-meta-name { max-width: 90px; }
+      .user-chip span { display: none; }
+      .topbar-sep { display: none; }
+      .lang-select { display: none; }
+    }
+    @media (max-width: 540px) {
+      .page-header { flex-direction: column; align-items: flex-start; }
+      .type-cards { grid-template-columns: 1fr; }
+      #emoji-picker { width: calc(100vw - 32px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="ov"></div>
+  <canvas id="c"></canvas>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+
+  <%- include('partials/layout', { activePage: 'suggestions' }) %>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h2><%= t.suggestions.nav %></h2>
+        <p><%= t.suggestions.pageDescription %></p>
+        <div class="page-header-badge">
+          <i data-lucide="users" style="width:11px;height:11px;stroke:currentColor;"></i>
+          <%= t.suggestions.membersSection %>
+        </div>
+      </div>
+      <label class="sw-wrap" title="<%= t.suggestions.enableSystem %>">
+        <input class="sw-input" type="checkbox" id="toggle-enabled" <%- sg.enabled ? 'checked' : '' %>>
+        <span class="sw-track"><span class="sw-thumb"></span></span>
+      </label>
+    </div>
+
+    <!-- Card 1: Channel -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon purple"><i data-lucide="hash" style="width:20px;height:20px;stroke:currentColor;"></i></div>
+          <div>
+            <div class="card-title"><%= t.suggestions.channel %></div>
+            <div class="card-sub"><%= t.suggestions.channelDesc %></div>
+          </div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label"><%= t.suggestions.selectChannel %></label>
+        <select id="channel-select" class="form-select">
+          <option value="">— <%= t.suggestions.selectChannel %> —</option>
+          <% guildChannels.forEach(function(ch) { %>
+            <option value="<%= ch.id %>" <%- sg.channel === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="divider"></div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label"><%= t.suggestions.allowThreads %></div>
+          <div class="setting-desc"><%= t.suggestions.allowThreadsDesc %></div>
+        </div>
+        <label class="sw-wrap">
+          <input class="sw-input" type="checkbox" id="allow-threads" <%- sg.allowThreads ? 'checked' : '' %>>
+          <span class="sw-track"><span class="sw-thumb"></span></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Card 2: Voting -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon cyan"><i data-lucide="thumbs-up" style="width:20px;height:20px;stroke:currentColor;"></i></div>
+          <div>
+            <div class="card-title"><%= t.suggestions.voting %></div>
+          </div>
+        </div>
+        <label class="sw-wrap">
+          <input class="sw-input" type="checkbox" id="voting-enabled" <%- sv.enabled ? 'checked' : '' %>>
+          <span class="sw-track"><span class="sw-thumb"></span></span>
+        </label>
+      </div>
+
+      <div class="field-group" style="margin-bottom:16px;">
+        <div class="field-label"><%= t.suggestions.votingType %></div>
+        <div class="type-cards">
+          <input type="radio" name="voting-type" id="vt-updown" class="type-card-input" value="upvote_downvote" <%- (sv.type === 'upvote_downvote' || !sv.type) ? 'checked' : '' %>>
+          <label for="vt-updown" class="type-card">
+            <div class="type-card-icon"><i data-lucide="thumbs-up" style="width:22px;height:22px;stroke:currentColor;"></i></div>
+            <div class="type-card-label"><%= t.suggestions.upvoteDownvote %></div>
+          </label>
+
+          <input type="radio" name="voting-type" id="vt-multi" class="type-card-input" value="multiple_reactions" <%- sv.type === 'multiple_reactions' ? 'checked' : '' %>>
+          <label for="vt-multi" class="type-card">
+            <div class="type-card-icon"><i data-lucide="smile" style="width:22px;height:22px;stroke:currentColor;"></i></div>
+            <div class="type-card-label"><%= t.suggestions.multipleReactions %></div>
+          </label>
+
+          <input type="radio" name="voting-type" id="vt-buttons" class="type-card-input" value="buttons" <%- sv.type === 'buttons' ? 'checked' : '' %>>
+          <label for="vt-buttons" class="type-card">
+            <div class="type-card-icon"><i data-lucide="square" style="width:22px;height:22px;stroke:currentColor;"></i></div>
+            <div class="type-card-label"><%= t.suggestions.buttons %></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- upvote/downvote emoji — shown for upvote_downvote type -->
+      <div class="cond" id="cond-updown-emojis">
+        <div class="grid2">
+          <div class="field-group">
+            <div class="field-label"><%= t.suggestions.upvoteEmoji %></div>
+            <div class="emoji-row">
+              <button type="button" class="emoji-btn" id="btn-upvote-emoji" data-target="upvoteEmoji">
+                <span class="emoji-display" id="display-upvoteEmoji"><%= sv.upvoteEmoji || '\uD83D\uDC4D' %></span>
+              </button>
+              <input type="hidden" id="val-upvoteEmoji" value="<%= sv.upvoteEmoji || '\uD83D\uDC4D' %>">
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field-label"><%= t.suggestions.downvoteEmoji %></div>
+            <div class="emoji-row">
+              <button type="button" class="emoji-btn" id="btn-downvote-emoji" data-target="downvoteEmoji">
+                <span class="emoji-display" id="display-downvoteEmoji"><%= sv.downvoteEmoji || '\uD83D\uDC4E' %></span>
+              </button>
+              <input type="hidden" id="val-downvoteEmoji" value="<%= sv.downvoteEmoji || '\uD83D\uDC4E' %>">
+            </div>
+          </div>
+        </div>
+        <div style="height:8px;"></div>
+      </div>
+
+      <!-- multiple reactions — shown for multiple_reactions type -->
+      <div class="cond" id="cond-multi-reactions">
+        <div class="field-label"><%= t.suggestions.multipleReactions %></div>
+        <div class="multi-reactions-wrap" id="multi-reactions-list">
+          <% (sv.multipleReactions || []).forEach(function(em) { %>
+            <span class="reaction-chip" data-emoji="<%= em %>">
+              <span><%= em %></span>
+              <button type="button" class="reaction-chip-remove" title="<%= t.suggestions.removeRole %>">
+                <i data-lucide="x" style="width:12px;height:12px;stroke:currentColor;"></i>
+              </button>
+            </span>
+          <% }); %>
+          <button type="button" class="add-reaction-btn" id="btn-add-reaction">
+            <i data-lucide="plus" style="width:13px;height:13px;stroke:currentColor;"></i>
+            <%= t.suggestions.addRole %>
+          </button>
+        </div>
+        <div style="height:8px;"></div>
+      </div>
+    </div>
+
+    <!-- Card 3: Auto Threshold -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon gold"><i data-lucide="bar-chart-2" style="width:20px;height:20px;stroke:currentColor;"></i></div>
+          <div>
+            <div class="card-title"><%= t.suggestions.autoThreshold %></div>
+            <div class="card-sub"><%= t.suggestions.autoThresholdDesc %></div>
+          </div>
+        </div>
+        <label class="sw-wrap">
+          <input class="sw-input" type="checkbox" id="auto-threshold-enabled" <%- sa.enabled ? 'checked' : '' %>>
+          <span class="sw-track"><span class="sw-thumb"></span></span>
+        </label>
+      </div>
+      <div class="cond" id="cond-threshold">
+        <div class="grid2">
+          <div class="field-group">
+            <div class="field-label"><%= t.suggestions.minUpvotes %></div>
+            <div class="num-wrap">
+              <input type="number" id="min-upvotes" class="num-input" min="1" max="9999" value="<%= sa.minUpvotes || 10 %>">
+            </div>
+          </div>
+          <div class="field-group">
+            <div class="field-label"><%= t.suggestions.minDownvotes %></div>
+            <div class="num-wrap">
+              <input type="number" id="min-downvotes" class="num-input" min="1" max="9999" value="<%= sa.minDownvotes || 5 %>">
+            </div>
+          </div>
+        </div>
+        <div style="height:8px;"></div>
+      </div>
+    </div>
+
+    <!-- Card 4: Permissions -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon green"><i data-lucide="shield-check" style="width:20px;height:20px;stroke:currentColor;"></i></div>
+          <div>
+            <div class="card-title"><%= t.suggestions.permissions %></div>
+          </div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label"><%= t.suggestions.allowAll %></div>
+        </div>
+        <label class="sw-wrap">
+          <input class="sw-input" type="checkbox" id="allow-all" <%- (sp.allowAll !== false) ? 'checked' : '' %>>
+          <span class="sw-track"><span class="sw-thumb"></span></span>
+        </label>
+      </div>
+      <!-- Roles cond -->
+      <div class="cond" id="cond-roles">
+        <div class="divider"></div>
+        <div class="field-label" style="margin-bottom:4px;"><%= t.suggestions.allowedRoles %></div>
+        <div class="roles-tags-wrap" id="roles-tags">
+          <% var allowedRoles = sp.allowedRoles || []; %>
+          <% if (allowedRoles.length === 0) { %>
+            <span class="roles-empty" id="roles-empty"><%= t.suggestions.noRolesAdded %></span>
+          <% } else { %>
+            <span class="roles-empty" id="roles-empty" style="display:none;"><%= t.suggestions.noRolesAdded %></span>
+            <% allowedRoles.forEach(function(rid) { %>
+              <% var roleObj = guildRoles.find(function(r){ return r.id === rid; }); %>
+              <% if (roleObj) { %>
+                <span class="role-tag" data-role-id="<%= roleObj.id %>">
+                  <span class="role-tag-dot" data-color="<%= roleObj.color || '#888' %>"></span>
+                  <span><%= roleObj.name %></span>
+                  <button type="button" class="role-tag-remove" title="<%= t.suggestions.removeRole %>">
+                    <i data-lucide="x" style="width:11px;height:11px;stroke:currentColor;"></i>
+                  </button>
+                </span>
+              <% } %>
+            <% }); %>
+          <% } %>
+        </div>
+        <div class="role-picker-wrap" id="role-picker-wrap">
+          <div class="role-picker-input-row">
+            <input type="text" id="role-picker-field" class="role-picker-field" placeholder="<%= t.suggestions.addRole %>..." autocomplete="off">
+          </div>
+          <div class="role-picker-dropdown" id="role-picker-dropdown">
+            <% guildRoles.forEach(function(r) { %>
+              <div class="role-picker-opt" data-role-id="<%= r.id %>" data-role-name="<%= r.name %>" data-role-color="<%= r.color || '#888' %>">
+                <span class="role-picker-opt-dot" data-color="<%= r.color || '#888' %>"></span>
+                <span><%= r.name %></span>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+        <div style="height:8px;"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="grid2">
+        <div class="field-group">
+          <div class="field-label"><%= t.suggestions.minAccountAge %></div>
+          <div class="num-wrap">
+            <input type="number" id="min-account-age" class="num-input" min="0" max="3650" value="<%= sp.minAccountAge || 0 %>">
+            <span class="num-suffix"><%= t.suggestions.minAccountAgeUnit %></span>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label"><%= t.suggestions.minServerLevel %></div>
+          <div class="num-wrap">
+            <input type="number" id="min-server-level" class="num-input" min="0" max="9999" value="<%= sp.minServerLevel || 0 %>">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: Spam -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon purple" style="background:rgba(239,68,68,.1);color:#fca5a5;border-color:rgba(239,68,68,.2);">
+            <i data-lucide="shield-off" style="width:20px;height:20px;stroke:currentColor;"></i>
+          </div>
+          <div>
+            <div class="card-title"><%= t.suggestions.spam %></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field-group">
+          <div class="field-label"><%= t.suggestions.cooldown %></div>
+          <div class="num-wrap">
+            <input type="number" id="spam-cooldown" class="num-input" min="0" max="10080" value="<%= ss.cooldown || 10 %>">
+            <span class="num-suffix"><%= t.suggestions.cooldownUnit %></span>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label"><%= t.suggestions.maxPerDay %></div>
+          <div class="num-wrap">
+            <input type="number" id="spam-max-per-day" class="num-input" min="1" max="999" value="<%= ss.maxPerDay || 3 %>">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6: Moderation -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon gold"><i data-lucide="clipboard-check" style="width:20px;height:20px;stroke:currentColor;"></i></div>
+          <div>
+            <div class="card-title"><%= t.suggestions.moderation %></div>
+            <div class="card-sub"><%= t.suggestions.moderationDesc %></div>
+          </div>
+        </div>
+        <label class="sw-wrap">
+          <input class="sw-input" type="checkbox" id="require-approval" <%- sm.requireApproval ? 'checked' : '' %>>
+          <span class="sw-track"><span class="sw-thumb"></span></span>
+        </label>
+      </div>
+      <div class="cond" id="cond-moderation">
+        <div class="field-group" style="margin-bottom:14px;">
+          <label class="field-label"><%= t.suggestions.pendingChannel %></label>
+          <select id="pending-channel-select" class="form-select">
+            <option value="">— <%= t.suggestions.selectChannel %> —</option>
+            <% guildChannels.forEach(function(ch) { %>
+              <option value="<%= ch.id %>" <%- sm.pendingChannel === ch.id ? 'selected' : '' %>>#<%= ch.name %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label"><%= t.suggestions.requireRejectReason %></div>
+            <div class="setting-desc"><%= t.suggestions.requireRejectReasonDesc %></div>
+          </div>
+          <label class="sw-wrap">
+            <input class="sw-input" type="checkbox" id="require-reject-reason" <%- (sm.requireRejectReason !== false) ? 'checked' : '' %>>
+            <span class="sw-track"><span class="sw-thumb"></span></span>
+          </label>
+        </div>
+        <div style="height:4px;"></div>
+      </div>
+    </div>
+
+    <!-- Card 7: Status Tags -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon cyan"><i data-lucide="tag" style="width:20px;height:20px;stroke:currentColor;"></i></div>
+          <div>
+            <div class="card-title"><%= t.suggestions.statusTags %></div>
+          </div>
+        </div>
+      </div>
+      <div class="status-tag-row">
+        <span class="status-dot" style="background:var(--green);"></span>
+        <div class="field-label"><%= t.suggestions.acceptedTag %></div>
+        <input type="text" id="tag-accepted" class="tag-input" maxlength="50" value="<%= st.accepted || 'Accepted' %>">
+      </div>
+      <div class="status-tag-row">
+        <span class="status-dot" style="background:var(--red);"></span>
+        <div class="field-label"><%= t.suggestions.rejectedTag %></div>
+        <input type="text" id="tag-rejected" class="tag-input" maxlength="50" value="<%= st.rejected || 'Rejected' %>">
+      </div>
+      <div class="status-tag-row">
+        <span class="status-dot" style="background:var(--gold);"></span>
+        <div class="field-label"><%= t.suggestions.consideredTag %></div>
+        <input type="text" id="tag-considered" class="tag-input" maxlength="50" value="<%= st.considered || 'Under Review' %>">
+      </div>
+    </div>
+
+  </main><!-- /main -->
+
+  <!-- Save bar -->
+  <div class="save-bar" id="save-bar">
+    <span class="save-bar-hint"><%= t.suggestions.unsavedChanges %></span>
+    <div class="save-bar-actions">
+      <button type="button" class="btn btn-ghost" id="btn-reset"><%= t.suggestions.reset %></button>
+      <button type="button" class="btn btn-primary" id="btn-save">
+        <i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i>
+        <%= t.suggestions.saveChanges %>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <%- include('partials/promo_card') %>
+  <%- include('partials/footer') %>
+
+  <!-- Emoji picker popup -->
+  <div id="emoji-picker">
+    <div class="ep-header">
+      <input class="ep-search" type="text" placeholder="Search emoji…" id="ep-search-input">
+      <button class="ep-close" id="ep-close-btn" type="button"><i data-lucide="x" style="width:16px;height:16px;stroke:currentColor;"></i></button>
+    </div>
+    <div class="ep-tabs">
+      <button class="ep-tab active" data-tab="unicode" type="button">Unicode</button>
+      <button class="ep-tab" data-tab="server" type="button">Server</button>
+    </div>
+    <div class="ep-body" id="ep-body"></div>
+    <div class="ep-manual">
+      <input class="ep-manual-input" type="text" id="ep-manual-input" placeholder="<emoji> or :name:">
+      <button class="ep-manual-ok" type="button" id="ep-manual-ok">OK</button>
+    </div>
+  </div>
+
+  <!-- Init data -->
+  <script type="application/json" id="_init"><%- JSON.stringify({
+    guildId: guildId,
+    saveUrl: '/dashboard/' + guildId + '/suggestions/save',
+    lang: { dir: t.dir },
+    i18n: {
+      saving:       t.suggestions.saving,
+      savedOk:      t.suggestions.savedOk,
+      errorOccurred: t.suggestions.errorOccurred
+    }
+  }) %></script>
+  <script type="application/json" id="_guild-emojis"><%- JSON.stringify(guildEmojis) %></script>
+
+  <script src="/js/lucide.min.js"></script>
+  <%- include('partials/bg_twinkle') %>
+  <script>
+    lucide.createIcons();
+
+    /* Apply data-color to dot elements */
+    document.querySelectorAll('[data-color]').forEach(el => { el.style.background = el.dataset.color; });
+
+    /* ─── Init ─── */
+    const CFG = JSON.parse(document.getElementById('_init').textContent);
+    const GUILD_EMOJIS = JSON.parse(document.getElementById('_guild-emojis').textContent);
+
+    /* ─── Profile sidebar ─── */
+    const profSidebar  = document.getElementById('prof-sidebar');
+    const profBackdrop = document.getElementById('prof-backdrop');
+    function openProfile()  { profSidebar.classList.add('open'); profBackdrop.classList.add('open'); profSidebar.removeAttribute('aria-hidden'); document.body.style.overflow = 'hidden'; }
+    function closeProfile() { profSidebar.classList.remove('open'); profBackdrop.classList.remove('open'); profSidebar.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; }
+    document.querySelectorAll('#open-profile, .open-profile-btn').forEach(b => b.addEventListener('click', openProfile));
+    document.getElementById('close-profile').addEventListener('click', closeProfile);
+    profBackdrop.addEventListener('click', closeProfile);
+    const profCopyId = document.getElementById('prof-copy-id');
+    if (profCopyId) profCopyId.addEventListener('click', () => { navigator.clipboard.writeText(profCopyId.textContent.trim()).then(() => showToast('Copied!', 'success')); });
+    document.querySelectorAll('.prof-banner-solid[data-bg]').forEach(el => { el.style.background = el.dataset.bg; });
+
+    /* ─── Language select ─── */
+    const langSel = document.getElementById('lang-select');
+    if (langSel) langSel.addEventListener('change', function () { const u = new URL(window.location.href); u.searchParams.set('lang', this.value); window.location.href = u.toString(); });
+
+    /* ─── Mobile nav ─── */
+    const menuToggle  = document.getElementById('menu-toggle');
+    const mgmtSidebar = document.getElementById('mgmt-sidebar');
+    const navSidebar  = document.querySelector('.nav-sidebar');
+    const navOverlay  = document.getElementById('nav-overlay');
+    function openMgmt()  { mgmtSidebar.classList.add('open'); navOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeMgmt() { mgmtSidebar.classList.remove('open'); navOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+    function openNav()   { if (navSidebar) { navSidebar.classList.add('open'); navOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; } }
+    function closeNav()  { if (navSidebar) { navSidebar.classList.remove('open'); navOverlay.classList.remove('open'); document.body.style.overflow = ''; } }
+    if (menuToggle) menuToggle.addEventListener('click', () => mgmtSidebar.classList.contains('open') ? closeMgmt() : openMgmt());
+    if (navOverlay) navOverlay.addEventListener('click', () => { closeMgmt(); closeNav(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMgmt(); closeNav(); closeProfile(); closeEmojiPicker(); } });
+    const sortBtn = document.querySelector('.mgmt-sort-btn');
+    if (sortBtn) sortBtn.addEventListener('click', () => { if (navSidebar && navSidebar.classList.contains('open')) closeNav(); else { closeMgmt(); openNav(); } });
+    document.querySelectorAll('.mgmt-section-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const body = this.nextElementSibling; const isOpen = body.classList.contains('open');
+        body.classList.toggle('open', !isOpen); this.classList.toggle('open', !isOpen);
+      });
+    });
+
+    /* ─── Toast ─── */
+    function showToast(msg, type) {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = msg; el.className = 'toast ' + (type || 'success');
+      void el.offsetWidth; el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    /* ─── Page transitions ─── */
+    function fadeOut(href) { const ov = document.getElementById('ov'); ov.classList.add('leave'); setTimeout(() => { window.location.href = href; }, 360); }
+    document.querySelectorAll('a.nav-link, a#logout-link').forEach(a => { a.addEventListener('click', function (e) { if (this.target === '_blank') return; e.preventDefault(); fadeOut(this.href); }); });
+
+    /* ─── Dirty tracking ─── */
+    let dirty = false;
+    const saveBar = document.getElementById('save-bar');
+    function markDirty() { dirty = true; saveBar.classList.add('visible'); }
+    function markClean() { dirty = false; saveBar.classList.remove('visible'); }
+
+    /* ─── Conditional sections ─── */
+    function setCond(id, show) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('visible', !!show);
+    }
+
+    function updateVotingType() {
+      const type = document.querySelector('input[name="voting-type"]:checked');
+      const val = type ? type.value : 'upvote_downvote';
+      setCond('cond-updown-emojis', val === 'upvote_downvote');
+      setCond('cond-multi-reactions', val === 'multiple_reactions');
+    }
+
+    // Init on load
+    (function initConditionals() {
+      const threshEnabled = document.getElementById('auto-threshold-enabled');
+      if (threshEnabled) setCond('cond-threshold', threshEnabled.checked);
+      const allowAll = document.getElementById('allow-all');
+      if (allowAll) setCond('cond-roles', !allowAll.checked);
+      const reqApproval = document.getElementById('require-approval');
+      if (reqApproval) setCond('cond-moderation', reqApproval.checked);
+      updateVotingType();
+    })();
+
+    // Toggle listeners
+    document.getElementById('auto-threshold-enabled').addEventListener('change', function() { setCond('cond-threshold', this.checked); markDirty(); });
+    document.getElementById('allow-all').addEventListener('change', function() { setCond('cond-roles', !this.checked); markDirty(); });
+    document.getElementById('require-approval').addEventListener('change', function() { setCond('cond-moderation', this.checked); markDirty(); });
+    document.querySelectorAll('input[name="voting-type"]').forEach(r => r.addEventListener('change', () => { updateVotingType(); markDirty(); }));
+
+    // Other toggle dirty
+    ['toggle-enabled','allow-threads','voting-enabled','require-reject-reason'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', markDirty);
+    });
+    document.querySelectorAll('#channel-select,#pending-channel-select,#min-upvotes,#min-downvotes,#min-account-age,#min-server-level,#spam-cooldown,#spam-max-per-day,#tag-accepted,#tag-rejected,#tag-considered').forEach(el => {
+      el.addEventListener('input', markDirty);
+      el.addEventListener('change', markDirty);
+    });
+
+    /* ─── Emoji picker ─── */
+    const UNICODE_EMOJIS = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','👹','👺','🤡','💩','👻','💀','☠️','👽','👾','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾','👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💪','🦵','🦶','👂','🦻','👃','🧠','👁️','👀','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️','✴️','🆚','💮','🉐','㊙️','㊗️','🈴','🈵','🈹','🈲','🅰️','🅱️','🆎','🆑','🅾️','🆘','❌','⭕','🛑','⛔','📛','🚫','💯','💢','♨️','🚷','🚯','🚳','🚱','🔞','📵','🚭','❗','❕','❓','❔','‼️','⁉️','🔅','🔆','〽️','⚠️','🚸','🔱'];
+
+    let epTarget = null; // 'upvoteEmoji' | 'downvoteEmoji' | 'multi'
+    const epEl = document.getElementById('emoji-picker');
+    const epBody = document.getElementById('ep-body');
+    const epSearchInput = document.getElementById('ep-search-input');
+    let epCurrentTab = 'unicode';
+
+    function renderEpGrid(filter) {
+      epBody.innerHTML = '';
+      if (epCurrentTab === 'unicode') {
+        const emojis = filter ? UNICODE_EMOJIS.filter(e => e.includes(filter)) : UNICODE_EMOJIS;
+        const grid = document.createElement('div'); grid.className = 'ep-grid';
+        emojis.forEach(em => {
+          const span = document.createElement('span'); span.className = 'ep-emoji'; span.textContent = em;
+          span.addEventListener('click', () => { selectEmoji(em); });
+          grid.appendChild(span);
+        });
+        epBody.appendChild(grid);
+      } else {
+        const filtered = filter ? GUILD_EMOJIS.filter(e => e.name.toLowerCase().includes(filter.toLowerCase())) : GUILD_EMOJIS;
+        const grid = document.createElement('div'); grid.className = 'ep-grid';
+        filtered.forEach(em => {
+          const img = document.createElement('img'); img.className = 'ep-custom';
+          img.src = em.url; img.title = em.name; img.alt = em.name;
+          const id = em.animated ? `<a:${em.name}:${em.id}>` : `<:${em.name}:${em.id}>`;
+          img.addEventListener('click', () => { selectEmoji(id); });
+          grid.appendChild(img);
+        });
+        epBody.appendChild(grid);
+      }
+    }
+
+    function selectEmoji(val) {
+      if (epTarget === 'multi') {
+        addMultiReaction(val);
+      } else if (epTarget) {
+        document.getElementById('val-' + epTarget).value = val;
+        const disp = document.getElementById('display-' + epTarget);
+        if (disp) {
+          if (val.startsWith('<')) {
+            const id = val.match(/:(\d+)>/); const animated = val.startsWith('<a:');
+            if (id) { const img = document.createElement('img'); img.src = `https://cdn.discordapp.com/emojis/${id[1]}.${animated?'gif':'png'}?size=32`; img.style.cssText='width:22px;height:22px;object-fit:contain;'; disp.innerHTML = ''; disp.appendChild(img); }
+          } else { disp.textContent = val; }
+        }
+      }
+      closeEmojiPicker();
+      markDirty();
+    }
+
+    function openEmojiPicker(target, anchorEl) {
+      epTarget = target;
+      epCurrentTab = 'unicode';
+      epSearchInput.value = '';
+      document.querySelectorAll('.ep-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.ep-tab[data-tab="unicode"]').classList.add('active');
+      renderEpGrid('');
+      epEl.classList.add('open');
+      // position near anchor
+      const rect = anchorEl.getBoundingClientRect();
+      const pw = epEl.offsetWidth || 300;
+      let left = rect.left;
+      if (left + pw > window.innerWidth - 16) left = window.innerWidth - pw - 16;
+      if (left < 8) left = 8;
+      let top = rect.bottom + 6;
+      if (top + 300 > window.innerHeight) top = Math.max(8, rect.top - 310);
+      epEl.style.top = top + 'px';
+      epEl.style.left = left + 'px';
+      setTimeout(() => epSearchInput.focus(), 50);
+    }
+
+    function closeEmojiPicker() { epEl.classList.remove('open'); epTarget = null; }
+
+    document.getElementById('ep-close-btn').addEventListener('click', closeEmojiPicker);
+    document.addEventListener('click', e => {
+      if (!epEl.contains(e.target) && !e.target.closest('.emoji-btn') && !e.target.closest('.add-reaction-btn')) closeEmojiPicker();
+    });
+    epSearchInput.addEventListener('input', () => renderEpGrid(epSearchInput.value));
+    document.querySelectorAll('.ep-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        epCurrentTab = this.dataset.tab;
+        document.querySelectorAll('.ep-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        renderEpGrid(epSearchInput.value);
+      });
+    });
+    document.getElementById('ep-manual-ok').addEventListener('click', () => {
+      const v = document.getElementById('ep-manual-input').value.trim();
+      if (v) { selectEmoji(v); document.getElementById('ep-manual-input').value = ''; }
+    });
+
+    document.getElementById('btn-upvote-emoji').addEventListener('click', function(e) { e.stopPropagation(); openEmojiPicker('upvoteEmoji', this); });
+    document.getElementById('btn-downvote-emoji').addEventListener('click', function(e) { e.stopPropagation(); openEmojiPicker('downvoteEmoji', this); });
+    document.getElementById('btn-add-reaction').addEventListener('click', function(e) { e.stopPropagation(); openEmojiPicker('multi', this); });
+
+    /* ─── Multi reactions ─── */
+    function getMultiReactions() {
+      return Array.from(document.querySelectorAll('#multi-reactions-list .reaction-chip')).map(c => c.dataset.emoji);
+    }
+
+    function addMultiReaction(val) {
+      const existing = getMultiReactions();
+      if (existing.includes(val) || existing.length >= 10) return;
+      const wrap = document.getElementById('multi-reactions-list');
+      const chip = document.createElement('span');
+      chip.className = 'reaction-chip'; chip.dataset.emoji = val;
+      let display;
+      if (val.startsWith('<')) {
+        const id = val.match(/:(\d+)>/); const animated = val.startsWith('<a:');
+        if (id) { display = `<img src="https://cdn.discordapp.com/emojis/${id[1]}.${animated?'gif':'png'}?size=32" style="width:18px;height:18px;object-fit:contain;">`; }
+        else display = val;
+      } else display = val;
+      chip.innerHTML = `<span>${display}</span><button type="button" class="reaction-chip-remove" title="Remove"><i data-lucide="x" style="width:12px;height:12px;stroke:currentColor;"></i></button>`;
+      chip.querySelector('.reaction-chip-remove').addEventListener('click', () => { chip.remove(); markDirty(); });
+      // insert before add button
+      const addBtn = document.getElementById('btn-add-reaction');
+      wrap.insertBefore(chip, addBtn);
+      lucide.createIcons();
+    }
+
+    // Attach remove listeners to pre-rendered chips
+    document.querySelectorAll('#multi-reactions-list .reaction-chip .reaction-chip-remove').forEach(btn => {
+      btn.addEventListener('click', () => { btn.closest('.reaction-chip').remove(); markDirty(); });
+    });
+
+    /* ─── Role picker ─── */
+    const rolePickerField    = document.getElementById('role-picker-field');
+    const rolePickerDropdown = document.getElementById('role-picker-dropdown');
+    const roleTagsWrap       = document.getElementById('roles-tags');
+    const rolesEmpty         = document.getElementById('roles-empty');
+
+    function getSelectedRoleIds() {
+      return Array.from(roleTagsWrap.querySelectorAll('.role-tag')).map(t => t.dataset.roleId);
+    }
+
+    function addRoleTag(id, name, color) {
+      if (getSelectedRoleIds().includes(id)) return;
+      const tag = document.createElement('span');
+      tag.className = 'role-tag'; tag.dataset.roleId = id;
+      tag.innerHTML = `<span class="role-tag-dot" style="background:${color || '#888'};"></span><span>${name}</span><button type="button" class="role-tag-remove"><i data-lucide="x" style="width:11px;height:11px;stroke:currentColor;"></i></button>`;
+      tag.querySelector('.role-tag-remove').addEventListener('click', () => { tag.remove(); updateRolesEmpty(); markDirty(); });
+      roleTagsWrap.appendChild(tag);
+      lucide.createIcons();
+      updateRolesEmpty();
+    }
+
+    function updateRolesEmpty() {
+      const hasTags = roleTagsWrap.querySelectorAll('.role-tag').length > 0;
+      if (rolesEmpty) rolesEmpty.style.display = hasTags ? 'none' : '';
+    }
+
+    // Attach remove listeners to pre-rendered tags
+    roleTagsWrap.querySelectorAll('.role-tag .role-tag-remove').forEach(btn => {
+      btn.addEventListener('click', () => { btn.closest('.role-tag').remove(); updateRolesEmpty(); markDirty(); });
+    });
+
+    function filterRoleDropdown(q) {
+      const opts = rolePickerDropdown.querySelectorAll('.role-picker-opt');
+      const selected = getSelectedRoleIds();
+      let hasVisible = false;
+      opts.forEach(opt => {
+        const name = opt.dataset.roleName.toLowerCase();
+        const hidden = !name.includes(q.toLowerCase()) || selected.includes(opt.dataset.roleId);
+        opt.style.display = hidden ? 'none' : '';
+        if (!hidden) hasVisible = true;
+      });
+      return hasVisible;
+    }
+
+    rolePickerField.addEventListener('input', function() {
+      const q = this.value.trim();
+      filterRoleDropdown(q);
+      rolePickerDropdown.classList.toggle('open', q.length > 0 && filterRoleDropdown(q));
+    });
+    rolePickerField.addEventListener('focus', function() {
+      if (this.value.length > 0) { filterRoleDropdown(this.value); rolePickerDropdown.classList.add('open'); }
+    });
+    document.addEventListener('click', e => {
+      if (!document.getElementById('role-picker-wrap').contains(e.target)) rolePickerDropdown.classList.remove('open');
+    });
+    rolePickerDropdown.querySelectorAll('.role-picker-opt').forEach(opt => {
+      opt.addEventListener('click', function() {
+        addRoleTag(this.dataset.roleId, this.dataset.roleName, this.dataset.roleColor);
+        rolePickerField.value = '';
+        rolePickerDropdown.classList.remove('open');
+        markDirty();
+      });
+    });
+
+    /* ─── Save ─── */
+    document.getElementById('btn-save').addEventListener('click', async function () {
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader" style="width:15px;height:15px;stroke:currentColor;animation:spin 1s linear infinite;"></i> ${CFG.i18n.saving}`;
+      lucide.createIcons();
+
+      const votingType = (document.querySelector('input[name="voting-type"]:checked') || {value:'upvote_downvote'}).value;
+      const payload = {
+        enabled:      document.getElementById('toggle-enabled').checked,
+        channel:      document.getElementById('channel-select').value,
+        allowThreads: document.getElementById('allow-threads').checked,
+        voting: {
+          enabled:           document.getElementById('voting-enabled').checked,
+          type:              votingType,
+          upvoteEmoji:       document.getElementById('val-upvoteEmoji').value,
+          downvoteEmoji:     document.getElementById('val-downvoteEmoji').value,
+          multipleReactions: getMultiReactions()
+        },
+        autoThreshold: {
+          enabled:     document.getElementById('auto-threshold-enabled').checked,
+          minUpvotes:  parseInt(document.getElementById('min-upvotes').value) || 10,
+          minDownvotes: parseInt(document.getElementById('min-downvotes').value) || 5
+        },
+        permissions: {
+          allowAll:      document.getElementById('allow-all').checked,
+          allowedRoles:  getSelectedRoleIds(),
+          minAccountAge: parseInt(document.getElementById('min-account-age').value) || 0,
+          minServerLevel: parseInt(document.getElementById('min-server-level').value) || 0
+        },
+        spam: {
+          cooldown:  parseInt(document.getElementById('spam-cooldown').value) || 10,
+          maxPerDay: parseInt(document.getElementById('spam-max-per-day').value) || 3
+        },
+        moderation: {
+          requireApproval:     document.getElementById('require-approval').checked,
+          pendingChannel:      document.getElementById('pending-channel-select').value,
+          requireRejectReason: document.getElementById('require-reject-reason').checked
+        },
+        statusTags: {
+          accepted:   document.getElementById('tag-accepted').value.trim() || 'Accepted',
+          rejected:   document.getElementById('tag-rejected').value.trim() || 'Rejected',
+          considered: document.getElementById('tag-considered').value.trim() || 'Under Review'
+        }
+      };
+
+      try {
+        const resp = await fetch(CFG.saveUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        if (data.ok) { markClean(); showToast(CFG.i18n.savedOk, 'success'); }
+        else throw new Error(data.error || 'Unknown');
+      } catch (err) {
+        showToast(CFG.i18n.errorOccurred, 'error');
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i> ${document.documentElement.lang === 'ar' ? 'حفظ التغييرات' : 'Save Changes'}`;
+      lucide.createIcons();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => { window.location.reload(); });
+  </script>
+</body>
+</html>

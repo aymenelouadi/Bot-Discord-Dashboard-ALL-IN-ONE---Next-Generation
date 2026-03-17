@@ -858,172 +858,34 @@
       color: #fca5a5;
     }
 
-    /* Avatar area */
-    .prof-avatar-wrap {
-      position: relative;
-      margin: -38px 0 0 20px;
-      width: 80px;
-      height: 80px;
-      flex-shrink: 0;
+    /* Avatar row — Discord style */
+    .prof-avatar-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      padding: 0 16px 0 0; margin-top: -44px; position: relative; z-index: 2;
     }
-
-    [dir="rtl"] .prof-avatar-wrap {
-      margin: -38px 20px 0 0;
-    }
-
-    .prof-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      display: block;
-      border: 3px solid rgba(8, 2, 22, .97);
-      box-shadow: 0 0 0 2px rgba(124, 58, 237, .5);
-    }
-
-    .prof-avatar-fallback {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(124, 58, 237, .4), rgba(6, 182, 212, .2));
-      border: 3px solid rgba(8, 2, 22, .97);
-      box-shadow: 0 0 0 2px rgba(124, 58, 237, .5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Orbitron', monospace;
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: var(--purple-l);
-    }
-
-    .prof-online-dot {
-      position: absolute;
-      bottom: 6px;
-      right: 6px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #23a55a;
-      border: 3px solid rgba(8, 2, 22, .97);
-      box-shadow: 0 0 6px rgba(35, 165, 90, .7);
-      z-index: 4;
-    }
+    [dir="rtl"] .prof-avatar-row { padding: 0 0 0 16px; }
+    .prof-avatar-wrap { position: relative; margin: 0 0 0 16px; width: 80px; height: 80px; flex-shrink: 0; }
+    [dir="rtl"] .prof-avatar-wrap { margin: 0 16px 0 0; }
+    .prof-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; border: 4px solid rgba(8,2,22,.97); }
+    .prof-avatar-fallback { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg,rgba(124,58,237,.4),rgba(6,182,212,.2)); border: 4px solid rgba(8,2,22,.97); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; color: var(--purple-l); }
+    .prof-online-dot { position: absolute; bottom: 3px; right: 3px; width: 16px; height: 16px; border-radius: 50%; background: #23a55a; border: 3px solid rgba(8,2,22,.97); box-shadow: 0 0 6px rgba(35,165,90,.7); z-index: 4; transition: background .3s, box-shadow .3s; }
+    [dir="rtl"] .prof-online-dot { right: auto; left: 3px; }
+    .prof-badges-right { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; align-self: flex-end; padding-bottom: 6px; max-width: 160px; }
+    .prof-badge { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09); position: relative; cursor: default; transition: transform .12s, background .12s; }
+    .prof-badge:hover { transform: translateY(-2px) scale(1.1); background: rgba(255,255,255,.11); }
+    .prof-badge img { width: 18px; height: 18px; object-fit: contain; }
+    .prof-badge-tip { position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); background: rgba(10,3,30,.97); border: 1px solid rgba(124,58,237,.3); border-radius: 7px; padding: 4px 9px; font-size: .65rem; white-space: nowrap; color: var(--white); opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 20; box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+    .prof-badge:hover .prof-badge-tip { opacity: 1; }
 
     /* Body */
-    .prof-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px 20px 24px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(124, 58, 237, .3) transparent;
-    }
-
-    .prof-names {
-      margin-bottom: 14px;
-    }
-
-    .prof-display-name {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: -.01em;
-      line-height: 1.2;
-    }
-
-    .prof-username {
-      font-size: .75rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    /* Info block */
-    .prof-block {
-      background: rgba(255, 255, 255, .04);
-      border: 1px solid rgba(255, 255, 255, .06);
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-    }
-
-    .prof-block-label {
-      font-size: .6rem;
-      font-weight: 700;
-      letter-spacing: .12em;
-      color: rgba(203, 194, 255, .5);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      font-family: 'Orbitron', monospace;
-    }
-
-    .prof-id-text {
-      font-size: .75rem;
-      font-family: 'Orbitron', monospace;
-      color: var(--muted);
-      letter-spacing: .06em;
-      cursor: pointer;
-      transition: color .15s;
-    }
-
-    .prof-id-text:hover {
-      color: var(--purple-l);
-    }
-
-    /* Badges */
-    .prof-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .prof-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
-      background: rgba(255, 255, 255, .05);
-      border: 1px solid rgba(255, 255, 255, .08);
-      position: relative;
-      cursor: default;
-      transition: transform .15s, background .15s, box-shadow .15s;
-    }
-
-    .prof-badge:hover {
-      transform: translateY(-2px) scale(1.08);
-      background: rgba(255, 255, 255, .09);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, .4);
-    }
-
-    .prof-badge img {
-      width: 20px;
-      height: 20px;
-      object-fit: contain;
-    }
-
-    .prof-badge-tip {
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(10, 3, 30, .97);
-      border: 1px solid rgba(124, 58, 237, .3);
-      border-radius: 7px;
-      padding: 5px 10px;
-      font-size: .65rem;
-      white-space: nowrap;
-      color: var(--white);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .15s;
-      z-index: 10;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, .5);
-    }
-
-    .prof-badge:hover .prof-badge-tip {
-      opacity: 1;
-    }
+    .prof-body { flex: 1; overflow-y: auto; padding: 10px 16px 16px; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.3) transparent; }
+    .prof-display-name { font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: -.01em; line-height: 1.3; margin-top: 6px; }
+    .prof-username { font-size: .74rem; color: var(--muted); margin-bottom: 4px; }
+    .prof-custom-status { font-size: .76rem; color: rgba(203,194,255,.65); margin-bottom: 4px; margin-top: 2px; line-height: 1.4; }
+    .prof-divider { height: 1px; background: rgba(255,255,255,.08); margin: 10px 0 6px; }
+    .prof-actrow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: .83rem; color: var(--white); cursor: pointer; transition: background .14s; user-select: none; }
+    .prof-actrow:hover { background: rgba(255,255,255,.07); }
+    .prof-actdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: #80848e; transition: background .3s; }
 
     /* Footer buttons */
     .prof-footer {
@@ -1090,101 +952,91 @@
     <!-- Banner -->
     <div class="prof-banner">
       <% if (user.banner) { %>
-        <img src="https://cdn.discordapp.com/banners/<%= user.id %>/<%= user.banner %>.png?size=480" alt="" />
-        <% } else if (user.bannerColor) { %>
-          <div class="prof-banner-solid" data-bg="<%= user.bannerColor %>"></div>
-          <% } %>
-            <div class="prof-banner-overlay"></div>
-            <!-- Close button -->
-            <button class="prof-close" id="close-profile" aria-label="Close">
-              <i data-lucide="x" style="width:14px;height:14px;stroke:currentColor;"></i>
-            </button>
+        <img src="https://cdn.discordapp.com/banners/<%= user.id %>/<%= user.banner %>.png?size=480" alt=""
+          style="width:100%;height:100%;object-fit:cover;" />
+      <% } else if (user.bannerColor) { %>
+        <div class="prof-banner-solid" data-bg="<%= user.bannerColor %>"></div>
+      <% } %>
+      <div class="prof-banner-overlay"></div>
+      <button class="prof-close" id="close-profile" aria-label="Close">
+        <i data-lucide="x" style="width:14px;height:14px;stroke:currentColor;"></i>
+      </button>
     </div>
-
-    <!-- Avatar -->
-    <div class="prof-avatar-wrap">
-      <% if (user.avatar) { %>
-        <img class="prof-avatar" src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=160"
-          alt="<%= user.displayName || user.username %>" />
+    <!-- Avatar row -->
+    <div class="prof-avatar-row">
+      <div class="prof-avatar-wrap">
+        <% if (user.avatar) { %>
+          <img class="prof-avatar"
+            src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=160"
+            alt="<%= user.displayName || user.username %>" />
         <% } else { %>
           <div class="prof-avatar-fallback">
             <%= (user.displayName || user.username).charAt(0).toUpperCase() %>
           </div>
-          <% } %>
-            <div class="prof-online-dot"></div>
-    </div>
-
-    <!-- Body -->
-    <div class="prof-body">
-      <div class="prof-names">
-        <div class="prof-display-name">
-          <%= user.displayName || user.username %>
-        </div>
-        <div class="prof-username">@<%= user.username %>
-        </div>
+        <% } %>
+        <div class="prof-online-dot" id="prof-online-dot"></div>
       </div>
-
-      <!-- User ID -->
-      <div class="prof-block">
-        <div class="prof-block-label">
-          <%= t.home.profileId %>
-        </div>
-        <div class="prof-id-text" id="prof-copy-id" title="Click to copy">
-          <%= user.id %>
-        </div>
-      </div>
-
-      <!-- Badges -->
       <%
         const flags  = Number(user.publicFlags || 0);
-        const BDGC   = '/badge-icons/';
+        const BDGC   = '/img/badges/';
         const badges = [];
-        if (flags & 1)       badges.push({ label: t.home.badgeStaff,       img: 'staff.png' });
+        if (flags & 1)       badges.push({ label: t.home.badgeStaff,       img: 'Discord_Staff.png' });
         if (flags & 2)       badges.push({ label: t.home.badgePartner,      img: 'partner.png' });
         if (flags & 4)       badges.push({ label: t.home.badgeHsEvents,     img: 'hypesquad.png' });
-        if (flags & 8)       badges.push({ label: t.home.badgeBug1,         img: 'bug_hunter_level_1.png' });
+        if (flags & 8)       badges.push({ label: t.home.badgeBug1,         img: 'BUG_HUNTER_LEVEL_1.png' });
         if (flags & 64)      badges.push({ label: t.home.badgeBravery,      img: 'hypesquad_house_1.png' });
         if (flags & 128)     badges.push({ label: t.home.badgeBrilliance,   img: 'hypesquad_house_2.png' });
         if (flags & 256)     badges.push({ label: t.home.badgeBalance,      img: 'hypesquad_house_3.png' });
-        if (flags & 512)     badges.push({ label: t.home.badgeEarlySupp,    img: 'early_supporter.png' });
-        if (flags & 16384)   badges.push({ label: t.home.badgeBug2,         img: 'bug_hunter_level_2.png' });
-        if (flags & 131072)  badges.push({ label: t.home.badgeVerifDev,     img: 'verified_bot_developer.png' });
+        if (flags & 512)     badges.push({ label: t.home.badgeEarlySupp,    img: 'Discord_Early_Supporter.png' });
+        if (flags & 16384)   badges.push({ label: t.home.badgeBug2,         img: 'BUG_HUNTER_LEVEL_2.png' });
+        if (flags & 131072)  badges.push({ label: t.home.badgeVerifDev,     img: 'blurple_verified_bot_developer.png' });
         if (flags & 262144)  badges.push({ label: t.home.badgeModAlumni,    img: 'certified_moderator.png' });
         if (flags & 4194304) badges.push({ label: t.home.badgeActiveDev,    img: 'active_developer.png' });
         if (flags & 8388608) badges.push({ label: t.home.badgeQuest,        img: 'quest_completed.png' });
         if (Number(user.premiumType || 0) > 0) badges.push({ label: t.home.badgeNitro, img: 'nitro.png' });
       %>
       <% if (badges.length > 0) { %>
-        <div class="prof-block">
-          <div class="prof-block-label">
-            <%= t.home.profileBadges %>
-          </div>
-          <div class="prof-badges">
-            <% badges.forEach(b => { %>
-              <div class="prof-badge">
-                <img src="<%= BDGC %><%= b.img %>" alt="<%= b.label %>"
-                  onerror="this.closest('.prof-badge').style.display='none'" />
-                <span class="prof-badge-tip"><%= b.label %></span>
-              </div>
-            <% }) %>
-          </div>
+        <div class="prof-badges-right">
+          <% badges.forEach(b => { %>
+            <div class="prof-badge">
+              <img src="<%= BDGC %><%= b.img %>" alt="<%= b.label %>"
+                onerror="this.closest('.prof-badge').style.display='none'" />
+              <span class="prof-badge-tip"><%= b.label %></span>
+            </div>
+          <% }) %>
         </div>
       <% } %>
     </div>
-
+    <!-- Body -->
+    <div class="prof-body">
+      <div class="prof-display-name"><%= user.displayName || user.username %></div>
+      <div class="prof-username">@<%= user.username %></div>
+      <div class="prof-custom-status" id="prof-custom-status" style="display:none;"></div>
+      <div class="prof-divider"></div>
+      <div class="prof-actrow" id="prof-status-row">
+        <div class="prof-actdot status-offline" id="prof-actdot"></div>
+        <span id="prof-status-label"><%= t.home.loading %></span>
+      </div>
+      <div class="prof-actrow" id="prof-copy-id" data-uid="<%= user.id %>">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.7;">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <span id="prof-copy-label"><%= t.home.copyUserID %></span>
+      </div>
+    </div>
     <!-- Footer -->
     <div class="prof-footer">
       <% if (isShip) { %>
       <a href="/settings" class="prof-btn" style="background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);color:var(--purple-l);">
         <i data-lucide="settings-2" style="width:16px;height:16px;stroke:currentColor;"></i>
-        <%= lang === 'ar' ? 'إعدادات النظام' : 'System Settings' %>
+        <%= t.home.systemSettings %>
       </a>
       <% } %>
-      <!-- Theme toggle -->
       <button class="theme-toggle-btn" aria-label="Toggle theme">
         <i data-lucide="sun" style="width:16px;height:16px;stroke:currentColor;flex-shrink:0;"></i>
-        <span class="ttb-label"><%= lang === 'ar' ? 'الوضع النهاري' : 'Light Mode' %></span>
-        <span class="ttb-badge"><%= lang === 'ar' ? 'داكن' : 'Dark' %></span>
+        <span class="ttb-label"><%= t.home.lightMode %></span>
+        <span class="ttb-badge"><%= t.home.dark %></span>
       </button>
       <a href="https://discord.gg/jfFSmVM5kK" target="_blank" class="prof-btn help">
         <i data-lucide="help-circle" style="width:16px;height:16px;stroke:currentColor;"></i>
@@ -1208,17 +1060,17 @@
     <div class="topbar-right">
       <!-- Lang select — custom dropdown so flags render correctly on Windows -->
       <select id="lang-select-home" style="display:none;" aria-hidden="true">
-        <option value="ar" <%= lang === 'ar' ? 'selected' : '' %>>ar</option>
+        <option value="ar" <%= t.home.selectedAttr %>>ar</option>
         <option value="en" <%= lang === 'en' ? 'selected' : '' %>>en</option>
       </select>
       <div class="lcs-wrap" id="lcs-wrap-home">
         <button class="lcs-btn" id="lcs-btn-home" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Language">
-          <span class="lcs-flag" id="lcs-flag-home"><span class="fi fi-<%= lang === 'ar' ? 'sa' : 'us' %>"></span></span>
-          <span class="lcs-label" id="lcs-label-home"><%= lang === 'ar' ? 'عربي' : 'English' %></span>
+          <span class="lcs-flag" id="lcs-flag-home"><span class="fi fi-<%= t.flag %>"></span></span>
+          <span class="lcs-label" id="lcs-label-home"><%= t.home.english %></span>
           <svg class="lcs-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <ul class="lcs-menu" id="lcs-menu-home" role="listbox">
-          <li class="lcs-item<%= lang === 'ar' ? ' lcs-active' : '' %>" role="option" data-value="ar" data-flag="sa" data-label="عربي" tabindex="0">
+          <li class="lcs-item<%= t.home.activeClass %>" role="option" data-value="ar" data-flag="sa" data-label="عربي" tabindex="0">
             <span class="fi fi-sa"></span><span class="lcs-item-label">عربي</span>
           </li>
           <li class="lcs-item<%= lang === 'en' ? ' lcs-active' : '' %>" role="option" data-value="en" data-flag="us" data-label="English" tabindex="0">
@@ -1443,14 +1295,39 @@
 
     if (copyId) {
       copyId.addEventListener('click', () => {
-        navigator.clipboard.writeText(copyId.textContent.trim()).then(() => {
-          const orig = copyId.textContent;
-          copyId.textContent = '✓ Copied!';
-          copyId.style.color = 'var(--cyan-l)';
-          setTimeout(() => { copyId.textContent = orig; copyId.style.color = ''; }, 1500);
+        const uid = copyId.dataset.uid || '';
+        const lbl = document.getElementById('prof-copy-label');
+        navigator.clipboard.writeText(uid).then(() => {
+          if (lbl) {
+            const orig = lbl.textContent;
+            lbl.textContent = '✓ Copied!';
+            lbl.style.color = 'var(--cyan-l)';
+            setTimeout(() => { lbl.textContent = orig; lbl.style.color = ''; }, 1500);
+          }
         });
       });
     }
+
+    /* ── Presence fetch ── */
+    (function () {
+      var STATUS_COLORS = { online: '#23a55a', idle: '#f0b232', dnd: '#f23f43', offline: '#80848e', invisible: '#80848e' };
+      var STATUS_LABELS = { online: 'Online', idle: 'Away', dnd: 'Do Not Disturb', offline: 'Offline' };
+      function applyPresence(data) {
+        var color = STATUS_COLORS[data.status] || '#80848e';
+        var dot = document.getElementById('prof-online-dot');
+        var actDot = document.getElementById('prof-actdot');
+        var lbl = document.getElementById('prof-status-label');
+        var cust = document.getElementById('prof-custom-status');
+        if (dot) { dot.style.background = color; dot.style.boxShadow = '0 0 6px ' + color + 'cc'; }
+        if (actDot) actDot.style.background = color;
+        if (lbl) lbl.textContent = STATUS_LABELS[data.status] || 'Offline';
+        if (cust) {
+          if (data.customStatus) { cust.textContent = data.customStatus; cust.style.display = ''; }
+          else { cust.style.display = 'none'; }
+        }
+      }
+      fetch('/api/me/presence').then(r => r.ok ? r.json() : null).then(d => { if (d) applyPresence(d); }).catch(() => {});
+    })();
 
     /* ── Language select ── */
     /* Custom dropdown wiring */

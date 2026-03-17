@@ -9,7 +9,7 @@
   <%- include('partials/head_theme') %>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= guildInfo.name %> — <%= lang === 'ar' ? 'الإعدادات' : 'Settings' %></title>
+  <title><%= guildInfo.name %> — <%= t.setting.settings %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -377,8 +377,8 @@
   <main class="main">
     <div class="page-header">
       <div>
-        <h2><%= lang === 'ar' ? 'إعدادات البوت' : 'Bot Settings' %></h2>
-        <p><%= lang === 'ar' ? 'تخصيص بروفيل البوت وإعدادات النظام' : 'Customize the bot profile and system settings' %></p>
+        <h2><%= t.setting.botSettings %></h2>
+        <p><%= t.setting.customizeTheBotProfileAndSystem %></p>
       </div>
     </div>
     <div class="divider"></div>
@@ -395,7 +395,7 @@
         <div class="bot-banner-overlay"></div>
         <button class="bot-banner-edit-btn" id="banner-edit-btn" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          <%= lang === 'ar' ? 'تغيير البانر' : 'Change Banner' %>
+          <%= t.setting.changeBanner %>
         </button>
       </div>
 
@@ -428,10 +428,10 @@
 
         <!-- Bot name / ID -->
         <div class="bot-meta">
-          <div class="bot-username-display" id="bot-username-display"><%= (botInfo && botInfo.username) ? botInfo.username : (lang === 'ar' ? 'البوت' : 'Bot') %></div>
+          <div class="bot-username-display" id="bot-username-display"><%= (botInfo && botInfo.username) ? botInfo.username : (t.setting.bot) %></div>
           <div class="bot-id-row">
             <span class="bot-id-label">ID</span>
-            <span class="bot-id-val" id="bot-id-copy" title="<%= lang === 'ar' ? 'انقر للنسخ' : 'Click to copy' %>"><%= (botInfo && botInfo.id) ? botInfo.id : '—' %></span>
+            <span class="bot-id-val" id="bot-id-copy" title="<%= t.setting.clickToCopy %>"><%= (botInfo && botInfo.id) ? botInfo.id : '—' %></span>
           </div>
         </div>
 
@@ -439,28 +439,28 @@
 
         <!-- Username edit -->
         <div class="bot-username-edit-row">
-          <label for="bot-username-input"><%= lang === 'ar' ? 'اسم البوت' : 'Username' %></label>
-          <input type="text" id="bot-username-input" class="bot-username-input" value="<%= (botInfo && botInfo.username) ? botInfo.username : '' %>" maxlength="32" minlength="2" placeholder="<%= lang === 'ar' ? 'اسم البوت...' : 'Bot username...' %>" />
+          <label for="bot-username-input"><%= t.setting.username %></label>
+          <input type="text" id="bot-username-input" class="bot-username-input" value="<%= (botInfo && botInfo.username) ? botInfo.username : '' %>" maxlength="32" minlength="2" placeholder="<%= t.setting.botUsername %>" />
           <button class="btn btn-primary btn-sm" id="save-username-btn" type="button">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            <%= lang === 'ar' ? 'حفظ' : 'Save' %>
+            <%= t.setting.save %>
           </button>
         </div>
 
         <!-- Description edit -->
         <div class="bot-desc-edit-row">
-          <label for="bot-desc-input"><%= lang === 'ar' ? 'وصف البوت' : 'About Me / Description' %></label>
+          <label for="bot-desc-input"><%= t.setting.aboutMeDescription %></label>
           <textarea
             id="bot-desc-input"
             class="bot-desc-textarea"
             maxlength="400"
-            placeholder="<%= lang === 'ar' ? 'وصف البوت...' : 'Bot description...' %>"
+            placeholder="<%= t.setting.botDescription %>"
           ><%= (botInfo && botInfo.description) ? botInfo.description : '' %></textarea>
           <div class="bot-desc-footer">
             <span id="bot-desc-counter" class="bot-desc-counter">0 / 400</span>
             <button class="btn btn-primary btn-sm" id="save-desc-btn" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
-              <%= lang === 'ar' ? 'حفظ' : 'Save' %>
+              <%= t.setting.save %>
             </button>
           </div>
         </div>
@@ -471,15 +471,15 @@
         <div class="card-header-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
         </div>
-        <h3><%= lang === 'ar' ? 'إعدادات الأوامر' : 'Command Settings' %></h3>
+        <h3><%= t.setting.commandSettings %></h3>
       </div>
       <div class="card-body">
 
         <!-- Enable Prefix -->
         <div class="form-row">
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'تفعيل أوامر البريفكس' : 'Enable Prefix Commands' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'السماح باستخدام الأوامر عبر البريفكس (مثال: !help)' : 'Allow using commands with a prefix (e.g. !help)' %></p>
+            <label class="form-label"><%= t.setting.enablePrefixCommands %></label>
+            <p class="form-help"><%= t.setting.allowUsingCommandsWithAPrefix %></p>
           </div>
           <%- include('partials/toggle_switch', { id: 'enable-prefix', checked: (cmdSettings.ENABLE_PREFIX !== false) }) %>
         </div>
@@ -487,8 +487,8 @@
         <!-- Prefix Symbol -->
         <div class="form-row prefix-symbol-row <%= (cmdSettings.ENABLE_PREFIX === false) ? 'hidden' : '' %>" id="prefix-symbol-row">
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'رمز البريفكس' : 'Prefix Symbol' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'اختر الرمز الذي يسبق الأوامر' : 'Choose the symbol that precedes commands' %></p>
+            <label class="form-label"><%= t.setting.prefixSymbol %></label>
+            <p class="form-help"><%= t.setting.chooseTheSymbolThatPrecedesCommands %></p>
           </div>
           <select id="prefix-symbol" class="form-select" style="width:80px;text-align:center;font-size:1.1rem;font-weight:700">
             <% ['!','#','$','%','&','?'].forEach(sym => { %>
@@ -500,8 +500,8 @@
         <!-- Enable Slash Commands -->
         <div class="form-row">
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'تفعيل أوامر السلاش' : 'Enable Slash Commands' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'السماح باستخدام أوامر السلاش (/)' : 'Allow using slash commands (/)' %></p>
+            <label class="form-label"><%= t.setting.enableSlashCommands %></label>
+            <p class="form-help"><%= t.setting.allowUsingSlashCommands %></p>
           </div>
           <%- include('partials/toggle_switch', { id: 'enable-slash', checked: (cmdSettings.ENABLE_SLASH_COMMANDS !== false) }) %>
         </div>
@@ -509,34 +509,34 @@
         <!-- Activity Type -->
         <div class="form-row">
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'نوع النشاط' : 'Activity Type' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'نوع الحالة التي يعرضها البوت' : 'The type of activity displayed on the bot' %></p>
+            <label class="form-label"><%= t.setting.activityType %></label>
+            <p class="form-help"><%= t.setting.theTypeOfActivityDisplayedOn %></p>
           </div>
           <select id="activity-type" class="form-select">
-            <option value="none"      <%= (!cmdSettings.ACTIVITY_TYPE || cmdSettings.ACTIVITY_TYPE === 'none')    ? 'selected' : '' %>><%= lang === 'ar' ? 'بدون' : 'None' %></option>
-            <option value="Playing"   <%= cmdSettings.ACTIVITY_TYPE === 'Playing'   ? 'selected' : '' %>><%= lang === 'ar' ? 'يلعب' : 'Playing' %></option>
-            <option value="Streaming" <%= cmdSettings.ACTIVITY_TYPE === 'Streaming' ? 'selected' : '' %>><%= lang === 'ar' ? 'يبث' : 'Streaming' %></option>
-            <option value="Listening" <%= cmdSettings.ACTIVITY_TYPE === 'Listening' ? 'selected' : '' %>><%= lang === 'ar' ? 'يستمع' : 'Listening' %></option>
-            <option value="Watching"  <%= cmdSettings.ACTIVITY_TYPE === 'Watching'  ? 'selected' : '' %>><%= lang === 'ar' ? 'يشاهد' : 'Watching' %></option>
-            <option value="Competing" <%= cmdSettings.ACTIVITY_TYPE === 'Competing' ? 'selected' : '' %>><%= lang === 'ar' ? 'ينافس' : 'Competing' %></option>
-            <option value="Custom"    <%= cmdSettings.ACTIVITY_TYPE === 'Custom'    ? 'selected' : '' %>><%= lang === 'ar' ? 'مخصص' : 'Custom' %></option>
+            <option value="none"      <%= (!cmdSettings.ACTIVITY_TYPE || cmdSettings.ACTIVITY_TYPE === 'none')    ? 'selected' : '' %>><%= t.setting.none %></option>
+            <option value="Playing"   <%= cmdSettings.ACTIVITY_TYPE === 'Playing'   ? 'selected' : '' %>><%= t.setting.playing %></option>
+            <option value="Streaming" <%= cmdSettings.ACTIVITY_TYPE === 'Streaming' ? 'selected' : '' %>><%= t.setting.streaming %></option>
+            <option value="Listening" <%= cmdSettings.ACTIVITY_TYPE === 'Listening' ? 'selected' : '' %>><%= t.setting.listening %></option>
+            <option value="Watching"  <%= cmdSettings.ACTIVITY_TYPE === 'Watching'  ? 'selected' : '' %>><%= t.setting.watching %></option>
+            <option value="Competing" <%= cmdSettings.ACTIVITY_TYPE === 'Competing' ? 'selected' : '' %>><%= t.setting.competing %></option>
+            <option value="Custom"    <%= cmdSettings.ACTIVITY_TYPE === 'Custom'    ? 'selected' : '' %>><%= t.setting.custom %></option>
           </select>
         </div>
 
         <!-- Activity Name (hidden when none) -->
         <div class="form-row activity-name-row <%= (cmdSettings.ACTIVITY_TYPE && cmdSettings.ACTIVITY_TYPE !== 'none') ? '' : 'hidden' %>" id="activity-name-row">
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'نص النشاط' : 'Activity Text' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'النص الذي يظهر بجانب نوع النشاط' : 'The text shown next to the activity type' %></p>
+            <label class="form-label"><%= t.setting.activityText %></label>
+            <p class="form-help"><%= t.setting.theTextShownNextToThe %></p>
           </div>
-          <input type="text" id="activity-name" class="form-input" value="<%= cmdSettings.ACTIVITY_NAME || '' %>" maxlength="128" placeholder="<%= lang === 'ar' ? 'نص النشاط...' : 'Activity text...' %>" />
+          <input type="text" id="activity-name" class="form-input" value="<%= cmdSettings.ACTIVITY_NAME || '' %>" maxlength="128" placeholder="<%= t.setting.activityText2 %>" />
         </div>
 
         <!-- Status -->
         <div class="form-row">
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'حالة البوت' : 'Bot Status' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'الحالة الظاهرة للبوت على الديسكورد' : 'Presence status shown for the bot on Discord' %></p>
+            <label class="form-label"><%= t.setting.botStatus %></label>
+            <p class="form-help"><%= t.setting.presenceStatusShownForTheBot %></p>
           </div>
           <!-- Custom status picker (hidden native select keeps value for all existing JS) -->
           <div class="status-picker" id="status-picker">
@@ -547,19 +547,19 @@
             <div class="status-pick-menu" id="status-pick-menu" role="listbox">
               <button type="button" class="sp-opt" data-val="ONLINE" role="option">
                 <span class="sp-dot online"></span>
-                <%= lang === 'ar' ? 'متصل' : 'Online' %>
+                <%= t.setting.online %>
               </button>
               <button type="button" class="sp-opt" data-val="IDLE" role="option">
                 <span class="sp-dot idle"></span>
-                <%= lang === 'ar' ? 'بعيد' : 'Idle' %>
+                <%= t.setting.idle %>
               </button>
               <button type="button" class="sp-opt" data-val="DND" role="option">
                 <span class="sp-dot dnd"></span>
-                <%= lang === 'ar' ? 'مشغول' : 'Do Not Disturb' %>
+                <%= t.setting.doNotDisturb %>
               </button>
               <button type="button" class="sp-opt" data-val="INVISIBLE" role="option">
                 <span class="sp-dot invisible"></span>
-                <%= lang === 'ar' ? 'مخفي' : 'Invisible' %>
+                <%= t.setting.invisible %>
               </button>
             </div>
           </div>
@@ -581,19 +581,17 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 18 18"><path d="M9 1L2 4.5V9c0 4.418 3.083 8.572 7 9.5 3.917-.928 7-5.082 7-9.5V4.5L9 1z" fill="currentColor" fill-opacity="0.4"/><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 7.5l2.5 2.5 3.5-3.5 1 1-4.5 4.5-3.5-3.5 1-1z" fill="currentColor"/></svg>
         </div>
         <div style="flex:1;">
-          <h3 style="font-size:.95rem;font-weight:700;"><%= lang === 'ar' ? 'صلاحيات صفحة الحماية' : 'Protection Page Access' %></h3>
+          <h3 style="font-size:.95rem;font-weight:700;"><%= t.setting.protectionPageAccess %></h3>
         </div>
         <a href="/dashboard/<%= guildId %>/protection" class="btn btn-ghost nav-link" style="font-size:.78rem;padding:6px 12px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          <%= lang === 'ar' ? 'فتح صفحة الحماية' : 'Open Security Page' %>
+          <%= t.setting.openSecurityPage %>
         </a>
       </div>
       <div class="card-body">
         <div class="form-row" style="align-items:flex-start;flex-direction:column;gap:12px;border-bottom:none;padding-bottom:8px;">
           <p class="form-help" style="max-width:600px;line-height:1.7;">
-            <%= lang === 'ar'
-              ? 'المستخدمون في هذه القائمة يمكنهم الوصول وتعديل إعدادات الحماية. المستخدم الأول في القائمة يُعتبر مسؤولاً أعلى. إذا كانت القائمة فارغة، يُطبَّق وصول مالكي اللوحة فقط.'
-              : 'Users listed here can access and edit the Security page. The first user is the top admin. If the list is empty, only dashboard owners have access.' %>
+            <%= t.setting.usersListedHereCanAccessAnd %>
           </p>
 
           <!-- Current perm users -->
@@ -610,7 +608,7 @@
                 <div style="font-size:.7rem;color:var(--muted);">@<%= u.username %></div>
               </div>
               <% if (isOwner) { %>
-              <button onclick="removePermUser('<%= u.id %>')" style="background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;padding:2px;margin-left:auto;transition:color .15s;flex-shrink:0;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='var(--muted)'" title="<%= lang==='ar'?'إزالة':'Remove' %>">
+              <button onclick="removePermUser('<%= u.id %>')" style="background:none;border:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;padding:2px;margin-left:auto;transition:color .15s;flex-shrink:0;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='var(--muted)'" title="<%= t.setting.remove %>">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
               <% } %>
@@ -618,7 +616,7 @@
             <% }) %>
             <% if (protectionPerms.length === 0) { %>
             <div style="font-size:.8rem;color:var(--muted);padding:6px 0;font-style:italic;">
-              <%= lang === 'ar' ? 'لا يوجد مستخدمون — يُطبَّق وصول مالكي اللوحة' : 'No users added — dashboard owners have access' %>
+              <%= t.setting.noUsersAddedDashboardOwnersHave %>
             </div>
             <% } %>
           </div>
@@ -626,12 +624,12 @@
           <!-- Add user row (only for owners/top admin) -->
           <% if (isOwner) { %>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <input type="text" id="perm-user-id-input" placeholder="<%= lang==='ar'?'أدخل Discord User ID':'Enter Discord User ID' %>"
+            <input type="text" id="perm-user-id-input" placeholder="<%= t.setting.enterDiscordUserID %>"
               style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--white);font-size:.82rem;font-family:inherit;padding:8px 13px;outline:none;transition:border-color .18s;width:230px;"
               onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'" />
             <button class="btn btn-primary" style="font-size:.8rem;padding:8px 14px;" onclick="lookupPermUser()">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <%= lang === 'ar' ? 'بحث وإضافة' : 'Search & Add' %>
+              <%= t.setting.searchAdd %>
             </button>
           </div>
           <% } %>
@@ -655,11 +653,11 @@
           </div>
           <div style="height:1px;background:rgba(255,255,255,.07);margin:14px 0;"></div>
           <div style="font-size:.85rem;font-weight:600;text-align:center;margin-bottom:14px;color:var(--white);">
-            <%= lang === 'ar' ? 'هل تريد إضافة هذا المستخدم؟' : 'Add this user to protection access?' %>
+            <%= t.setting.addThisUserToProtectionAccess %>
           </div>
           <div style="display:flex;gap:10px;justify-content:center;">
-            <button class="btn btn-ghost" onclick="cancelUserConfirm()" style="min-width:100px;"><%= lang === 'ar' ? 'إلغاء' : 'Cancel' %></button>
-            <button class="btn btn-primary" onclick="confirmUserAdd()" style="min-width:100px;"><%= lang === 'ar' ? 'تأكيد' : 'Confirm' %></button>
+            <button class="btn btn-ghost" onclick="cancelUserConfirm()" style="min-width:100px;"><%= t.setting.cancel %></button>
+            <button class="btn btn-primary" onclick="confirmUserAdd()" style="min-width:100px;"><%= t.setting.confirm %></button>
           </div>
         </div>
       </div>
@@ -667,15 +665,15 @@
 
     <!-- Save Bar -->
     <div class="save-bar" id="save-bar">
-      <span class="save-bar-text"><%= lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %></span>
+      <span class="save-bar-text"><%= t.setting.youHaveUnsavedChanges %></span>
       <div class="save-bar-actions">
         <button class="btn btn-ghost" id="reset-btn" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-          <%= lang === 'ar' ? 'تراجع' : 'Reset' %>
+          <%= t.setting.reset %>
         </button>
         <button class="btn btn-primary" id="save-btn" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <%= lang === 'ar' ? 'حفظ التغييرات' : 'Save Changes' %>
+          <%= t.setting.saveChanges %>
         </button>
       </div>
     </div>
@@ -693,10 +691,10 @@
     async function lookupPermUser() {
       const inp = document.getElementById('perm-user-id-input');
       const uid = inp ? inp.value.trim() : '';
-      if (!uid) { showToast('<%= lang==="ar"?"أدخل معرف المستخدم":"Enter a user ID" %>', 'error'); return; }
+      if (!uid) { showToast('<%= t.setting.enterAUserID %>', 'error'); return; }
       try {
         const resp = await fetch(`/api/user/${uid}?guildId=<%= guildId %>`);
-        if (!resp.ok) { showToast('<%= lang==="ar"?"المستخدم غير موجود":"User not found" %>', 'error'); return; }
+        if (!resp.ok) { showToast('<%= t.setting.userNotFound %>', 'error'); return; }
         const u = await resp.json();
         _pendingUserId = u.id;
         const av = document.getElementById('ucm-avatar');
@@ -713,7 +711,7 @@
         document.getElementById('ucm-id').textContent = u.id;
         const backdrop = document.getElementById('ucm-backdrop');
         backdrop.style.display = 'flex';
-      } catch(e) { showToast('<%= lang==="ar"?"حدث خطأ غير متوقع":"Unexpected error" %>', 'error'); }
+      } catch(e) { showToast('<%= t.setting.unexpectedError %>', 'error'); }
     }
 
     async function confirmUserAdd() {
@@ -728,10 +726,10 @@
           location.reload();
         } else {
           const j = await resp.json().catch(() => ({}));
-          showToast(j.error || '<%= lang==="ar"?"حدث خطأ":"Error" %>', 'error');
+          showToast(j.error || '<%= t.setting.error %>', 'error');
           cancelUserConfirm();
         }
-      } catch(e) { showToast('<%= lang==="ar"?"حدث خطأ غير متوقع":"Unexpected error" %>', 'error'); }
+      } catch(e) { showToast('<%= t.setting.unexpectedError %>', 'error'); }
     }
 
     function cancelUserConfirm() {
@@ -745,7 +743,7 @@
     }
 
     async function removePermUser(uid) {
-      const msg = '<%= lang==="ar"?"هل تريد إزالة هذا المستخدم من صلاحيات الحماية؟":"Remove this user from protection access?" %>';
+      const msg = '<%= t.setting.removeThisUserFromProtectionAccess %>';
       if (!confirm(msg)) return;
       try {
         const resp = await fetch(`/api/<%= guildId %>/protection/perms/${uid}`, { method: 'DELETE' });
@@ -753,9 +751,9 @@
           location.reload();
         } else {
           const j = await resp.json().catch(() => ({}));
-          showToast(j.error || '<%= lang==="ar"?"حدث خطأ":"Error" %>', 'error');
+          showToast(j.error || '<%= t.setting.error %>', 'error');
         }
-      } catch(e) { showToast('<%= lang==="ar"?"حدث خطأ غير متوقع":"Unexpected error" %>', 'error'); }
+      } catch(e) { showToast('<%= t.setting.unexpectedError %>', 'error'); }
     }
 
     /* ── Language ── */
@@ -820,7 +818,7 @@
     if (botIdEl && botIdEl.textContent.trim() !== '—') {
       botIdEl.addEventListener('click', () => {
         navigator.clipboard.writeText(botIdEl.textContent.trim()).then(() => {
-          showToast('<%= lang === "ar" ? "تم نسخ الـ ID" : "ID copied!" %>');
+          showToast('<%= t.setting.iDCopied %>');
         });
       });
     }
@@ -879,7 +877,7 @@
       const pLbl    = document.getElementById('status-pick-label');
       if (!trigger) return;
       const DOT_CLS = { ONLINE:'online', IDLE:'idle', DND:'dnd', INVISIBLE:'invisible' };
-      const LABELS  = { ONLINE:'<%= lang === "ar" ? "متصل" : "Online" %>', IDLE:'<%= lang === "ar" ? "بعيد" : "Idle" %>', DND:'<%= lang === "ar" ? "مشغول" : "Do Not Disturb" %>', INVISIBLE:'<%= lang === "ar" ? "مخفي" : "Invisible" %>' };
+      const LABELS  = { ONLINE:'<%= t.setting.online %>', IDLE:'<%= t.setting.idle %>', DND:'<%= t.setting.doNotDisturb %>', INVISIBLE:'<%= t.setting.invisible %>' };
       let _syncing = false;
       function syncPicker(val){
         pDot.className = 'sp-dot '+(DOT_CLS[val]||'online');
@@ -950,7 +948,7 @@
     saveBtn.addEventListener('click', async () => {
       saveBtn.disabled = true;
       const origHTML = saveBtn.innerHTML;
-      saveBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> <%= lang === "ar" ? "جاري الحفظ..." : "Saving..." %>';
+      saveBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> <%= t.setting.saving %>';
       try {
         /* Prefix comes directly from the select — always valid */
         const prefixVal = document.getElementById('prefix-symbol').value;
@@ -989,7 +987,7 @@
         }
 
         saveBar.classList.remove('visible');
-        showToast('<%= lang === "ar" ? "تم حفظ الإعدادات" : "Settings saved" %>');
+        showToast('<%= t.setting.settingsSaved %>');
       } catch (e) {
         showToast(e.message, 'error');
       } finally {
@@ -1028,7 +1026,7 @@
           if (!res.ok) throw new Error(data.error || 'Error');
           textarea.value = data.description;
           updateCounter();
-          showToast('<%= lang === "ar" ? "تم تحديث وصف البوت" : "Bot description updated" %>');
+          showToast('<%= t.setting.botDescriptionUpdated %>');
         } catch (e) {
           showToast(e.message, 'error');
         } finally {
@@ -1043,7 +1041,7 @@
       const input = document.getElementById('bot-username-input');
       const val = (input.value || '').trim();
       if (val.length < 2 || val.length > 32) {
-        showToast('<%= lang === "ar" ? "الاسم يجب أن يكون بين 2 و32 حرف" : "Username must be 2-32 characters" %>', 'error');
+        showToast('<%= t.setting.usernameMustBe232Characters %>', 'error');
         return;
       }
       const btn = document.getElementById('save-username-btn');
@@ -1060,7 +1058,7 @@
         if (!res.ok) throw new Error(data.error || 'Error');
         document.getElementById('bot-username-display').textContent = data.username;
         input.value = data.username;
-        showToast('<%= lang === "ar" ? "تم تغيير اسم البوت" : "Bot username updated" %>');
+        showToast('<%= t.setting.botUsernameUpdated %>');
       } catch (e) {
         showToast(e.message, 'error');
       } finally {
@@ -1089,7 +1087,7 @@
           preview.style.display = '';
           if (fallback) fallback.style.display = 'none';
         }
-        showToast('<%= lang === "ar" ? "تم تغيير الصورة الرمزية" : "Avatar updated" %>');
+        showToast('<%= t.setting.avatarUpdated %>');
       } catch (e) {
         showToast(e.message, 'error');
       } finally {
@@ -1119,7 +1117,7 @@
         if (data.banner) {
           document.getElementById('bot-banner-preview').src = data.banner + '?t=' + Date.now();
         }
-        showToast('<%= lang === "ar" ? "تم تغيير البانر" : "Banner updated" %>');
+        showToast('<%= t.setting.bannerUpdated %>');
       } catch (e) {
         showToast(e.message, 'error');
       } finally {

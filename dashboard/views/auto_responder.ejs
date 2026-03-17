@@ -1,0 +1,1220 @@
+<%#
+  This project was programmed by the Code Nexus team.
+  If you encounter any problems, open an Issue or log into the Discord server:
+  https://discord.gg/UvEYbFd2rj
+%>
+<!DOCTYPE html>
+<html lang="<%= t.lang %>" dir="<%= t.dir %>">
+<head>
+  <%- include('partials/head_theme') %>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= lang === 'ar' ? 'الردود التلقائية' : 'Auto Responder' %> — <%= guildInfo.name %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Tajawal:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #040010; --surface: rgba(255,255,255,.04); --surface-2: rgba(255,255,255,.07);
+      --card: rgba(10,3,30,.78); --purple: #7c3aed; --purple-l: #a78bfa;
+      --cyan: #06b6d4; --cyan-l: #67e8f9; --gold: #d97706; --gold-l: #fcd34d;
+      --green: #22c55e; --red: #ef4444; --orange: #f97316; --yellow: #eab308;
+      --border: rgba(124,58,237,.2); --border-h: rgba(124,58,237,.5);
+      --muted: rgba(203,194,255,.5); --white: #f8fafc;
+      --nav-w: 64px; --mgmt-w: 220px;
+    }
+    html, body { min-height: 100%; overflow-x: hidden; }
+    body {
+      background: var(--bg); color: var(--white);
+      font-family: '<%= t.fontBody %>', 'Tajawal', 'Inter', system-ui, sans-serif;
+      line-height: 1.6; overflow-x: hidden;
+    }
+    #c { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .glow { position: fixed; border-radius: 50%; pointer-events: none; z-index: 1; filter: blur(120px); animation: glow-drift 22s ease-in-out infinite alternate; }
+    .glow-a { width: min(600px, 80vw); height: min(600px, 80vw); top: -20%; right: -16%; background: radial-gradient(circle, rgba(124,58,237,.28) 0%, transparent 65%); }
+    .glow-b { width: min(500px, 70vw); height: min(500px, 70vw); bottom: -18%; left: -12%; background: radial-gradient(circle, rgba(6,182,212,.18) 0%, transparent 65%); animation-delay: -11s; }
+    @keyframes glow-drift { from { transform: translate(0,0) scale(1); } to { transform: translate(20px,15px) scale(1.06); } }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 60px;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+      background: rgba(4, 0, 16, .8); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, .06); gap: 12px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+    .guild-icon-top { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; flex-shrink: 0; filter: drop-shadow(0 4px 18px rgba(124, 58, 237, 0.35)); }
+    .guild-icon-top-fallback { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, rgba(124,58,237,.35), rgba(6,182,212,.2)); border: 1px solid rgba(124,58,237,.35); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-size: .85rem; font-weight: 800; color: var(--purple-l); flex-shrink: 0; }
+    .guild-meta { min-width: 0; }
+    .guild-meta-name { font-size: .88rem; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+    .guild-meta-id { font-size: .6rem; color: var(--muted); font-family: 'Orbitron', monospace; letter-spacing: .05em; white-space: nowrap; }
+    .topbar-sep { width: 1px; height: 28px; background: rgba(255,255,255,.08); flex-shrink: 0; }
+    .topbar-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
+    .topbar-brand img { width: 26px; height: 26px; border-radius: 7px; box-shadow: 0 2px 10px rgba(124,58,237,.3); }
+    .topbar-brand span { font-family: 'Orbitron', monospace; font-size: .78rem; font-weight: 800; letter-spacing: .1em; background: linear-gradient(135deg, var(--white), var(--purple-l)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .user-chip { display: flex; align-items: center; gap: 7px; padding: 4px 10px 4px 5px; border-radius: 99px; background: var(--surface); border: 1px solid rgba(255,255,255,.08); cursor: pointer; }
+    .user-chip-av { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; display: block; flex-shrink: 0; }
+    .user-chip-av-fallback { width: 26px; height: 26px; border-radius: 50%; background: rgba(124,58,237,.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .user-chip span { font-size: .78rem; font-weight: 500; }
+    .lang-select {
+      background: var(--surface); border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+      color: var(--white); font-size: .8rem; font-weight: 600; padding: 6px 30px 6px 10px;
+      cursor: pointer; outline: none; -webkit-appearance: none; appearance: none; font-family: inherit;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 9px center; background-size: 12px;
+      transition: border-color .18s; min-width: 100px;
+    }
+    .lang-select:hover { border-color: rgba(124,58,237,.5); }
+    .lang-select option { background: #0a0022; color: var(--white); }
+    .menu-toggle { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid rgba(255,255,255,.08); color: var(--white); cursor: pointer; transition: background .18s; flex-shrink: 0; }
+    .menu-toggle:hover { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.4); }
+    .nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 88; backdrop-filter: blur(2px); }
+    .nav-overlay.open { display: block; }
+
+    /* ── Nav Sidebar ── */
+    .nav-sidebar {
+      position: fixed; top: 60px; bottom: 0; left: 0; width: var(--nav-w); z-index: 90;
+      background: rgba(4,0,16,.92); border-right: 1px solid rgba(255,255,255,.06);
+      backdrop-filter: blur(20px); display: flex; flex-direction: column; align-items: center;
+      padding: 10px 0 16px; gap: 4px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+      transition: width .28s cubic-bezier(.22,1,.36,1);
+    }
+    .nav-sidebar::-webkit-scrollbar { display: none; }
+    .nav-sidebar:hover { width: 220px; align-items: stretch; overflow-x: unset; }
+    [dir="rtl"] .nav-sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid rgba(255,255,255,.06); }
+    .nav-back { display: flex; align-items: center; gap: 0; width: 40px; min-height: 40px; color: var(--purple-l); text-decoration: none; transition: width 350ms cubic-bezier(0.4,0,0.2,1), gap 350ms, padding 350ms; flex-shrink: 0; overflow: visible; padding: 0; justify-content: flex-start; border-radius: 0; background: none; border: none; }
+    .nav-back .nav-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--purple); border-radius: .6rem; padding: 7px; box-sizing: border-box; transition: background 350ms; }
+    .nav-back:hover .nav-icon { background: #8b5cf6; }
+    .nav-back .nav-label { font-size: .78rem; font-weight: 600; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 350ms, visibility 350ms; pointer-events: none; color: var(--white); }
+    .nav-sidebar:hover .nav-back { width: 100%; gap: 10px; padding: 0 12px 0 8px; }
+    .nav-sidebar:hover .nav-back .nav-label { opacity: 1; visibility: visible; pointer-events: auto; }
+    [dir="rtl"] .nav-sidebar:hover .nav-back { padding: 0 8px 0 12px; }
+    .nav-divider { width: 32px; height: 1px; background: rgba(255,255,255,.08); margin: 4px 0; flex-shrink: 0; transition: width .28s; }
+    .nav-sidebar:hover .nav-divider { width: calc(100% - 24px); }
+    .nav-item { display: flex; align-items: center; gap: 0; width: 40px; min-height: 40px; border-radius: 0; background: none; text-decoration: none; flex-shrink: 0; position: relative; overflow: visible; transition: gap 350ms, width 350ms, padding 350ms; padding: 0; justify-content: flex-start; }
+    .nav-item-icon { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; position: relative; }
+    .nav-item-icon img { width: 40px; height: 40px; object-fit: cover; display: block; border-radius: 50%; }
+    .nav-item-fallback { width: 40px; height: 40px; background: linear-gradient(135deg, rgba(124,58,237,.5), rgba(6,182,212,.3)); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', monospace; font-size: .8rem; font-weight: 800; color: var(--white); border-radius: 50%; }
+    .nav-status { position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(4,0,16,.92); flex-shrink: 0; transition: opacity .2s; }
+    .nav-status.on { background: #23a55a; box-shadow: 0 0 5px rgba(35,165,90,.7); }
+    .nav-status.off { background: #ef4444; box-shadow: 0 0 5px rgba(239,68,68,.6); }
+    .nav-item-label { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; opacity: 0; visibility: hidden; transition: opacity 350ms, visibility 350ms; pointer-events: none; }
+    .nav-item-name { font-size: .78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--white); }
+    .nav-item-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-left: auto; }
+    .nav-item-dot.on { background: #23a55a; box-shadow: 0 0 4px rgba(35,165,90,.7); }
+    .nav-item-dot.off { background: #ef4444; box-shadow: 0 0 4px rgba(239,68,68,.6); }
+    .nav-sidebar:hover .nav-item { width: 100%; gap: 10px; padding: 0 12px 0 8px; justify-content: flex-start; border-radius: 10px; }
+    [dir="rtl"] .nav-sidebar:hover .nav-item { padding: 0 8px 0 12px; }
+    .nav-sidebar:hover .nav-item-label { opacity: 1; visibility: visible; pointer-events: auto; }
+    .nav-sidebar:hover .nav-status { opacity: 0; }
+    .nav-item.active::before { content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); width: 3px; height: 22px; border-radius: 0 3px 3px 0; background: var(--purple-l); }
+
+    /* ── Mgmt Sidebar ── */
+    .mgmt-sidebar {
+      position: fixed; top: 60px; bottom: 0; left: var(--nav-w); width: var(--mgmt-w); z-index: 85;
+      background: rgba(6,2,20,.97); border-right: 1px solid rgba(255,255,255,.06);
+      backdrop-filter: blur(20px); display: flex; flex-direction: column; overflow: hidden;
+      transition: transform 350ms cubic-bezier(0.4,0,0.2,1);
+    }
+    [dir="rtl"] .mgmt-sidebar { left: auto; right: var(--nav-w); border-right: none; border-left: 1px solid rgba(255,255,255,.06); }
+    .mgmt-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 12px 10px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .mgmt-header-inner { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .mgmt-header-icon { display: flex; align-items: center; justify-content: center; background: rgba(136,144,161,.12); border-radius: 11px; width: 35px; height: 35px; flex-shrink: 0; color: var(--muted); }
+    .mgmt-header-title { font-size: .78rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mgmt-sort-btn { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 7px; padding: 0; flex-shrink: 0; transition: background .15s, color .15s; }
+    .mgmt-sort-btn:hover { background: rgba(255,255,255,.06); color: var(--white); }
+    .mgmt-body { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; padding-bottom: 8px; }
+    .mgmt-body::-webkit-scrollbar { width: 3px; }
+    .mgmt-body::-webkit-scrollbar-thumb { background: rgba(124,58,237,.3); border-radius: 3px; }
+    .mgmt-nav { padding: 8px 10px 0; }
+    .mgmt-section { margin-bottom: 2px; }
+    .mgmt-section-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: none; border: none; border-radius: 10px; cursor: pointer; color: var(--white); font-family: inherit; font-size: .76rem; font-weight: 700; letter-spacing: .02em; transition: background .15s; }
+    .mgmt-section-btn:hover { background: rgba(255,255,255,.04); }
+    .mgmt-sec-chevron { color: var(--muted); flex-shrink: 0; transform: rotate(180deg); transition: transform 300ms cubic-bezier(0.4,0,0.2,1); }
+    .mgmt-section-btn.open .mgmt-sec-chevron { transform: rotate(0deg); }
+    .mgmt-sec-body { overflow: hidden; max-height: 0; transition: max-height 350ms cubic-bezier(0.4,0,0.2,1); }
+    .mgmt-sec-body.open { max-height: 800px; }
+    .mgmt-item { display: flex; align-items: center; gap: 0; padding: 5px 8px 5px 0; border-radius: 8px; text-decoration: none; color: var(--muted); font-size: .78rem; font-weight: 600; position: relative; cursor: pointer; transition: background .15s, color .15s; width: 100%; border: none; background: none; font-family: inherit; }
+    .mgmt-item:hover:not(.disabled) { background: rgba(255,255,255,.04); color: var(--white); }
+    .mgmt-item.active { color: var(--white); }
+    .mgmt-item.disabled { cursor: default; opacity: .6; }
+    .mgmt-item-indicator { width: 3px; height: 0; border-radius: 0 3px 3px 0; background: var(--purple); box-shadow: 0 0 10px rgba(104,31,209,.6); margin-right: 8px; flex-shrink: 0; transition: height 300ms; }
+    .mgmt-item.active .mgmt-item-indicator { height: 1.6rem; }
+    [dir="rtl"] .mgmt-item-indicator { border-radius: 3px 0 0 3px; margin-right: 0; margin-left: 8px; }
+    .mgmt-item-icon { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; margin-right: 8px; color: inherit; }
+    [dir="rtl"] .mgmt-item-icon { margin-right: 0; margin-left: 8px; }
+    .mgmt-item-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mgmt-badge { font-size: .6rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(255,255,255,.1); color: var(--muted); background: rgba(255,255,255,.05); flex-shrink: 0; letter-spacing: .03em; margin-left: 4px; }
+    [dir="rtl"] .mgmt-badge { margin-left: 0; margin-right: 4px; }
+    .mgmt-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--purple); border-radius: 16px 16px 0 0; flex-shrink: 0; position: sticky; bottom: 0; }
+    .mgmt-footer-user { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .mgmt-footer-av { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(255,255,255,.25); }
+    .mgmt-footer-av-fallback { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: .82rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
+    .mgmt-footer-name { font-size: .78rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .mgmt-footer-dots { background: none; border: none; color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; flex-shrink: 0; transition: background .15s; }
+    .mgmt-footer-dots:hover { background: rgba(255,255,255,.18); }
+
+    /* ── Profile Sidebar ── */
+    .profile-backdrop { position: fixed; inset: 0; z-index: 200; background: transparent; pointer-events: none; transition: background .25s; }
+    .profile-backdrop.open { background: rgba(0,0,0,.55); pointer-events: all; }
+    .profile-sidebar { position: fixed; top: 0; right: 0; bottom: 0; z-index: 201; width: 300px; max-width: 92vw; background: rgba(8,2,22,.97); border-left: 1px solid rgba(124,58,237,.18); box-shadow: -12px 0 60px rgba(0,0,0,.7); display: flex; flex-direction: column; transform: translateX(110%); transition: transform .32s cubic-bezier(.22,1,.36,1); overflow: hidden; }
+    [dir="rtl"] .profile-sidebar { right: auto; left: 0; border-left: none; border-right: 1px solid rgba(124,58,237,.18); box-shadow: 12px 0 60px rgba(0,0,0,.7); transform: translateX(-110%); }
+    .profile-sidebar.open { transform: translateX(0); }
+    .prof-banner { width: 100%; height: 100px; flex-shrink: 0; position: relative; background: linear-gradient(135deg,#2d0b6b 0%,#0a0020 60%,#06b6d4 100%); }
+    .prof-banner-solid { width: 100%; height: 100%; }
+    .prof-banner-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom,transparent 50%,rgba(8,2,22,.95) 100%); }
+    .prof-close { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); transition: background .18s, color .18s; z-index: 5; }
+    [dir="rtl"] .prof-close { right: auto; left: 10px; }
+    .prof-close:hover { background: rgba(220,38,38,.25); color: #fca5a5; }
+    .prof-avatar-wrap { position: relative; margin: -38px 0 0 20px; width: 80px; height: 80px; flex-shrink: 0; }
+    [dir="rtl"] .prof-avatar-wrap { margin: -38px 20px 0 0; }
+    .prof-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; border: 3px solid rgba(8,2,22,.97); box-shadow: 0 0 0 2px rgba(124,58,237,.5); }
+    .prof-avatar-fallback { width: 80px; height: 80px; border-radius: 50%; background: rgba(124,58,237,.25); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; border: 3px solid rgba(8,2,22,.97); }
+    .prof-online-dot { position: absolute; bottom: 4px; right: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--green); border: 2px solid rgba(8,2,22,.97); }
+    [dir="rtl"] .prof-online-dot { right: auto; left: 4px; }
+    .prof-body { flex: 1; overflow-y: auto; padding: 12px 20px 0; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; }
+    .prof-names { margin-bottom: 14px; }
+    .prof-display-name { font-size: 1rem; font-weight: 700; color: var(--white); }
+    .prof-username { font-size: .82rem; color: var(--muted); }
+    .prof-block { margin-bottom: 14px; }
+    .prof-block-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 5px; }
+    .prof-id-text { font-size: .78rem; font-family: monospace; color: var(--purple-l); background: rgba(124,58,237,.1); border: 1px solid rgba(124,58,237,.2); border-radius: 8px; padding: 6px 10px; cursor: pointer; transition: background .18s; word-break: break-all; }
+    .prof-id-text:hover { background: rgba(124,58,237,.2); }
+    .prof-footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 8px; }
+    .prof-btn { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; font-size: .83rem; font-weight: 600; text-decoration: none; color: var(--muted); background: var(--surface); border: 1px solid rgba(255,255,255,.06); transition: all .18s; cursor: pointer; }
+    .prof-btn:hover { background: var(--surface-2); color: var(--white); }
+    .prof-btn.help:hover { color: var(--cyan-l); border-color: rgba(6,182,212,.3); }
+    .prof-btn.logout:hover { color: #fca5a5; background: rgba(220,38,38,.12); border-color: rgba(220,38,38,.3); }
+
+    /* ── Main content ── */
+    .main {
+      position: relative; z-index: 10; min-height: calc(100vh - 60px);
+      margin-top: 60px; margin-left: calc(var(--nav-w) + var(--mgmt-w));
+      padding: 36px 32px 60px;
+    }
+    [dir="rtl"] .main { margin-left: 0; margin-right: calc(var(--nav-w) + var(--mgmt-w)); }
+
+    /* ── Page header ── */
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; gap: 16px; flex-wrap: wrap; }
+    .page-header-left { display: flex; flex-direction: column; gap: 6px; }
+    .page-header h2 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+    .page-header p { font-size: .88rem; color: var(--muted); }
+    .page-header-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.3); color: var(--purple-l); font-size: .72rem; font-weight: 700; margin-top: 4px; align-self: flex-start; }
+
+    /* ── Cards ── */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 18px; }
+    .card-header { display: flex; align-items: center; gap: 14px; padding: 18px 22px; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .card-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-icon.purple { background: rgba(124,58,237,.18); color: var(--purple-l); }
+    .card-icon.cyan   { background: rgba(6,182,212,.15);  color: var(--cyan-l); }
+    .card-icon.green  { background: rgba(34,197,94,.15);  color: var(--green); }
+    .card-icon.orange { background: rgba(249,115,22,.15); color: var(--orange); }
+    .card-icon.gold   { background: rgba(217,119,6,.15);  color: var(--gold-l); }
+    .card-title { font-size: .95rem; font-weight: 700; color: var(--white); }
+    .card-sub   { font-size: .78rem; color: var(--muted); margin-top: 1px; }
+    .card-body  { padding: 20px 22px; }
+
+    /* ── Toggle ── */
+    .sw-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .sw-input { display: none; }
+    .sw-track { width: 46px; height: 26px; border-radius: 99px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.12); position: relative; flex-shrink: 0; transition: background .22s, border-color .22s; cursor: pointer; }
+    .sw-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,.55); transition: transform .22s cubic-bezier(.34,1.56,.64,1), background .22s; }
+    .sw-input:checked ~ .sw-track { background: var(--purple); border-color: var(--purple); }
+    .sw-input:checked ~ .sw-track .sw-thumb { transform: translateX(20px); background: #fff; }
+    .sw-label { font-size: .88rem; font-weight: 600; color: var(--white); }
+
+    /* ── System enable row ── */
+    .sys-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; background: rgba(124,58,237,.07); border: 1px solid rgba(124,58,237,.2); border-radius: 16px; margin-bottom: 20px; }
+    .sys-toggle-info h3 { font-size: 1rem; font-weight: 700; }
+    .sys-toggle-info p  { font-size: .82rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Rules list ── */
+    .rules-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .rules-header-label { font-size: .88rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .btn-create { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 10px; background: var(--purple); border: none; color: #fff; font-size: .84rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .18s, transform .12s; }
+    .btn-create:hover { background: #8b5cf6; transform: translateY(-1px); }
+    .btn-create:active { transform: translateY(0); }
+
+    /* ── Rule card ── */
+    .rule-card { background: rgba(10,3,30,.75); border: 1px solid rgba(124,58,237,.18); border-radius: 16px; margin-bottom: 12px; overflow: hidden; transition: border-color .2s; }
+    .rule-card:hover { border-color: rgba(124,58,237,.38); }
+    .rule-card-header { display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer; }
+    .rule-card-toggle-area { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .rule-card-name { font-size: .88rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rule-card-meta { font-size: .74rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rule-card-chevron { color: var(--muted); transition: transform .25s; flex-shrink: 0; }
+    .rule-card.open .rule-card-chevron { transform: rotate(180deg); }
+    .rule-card-body { display: none; padding: 0 18px 18px; border-top: 1px solid rgba(255,255,255,.05); padding-top: 18px; }
+    .rule-card.open .rule-card-body { display: block; }
+
+    /* ── Form fields ── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-row.solo { grid-template-columns: 1fr; }
+    .form-row.thirds { grid-template-columns: 1fr 1fr 1fr; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-label { font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .field-input, .field-select, .field-textarea {
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px; color: var(--white); font-family: inherit; font-size: .88rem;
+      padding: 10px 13px; outline: none; transition: border-color .18s, background .18s;
+      width: 100%;
+    }
+    .field-input:focus, .field-select:focus, .field-textarea:focus { border-color: rgba(124,58,237,.55); background: rgba(124,58,237,.07); }
+    .field-textarea { resize: vertical; min-height: 80px; }
+    .field-select { -webkit-appearance: none; appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 11px center; background-size: 12px; padding-right: 32px;
+    }
+    .field-select option { background: #0a0022; color: var(--white); }
+
+    /* ── Tag / chip inputs ── */
+    .tag-input-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 8px 10px; min-height: 44px; cursor: text; transition: border-color .18s; }
+    .tag-input-wrap:focus-within { border-color: rgba(124,58,237,.55); }
+    .tag-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 10px; border-radius: 99px; font-size: .75rem; font-weight: 600; background: rgba(124,58,237,.2); border: 1px solid rgba(124,58,237,.35); color: var(--purple-l); white-space: nowrap; }
+    .tag-chip.channel { background: rgba(6,182,212,.15); border-color: rgba(6,182,212,.35); color: var(--cyan-l); }
+    .tag-chip.role { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.3); color: var(--green); }
+    .tag-chip-del { background: none; border: none; color: inherit; opacity: .6; cursor: pointer; padding: 0 1px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: opacity .15s; }
+    .tag-chip-del:hover { opacity: 1; }
+    .tag-input { background: none; border: none; outline: none; color: var(--white); font-family: inherit; font-size: .84rem; min-width: 80px; flex: 1; padding: 2px 4px; }
+
+    /* ── Picker dropdown ── */
+    .picker-wrap { position: relative; }
+    .picker-input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 8px 10px; min-height: 44px; cursor: text; transition: border-color .18s; }
+    .picker-input-row:focus-within { border-color: rgba(124,58,237,.55); }
+    .picker-search { background: none; border: none; outline: none; color: var(--white); font-family: inherit; font-size: .84rem; min-width: 80px; flex: 1; padding: 2px 4px; }
+    .picker-dropdown { position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 50; background: rgba(8,2,22,.97); border: 1px solid rgba(124,58,237,.3); border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,.6); max-height: 220px; overflow-y: auto; display: none; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; }
+    .picker-dropdown.open { display: block; }
+    .picker-opt { padding: 9px 14px; font-size: .84rem; cursor: pointer; color: var(--white); transition: background .13s; display: flex; align-items: center; gap: 8px; }
+    .picker-opt:hover { background: rgba(124,58,237,.15); }
+    .picker-opt-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .picker-empty { padding: 14px; font-size: .82rem; color: var(--muted); text-align: center; }
+
+    /* ── Responses list ── */
+    .responses-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .response-item { display: flex; gap: 8px; align-items: flex-start; }
+    .response-item .field-textarea { flex: 1; min-height: 68px; }
+    .btn-rem-resp { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; border-radius: 8px; cursor: pointer; padding: 8px 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
+    .btn-rem-resp:hover { background: rgba(239,68,68,.22); }
+    .btn-add-resp { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25); color: var(--green); border-radius: 8px; font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background .15s; }
+    .btn-add-resp:hover { background: rgba(34,197,94,.18); }
+
+    /* ── Trigger add button (mobile) ── */
+    .trigger-add-btn { display: none; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(124,58,237,.35); border: 1px solid rgba(124,58,237,.5); color: #fff; font-size: 1.1rem; line-height: 1; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+    .trigger-add-btn:hover { background: rgba(124,58,237,.6); }
+    @media (hover: none) and (pointer: coarse) { .trigger-add-btn { display: flex; } }
+
+    /* ── Variables hint ── */
+    .vars-hint { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .var-pill { padding: 2px 9px; border-radius: 99px; background: rgba(6,182,212,.1); border: 1px solid rgba(6,182,212,.25); color: var(--cyan-l); font-size: .72rem; font-weight: 700; font-family: monospace; cursor: pointer; transition: background .15s; }
+    .var-pill:hover { background: rgba(6,182,212,.2); }
+
+    /* ── Toggle row inside rule ── */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row-label { font-size: .86rem; font-weight: 600; }
+    .toggle-row-sub { font-size: .76rem; color: var(--muted); margin-top: 1px; }
+
+    /* ── Rule actions ── */
+    .rule-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+    .btn-save-rule { display: inline-flex; align-items: center; gap: 7px; padding: 9px 20px; border-radius: 10px; background: var(--purple); border: none; color: #fff; font-size: .84rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .18s; }
+    .btn-save-rule:hover { background: #8b5cf6; }
+    .btn-del-rule { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 10px; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; font-size: .84rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .18s; }
+    .btn-del-rule:hover { background: rgba(239,68,68,.2); }
+
+    /* ── Empty state ── */
+    .empty-rules { text-align: center; padding: 50px 24px; color: var(--muted); border: 1px dashed rgba(124,58,237,.2); border-radius: 14px; }
+    .empty-rules svg { opacity: .35; margin-bottom: 12px; }
+    .empty-rules p { font-size: .88rem; }
+
+    /* ── Save bar ── */
+    .save-bar { position: fixed; bottom: 0; left: calc(var(--nav-w) + var(--mgmt-w)); right: 0; z-index: 80; background: rgba(4,0,16,.92); border-top: 1px solid rgba(124,58,237,.25); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 32px; transition: transform .28s cubic-bezier(.22,1,.36,1); transform: translateY(110%); }
+    [dir="rtl"] .save-bar { left: 0; right: calc(var(--nav-w) + var(--mgmt-w)); }
+    .save-bar.visible { transform: translateY(0); }
+    .save-bar-text { font-size: .88rem; font-weight: 600; color: var(--muted); }
+    .save-bar-actions { display: flex; gap: 10px; }
+    .btn-discard { padding: 9px 18px; border-radius: 10px; background: var(--surface); border: 1px solid rgba(255,255,255,.1); color: var(--muted); font-size: .84rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .18s, color .18s; }
+    .btn-discard:hover { background: var(--surface-2); color: var(--white); }
+    .btn-save-main { padding: 9px 22px; border-radius: 10px; background: var(--purple); border: none; color: #fff; font-size: .84rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .18s; display: flex; align-items: center; gap: 7px; }
+    .btn-save-main:hover { background: #8b5cf6; }
+    .btn-save-main.loading { opacity: .7; pointer-events: none; }
+
+    /* ── Toast ── */
+    .toast { position: fixed; bottom: 80px; right: 24px; z-index: 9000; padding: 12px 20px; border-radius: 12px; font-size: .86rem; font-weight: 600; color: #fff; box-shadow: 0 8px 32px rgba(0,0,0,.5); transform: translateY(20px) scale(.96); opacity: 0; pointer-events: none; transition: transform .28s, opacity .28s; max-width: 320px; }
+    [dir="rtl"] .toast { right: auto; left: 24px; }
+    .toast.show { transform: translateY(0) scale(1); opacity: 1; }
+    .toast.success { background: linear-gradient(135deg, #166534, #15803d); border: 1px solid rgba(34,197,94,.3); }
+    .toast.error   { background: linear-gradient(135deg, #7f1d1d, #b91c1c); border: 1px solid rgba(239,68,68,.3); }
+
+    @media (max-width: 768px) {
+      .form-row { grid-template-columns: 1fr; }
+      .form-row.thirds { grid-template-columns: 1fr 1fr; }
+      .save-bar { left: 0; right: 0; padding: 12px 14px; flex-direction: column; align-items: stretch; gap: 10px; }
+      [dir="rtl"] .save-bar { left: 0; right: 0; }
+      .save-bar-actions { justify-content: flex-end; }
+    }
+
+    /* ── Page transition ── */
+    #ov { position: fixed; inset: 0; z-index: 9999; background: var(--bg); opacity: 0; pointer-events: none; }
+    @keyframes pIn  { from { opacity: 1 } to { opacity: 0 } }
+    @keyframes pOut { from { opacity: 0 } to { opacity: 1 } }
+    #ov.leave { animation: pOut .35s cubic-bezier(.4,0,.2,1) forwards; pointer-events: all; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .menu-toggle { display: flex !important; }
+      .nav-sidebar { transform: translateX(-100%); width: 220px !important; align-items: stretch; overflow-x: unset; z-index: 95; transition: transform 350ms cubic-bezier(0.4,0,0.2,1); }
+      [dir="rtl"] .nav-sidebar { transform: translateX(100%); }
+      .nav-sidebar.open { transform: translateX(0) !important; }
+      .nav-sidebar.open .nav-back { width: 100%; gap: 10px; padding: 0 12px 0 8px; }
+      .nav-sidebar.open .nav-back .nav-label { opacity: 1; visibility: visible; pointer-events: auto; }
+      .nav-sidebar.open .nav-item { width: 100%; gap: 10px; padding: 0 12px 0 8px; justify-content: flex-start; border-radius: 10px; }
+      .nav-sidebar.open .nav-item-label { opacity: 1; visibility: visible; pointer-events: auto; }
+      .nav-sidebar.open .nav-status { opacity: 0; }
+      .nav-sidebar.open .nav-divider { width: calc(100% - 24px); }
+      .mgmt-sidebar { left: 0 !important; right: auto !important; transform: translateX(-100%); width: 260px !important; z-index: 92; }
+      [dir="rtl"] .mgmt-sidebar { left: auto !important; right: 0 !important; transform: translateX(100%); }
+      .mgmt-sidebar.open { transform: translateX(0) !important; }
+      .main { margin-left: 0 !important; margin-right: 0 !important; padding: 24px 16px 48px; }
+      .topbar { padding: 0 12px; gap: 8px; }
+      .topbar-brand { display: none; }
+      .guild-meta-id { display: none !important; }
+      .guild-meta-name { max-width: 90px; }
+      .user-chip span { display: none; }
+      .topbar-sep { display: none; }
+      .lang-select { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="ov"></div>
+  <canvas id="c"></canvas>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+
+  <%- include('partials/layout', { activePage: 'auto-responder' }) %>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h2><%= lang === 'ar' ? 'الردود التلقائية' : 'Auto Responder' %></h2>
+        <p><%= lang === 'ar' ? 'قم بإعداد ردود تلقائية على الرسائل والكلمات المفتاحية' : 'Set up automatic replies to messages and keywords' %></p>
+        <div class="page-header-badge">
+          <i data-lucide="zap" style="width:11px;height:11px;stroke:currentColor;"></i>
+          <%= lang === 'ar' ? 'الأدوات' : 'Utility' %>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── System enable toggle ── -->
+    <div class="sys-toggle-row">
+      <div class="sys-toggle-info">
+        <h3><%= lang === 'ar' ? 'نظام الردود التلقائية' : 'Auto Responses System' %></h3>
+        <p><%= lang === 'ar' ? 'تفعيل أو تعطيل جميع الردود التلقائية دفعة واحدة' : 'Enable or disable all auto responses at once' %></p>
+      </div>
+      <label class="sw-wrap" id="sys-toggle-wrap">
+        <input type="checkbox" class="sw-input" id="sys-enabled" <%= autoResponder.enabled ? 'checked' : '' %>>
+        <div class="sw-track"><span class="sw-thumb"></span></div>
+        <span class="sw-label" id="sys-enabled-lbl"><%= autoResponder.enabled ? (lang === 'ar' ? 'مفعّل' : 'Enabled') : (lang === 'ar' ? 'معطّل' : 'Disabled') %></span>
+      </label>
+    </div>
+
+    <!-- ── Rules section ── -->
+    <div class="rules-header">
+      <span class="rules-header-label"><%= lang === 'ar' ? 'الردود' : 'Auto Responses' %> <span id="rules-count" style="margin-<%= t.dir === 'rtl' ? 'right' : 'left' %>:6px;padding:2px 8px;border-radius:99px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:var(--purple-l);font-size:.72rem;font-weight:700;"></span></span>
+      <button class="btn-create" id="btn-create-rule">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <%= lang === 'ar' ? 'إنشاء رد تلقائي' : 'Create Auto Response' %>
+      </button>
+    </div>
+
+    <!-- Rules list -->
+    <div id="rules-list"></div>
+
+    <!-- ── Save Bar ── -->
+    <div class="save-bar" id="save-bar">
+      <span class="save-bar-text"><%= lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %></span>
+      <div class="save-bar-actions">
+        <button class="btn-discard" id="btn-discard"><%= lang === 'ar' ? 'تجاهل' : 'Discard' %></button>
+        <button class="btn-save-main" id="btn-save">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <%= lang === 'ar' ? 'حفظ التغييرات' : 'Save Changes' %>
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+  </main><!-- /main -->
+
+  <%- include('partials/promo_card') %>
+  <%- include('partials/footer') %>
+
+  <script src="/js/lucide.min.js"></script>
+  <%- include('partials/bg_twinkle') %>
+  <script>
+    lucide.createIcons();
+
+    /* ── Page transition ── */
+    document.querySelectorAll('a.nav-link').forEach(a => {
+      a.addEventListener('click', e => {
+        const href = a.getAttribute('href');
+        if (!href || href.startsWith('#') || a.target === '_blank') return;
+        e.preventDefault();
+        const ov = document.getElementById('ov');
+        ov.classList.add('leave');
+        setTimeout(() => { window.location.href = href; }, 340);
+      });
+    });
+    window.addEventListener('pageshow', () => {
+      const ov = document.getElementById('ov');
+      if (ov) { ov.style.animation = 'pIn .35s cubic-bezier(.4,0,.2,1) forwards'; }
+    });
+
+    /* ── Mobile menu ── */
+    const menuToggle = document.getElementById('menu-toggle');
+    const mgmtSidebar = document.querySelector('.mgmt-sidebar');
+    const navOverlay  = document.getElementById('nav-overlay');
+    if (menuToggle) {
+      menuToggle.addEventListener('click', () => {
+        mgmtSidebar?.classList.toggle('open');
+        navOverlay?.classList.toggle('open');
+      });
+    }
+    if (navOverlay) {
+      navOverlay.addEventListener('click', () => {
+        mgmtSidebar?.classList.remove('open');
+        navOverlay.classList.remove('open');
+        document.querySelector('.nav-sidebar')?.classList.remove('open');
+      });
+    }
+
+    /* ── Profile sidebar ── */
+    document.querySelectorAll('.open-profile-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('prof-sidebar')?.classList.add('open');
+        document.getElementById('prof-backdrop')?.classList.add('open');
+      });
+    });
+    document.getElementById('prof-backdrop')?.addEventListener('click', () => {
+      document.getElementById('prof-sidebar')?.classList.remove('open');
+      document.getElementById('prof-backdrop')?.classList.remove('open');
+    });
+    document.getElementById('close-profile')?.addEventListener('click', () => {
+      document.getElementById('prof-sidebar')?.classList.remove('open');
+      document.getElementById('prof-backdrop')?.classList.remove('open');
+    });
+
+    /* ── Mgmt section accordion ── */
+    document.querySelectorAll('.mgmt-section-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('open');
+        btn.nextElementSibling?.classList.toggle('open');
+      });
+    });
+
+    /* ── Lang select ── */
+    const langSel = document.getElementById('lang-select');
+    if (langSel) {
+      langSel.addEventListener('change', () => {
+        document.cookie = 'lang=' + langSel.value + ';path=/;max-age=31536000';
+        location.reload();
+      });
+    }
+
+    /* ════════════════════════════════════════════════
+       AUTO RESPONDER LOGIC
+    ════════════════════════════════════════════════ */
+    const IS_AR = '<%= lang %>' === 'ar';
+    const GUILD_ID = '<%= guildId %>';
+
+    const ALL_CHANNELS = <%- JSON.stringify(guildChannels) %>;
+    const ALL_ROLES    = <%- JSON.stringify(guildRoles) %>;
+
+    /* ── Initial data from server ── */
+    let arState = <%- JSON.stringify(autoResponder) %>;
+    // Normalise
+    if (!Array.isArray(arState.responses)) arState.responses = [];
+    // Assign ids to server-loaded rules that are missing one
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+    arState.responses.forEach(r => { if (!r.id) r.id = uid(); });
+
+    /* ── Dirty tracking ── */
+    let dirty = false;
+    function markDirty() {
+      dirty = true;
+      document.getElementById('save-bar')?.classList.add('visible');
+    }
+    function clearDirty() {
+      dirty = false;
+      document.getElementById('save-bar')?.classList.remove('visible');
+    }
+
+    /* ── Toast ── */
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.className = 'toast ' + type;
+      t.classList.add('show');
+      clearTimeout(t._to);
+      t._to = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    /* ── System enable toggle ── */
+    const sysEnabled = document.getElementById('sys-enabled');
+    const sysLbl     = document.getElementById('sys-enabled-lbl');
+    if (sysEnabled) {
+      sysEnabled.addEventListener('change', () => {
+        sysLbl.textContent = sysEnabled.checked ? (IS_AR ? 'مفعّل' : 'Enabled') : (IS_AR ? 'معطّل' : 'Disabled');
+        arState.enabled = sysEnabled.checked;
+        markDirty();
+      });
+    }
+
+    /* ── Helpers ── */
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function defaultRule() {
+      return {
+        id: uid(),
+        triggers: [],
+        triggerType: 'contains',
+        sendType: 'reply',
+        messages: [''],
+        giveRole: '',
+        ignoredChannels: [],
+        ignoredRoles: [],
+        enabledChannels: [],
+        allowedRoles: [],
+        autoDeleteBotReply: false,
+        deleteOnAuthorDelete: false,
+        deleteUserMessage: false,
+        enabled: true,
+      };
+    }
+
+    /* ── Build rule card HTML ── */
+    function buildRuleCard(rule, index) {
+      const triggersPreview = rule.triggers.length
+        ? rule.triggers.slice(0,3).map(t => `<span class="tag-chip" style="pointer-events:none">${escHtml(t)}</span>`).join('')
+        : `<span style="color:var(--muted);font-size:.78rem">${IS_AR ? 'لا توجد مشغّلات' : 'No triggers'}</span>`;
+
+      const sendTypeOpts = [
+        { v:'send',         l: IS_AR ? 'إرسال رسالة' : 'Send Message' },
+        { v:'reply',        l: IS_AR ? 'رد' : 'Reply' },
+        { v:'reply_mention',l: IS_AR ? 'رد مع منشن' : 'Reply with Mention' },
+        { v:'dm',           l: IS_AR ? 'رسالة خاصة' : 'Direct Message' },
+      ];
+      const triggerTypeOpts = [
+        { v:'equals',     l: IS_AR ? 'يساوي' : 'Equals' },
+        { v:'contains',   l: IS_AR ? 'يحتوي' : 'Contains' },
+        { v:'startsWith', l: IS_AR ? 'يبدأ بـ' : 'Starts With' },
+        { v:'endsWith',   l: IS_AR ? 'ينتهي بـ' : 'Ends With' },
+      ];
+
+      function selOpts(opts, val) {
+        return opts.map(o => `<option value="${o.v}"${o.v===val?' selected':''}>${escHtml(o.l)}</option>`).join('');
+      }
+
+      function messagesHtml() {
+        const msgs = rule.messages && rule.messages.length ? rule.messages : [''];
+        return msgs.map((m, i) => `
+          <div class="response-item" data-ri="${i}">
+            <textarea class="field-textarea resp-text" placeholder="${IS_AR ? 'اكتب الرد هنا...' : 'Write the response here...'}" rows="3" oninput="markDirty()">${escHtml(m)}</textarea>
+            <button class="btn-rem-resp" title="${IS_AR ? 'حذف' : 'Remove'}" onclick="removeResponse(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>`).join('');
+      }
+
+      // Role/channel picker helpers used inline
+      function pickerSelected(ids, type) {
+        return ids.map(id => {
+          const list = type === 'channel' ? ALL_CHANNELS : ALL_ROLES;
+          const item = list.find(x => x.id === id);
+          const name = item ? item.name : id;
+          const dot = (type === 'role' && item && item.color) ? `<span class="picker-opt-dot" style="background:${item.color}"></span>` : '';
+          return `<span class="tag-chip ${type}" data-id="${escHtml(id)}">${dot}${type==='channel'?'#':''}${escHtml(name)}<button class="tag-chip-del" onclick="removePickerItem(this)" title="Remove">&#x2715;</button></span>`;
+        }).join('');
+      }
+
+      function pickerOpts(list, selectedIds, type) {
+        const remaining = list.filter(x => !selectedIds.includes(x.id));
+        if (!remaining.length) return `<div class="picker-empty">${IS_AR ? 'لا توجد خيارات' : 'No options'}</div>`;
+        return remaining.map(x => {
+          const dot = (type === 'role' && x.color) ? `<span class="picker-opt-dot" style="background:${x.color}"></span>` : '';
+          return `<option value="${escHtml(x.id)}">${type==='channel'?'#':''}${escHtml(x.name)}</option>`;
+        }).join('');
+      }
+
+      function buildPicker(fieldKey, ids, type, placeholder) {
+        const items = type === 'channel' ? ALL_CHANNELS : ALL_ROLES;
+        const selected = ids.filter(id => items.find(x => x.id === id));
+        const chipsHtml = pickerSelected(selected, type);
+        const optsHtml = items.filter(x => !selected.includes(x.id)).map(x => {
+          const dot = (type==='role' && x.color) ? `<span class="picker-opt-dot" style="background:${x.color}"></span>` : '';
+          return `<div class="picker-opt" data-id="${escHtml(x.id)}" data-name="${escHtml(x.name)}">${dot}${type==='channel'?'# ':''}${escHtml(x.name)}</div>`;
+        }).join('') || `<div class="picker-empty">${IS_AR ? 'لا توجد خيارات' : 'No options available'}</div>`;
+
+        return `
+          <div class="picker-wrap" data-field="${escHtml(fieldKey)}" data-type="${type}">
+            <div class="picker-input-row" onclick="focusPicker(this)">
+              ${chipsHtml}
+              <input class="picker-search" placeholder="${escHtml(placeholder)}" oninput="filterPicker(this)" onfocus="openPicker(this)" />
+            </div>
+            <div class="picker-dropdown">${optsHtml}</div>
+          </div>`;
+      }
+
+      // Give Role - single role picker
+      const giveRoleItem = rule.giveRole ? ALL_ROLES.find(r => r.id === rule.giveRole) : null;
+      const giveRoleHtml = `
+        <div class="picker-wrap" data-field="giveRole" data-type="role" data-single="true">
+          <div class="picker-input-row" onclick="focusPicker(this)">
+            ${giveRoleItem ? `<span class="tag-chip role" data-id="${escHtml(giveRoleItem.id)}">${giveRoleItem.color ? `<span class="picker-opt-dot" style="background:${giveRoleItem.color}"></span>`:''} ${escHtml(giveRoleItem.name)}<button class="tag-chip-del" onclick="removePickerItem(this)" title="Remove">&#x2715;</button></span>` : ''}
+            <input class="picker-search" placeholder="${IS_AR ? 'اختر رتبة...' : 'Select a role...'}" oninput="filterPicker(this)" onfocus="openPicker(this)" />
+          </div>
+          <div class="picker-dropdown">
+            ${ALL_ROLES.filter(r => r.id !== rule.giveRole).map(r => `<div class="picker-opt" data-id="${escHtml(r.id)}" data-name="${escHtml(r.name)}">${r.color?`<span class="picker-opt-dot" style="background:${r.color}"></span>`:''}${escHtml(r.name)}</div>`).join('') || `<div class="picker-empty">${IS_AR ? 'لا توجد رتب' : 'No roles available'}</div>`}
+          </div>
+        </div>`;
+
+      return `
+      <div class="rule-card" data-id="${escHtml(rule.id)}" id="rule-${escHtml(rule.id)}">
+        <div class="rule-card-header" onclick="toggleRuleCard(this)">
+          <label class="sw-wrap" onclick="event.stopPropagation()" style="flex-shrink:0">
+            <input type="checkbox" class="sw-input rule-enabled-chk" ${rule.enabled !== false ? 'checked' : ''} onchange="onRuleEnabledChange(this)">
+            <div class="sw-track"><span class="sw-thumb"></span></div>
+          </label>
+          <div class="rule-card-toggle-area">
+            <div style="min-width:0">
+              <div class="rule-card-name">${triggersPreview}</div>
+              <div class="rule-card-meta">${escHtml(sendTypeOpts.find(o=>o.v===rule.sendType)?.l || rule.sendType)} · ${escHtml(triggerTypeOpts.find(o=>o.v===rule.triggerType)?.l || rule.triggerType)}</div>
+            </div>
+          </div>
+          <svg class="rule-card-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+
+        <div class="rule-card-body">
+          <!-- Triggers -->
+          <div style="margin-bottom:16px">
+            <div class="field-label" style="margin-bottom:6px">${IS_AR ? 'المشغّلات' : 'Triggers'}</div>
+            <div class="tag-input-wrap" data-field="triggers">
+              ${rule.triggers.map(t => `<span class="tag-chip">${escHtml(t)}<button class="tag-chip-del" onclick="removeTriggerChip(this)">&#x2715;</button></span>`).join('')}
+              <input class="tag-input" placeholder="${IS_AR ? 'اكتب ثم اضغط Enter...' : 'Type then press Enter...'}" onkeydown="addTriggerOnEnter(event, this)" />
+              <button type="button" class="trigger-add-btn" onclick="addTriggerFromBtn(this)" tabindex="-1">+</button>
+            </div>
+            <div style="font-size:.74rem;color:var(--muted);margin-top:5px">${IS_AR ? 'اضغط Enter أو فاصلة أو + لإضافة مشغّل' : 'Press Enter, comma, or + to add a trigger'}</div>
+          </div>
+
+          <!-- Trigger Type & Send Type -->
+          <div class="form-row" style="margin-bottom:16px">
+            <div class="field">
+              <label class="field-label">${IS_AR ? 'نوع المشغّل' : 'Trigger Type'}</label>
+              <select class="field-select rule-field" data-field="triggerType">
+                ${selOpts(triggerTypeOpts, rule.triggerType)}
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">${IS_AR ? 'نوع الإرسال' : 'Send Type'}</label>
+              <select class="field-select rule-field" data-field="sendType">
+                ${selOpts(sendTypeOpts, rule.sendType)}
+              </select>
+            </div>
+          </div>
+
+          <!-- Responses -->
+          <div style="margin-bottom:16px">
+            <div class="field-label" style="margin-bottom:6px">${IS_AR ? 'الردود' : 'Responses'}</div>
+            <div class="responses-list">${messagesHtml()}</div>
+            <button class="btn-add-resp" onclick="addResponse(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              ${IS_AR ? 'إضافة رد' : 'Add Response'}
+            </button>
+            <div class="vars-hint" style="margin-top:10px">
+              <span style="font-size:.74rem;color:var(--muted);margin-inline-end:4px">${IS_AR ? 'متغيرات:' : 'Variables:'}</span>
+              ${['[user]','[userName]','[displayName]','[replyUser]','[replyUsername]'].map(v => `<span class="var-pill" onclick="insertVar(this,'${v}')" title="Click to copy">${v}</span>`).join('')}
+            </div>
+          </div>
+
+          <!-- Give Role -->
+          <div class="form-row solo" style="margin-bottom:16px">
+            <div class="field">
+              <label class="field-label">${IS_AR ? 'منح رتبة عند التفعيل' : 'Give Role on Trigger'}</label>
+              ${giveRoleHtml}
+            </div>
+          </div>
+
+          <!-- Ignored Channels & Ignored Roles -->
+          <div class="form-row" style="margin-bottom:16px">
+            <div class="field">
+              <label class="field-label">${IS_AR ? 'القنوات المستثناة' : 'Ignored Channels'}</label>
+              ${buildPicker('ignoredChannels', rule.ignoredChannels, 'channel', IS_AR ? 'قناة...' : 'Channel...')}
+            </div>
+            <div class="field">
+              <label class="field-label">${IS_AR ? 'الرتب المستثناة' : 'Ignored Roles'}</label>
+              ${buildPicker('ignoredRoles', rule.ignoredRoles, 'role', IS_AR ? 'رتبة...' : 'Role...')}
+            </div>
+          </div>
+
+          <!-- Enabled Channels & Allowed Roles -->
+          <div class="form-row" style="margin-bottom:16px">
+            <div class="field">
+              <label class="field-label">${IS_AR ? 'القنوات المفعّلة فقط' : 'Enabled Channels Only'}</label>
+              ${buildPicker('enabledChannels', rule.enabledChannels, 'channel', IS_AR ? 'قناة...' : 'Channel...')}
+            </div>
+            <div class="field">
+              <label class="field-label">${IS_AR ? 'الرتب المسموح لها' : 'Allowed Roles'}</label>
+              ${buildPicker('allowedRoles', rule.allowedRoles, 'role', IS_AR ? 'رتبة...' : 'Role...')}
+            </div>
+          </div>
+
+          <!-- Toggles -->
+          <div style="border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:4px 14px;margin-bottom:16px">
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-row-label">${IS_AR ? 'حذف رد البوت تلقائياً بعد 5 ثواني' : 'Auto-Delete Bot Reply After 5s'}</div>
+                <div class="toggle-row-sub">${IS_AR ? 'يُحذف رد البوت بعد 5 ثواني تلقائياً' : 'Bot reply gets deleted after 5 seconds automatically'}</div>
+              </div>
+              <label class="sw-wrap">
+                <input type="checkbox" class="sw-input rule-field" data-field="autoDeleteBotReply" ${rule.autoDeleteBotReply ? 'checked' : ''} onchange="onRuleFieldChange(this)">
+                <div class="sw-track"><span class="sw-thumb"></span></div>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-row-label">${IS_AR ? 'حذف رد البوت عند حذف رسالة المُرسِل' : 'Delete Bot Reply on Author\'s Message Deletion'}</div>
+                <div class="toggle-row-sub">${IS_AR ? 'إذا حذف صاحب الرسالة رسالته يُحذف رد البوت أيضاً' : 'If the message author deletes their message, bot reply is also deleted'}</div>
+              </div>
+              <label class="sw-wrap">
+                <input type="checkbox" class="sw-input rule-field" data-field="deleteOnAuthorDelete" ${rule.deleteOnAuthorDelete ? 'checked' : ''} onchange="onRuleFieldChange(this)">
+                <div class="sw-track"><span class="sw-thumb"></span></div>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-row-label">${IS_AR ? 'حذف رسالة المُستخدم' : 'Delete User Message'}</div>
+                <div class="toggle-row-sub">${IS_AR ? 'يُحذف رسالة المستخدم التي فعّلت الرد التلقائي' : 'Deletes the user message that triggered the auto response'}</div>
+              </div>
+              <label class="sw-wrap">
+                <input type="checkbox" class="sw-input rule-field" data-field="deleteUserMessage" ${rule.deleteUserMessage ? 'checked' : ''} onchange="onRuleFieldChange(this)">
+                <div class="sw-track"><span class="sw-thumb"></span></div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Rule actions -->
+          <div class="rule-actions">
+            <button class="btn-del-rule" onclick="deleteRule(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              ${IS_AR ? 'حذف' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    /* ── Render all rules ── */
+    function renderRules() {
+      const container = document.getElementById('rules-list');
+      const countEl   = document.getElementById('rules-count');
+      if (!container) return;
+      countEl.textContent = arState.responses.length;
+      if (!arState.responses.length) {
+        container.innerHTML = `<div class="empty-rules">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <p>${IS_AR ? 'لا توجد ردود تلقائية بعد. أنشئ أول رد!' : 'No auto responses yet. Create your first one!'}</p>
+        </div>`;
+        return;
+      }
+      container.innerHTML = arState.responses.map((r, i) => buildRuleCard(r, i)).join('');
+      // attach picker events for freshly rendered elements
+      container.querySelectorAll('.picker-wrap').forEach(pw => attachPickerEvents(pw));
+      // close pickers on outside click
+    }
+
+    renderRules();
+
+    /* ── Toggle rule card open/close ── */
+    function toggleRuleCard(header) {
+      header.closest('.rule-card')?.classList.toggle('open');
+    }
+
+    /* ── Add trigger on Enter/comma ── */
+    function addTriggerOnEnter(e, input) {
+      if (e.key !== 'Enter' && e.key !== ',') return;
+      e.preventDefault();
+      const val = input.value.replace(/,/g,'').trim();
+      if (!val) return;
+      const wrap = input.closest('[data-field="triggers"]');
+      const ruleCard = input.closest('.rule-card');
+      const ruleId = ruleCard?.dataset.id;
+      const rule = arState.responses.find(r => r.id === ruleId);
+      if (!rule || rule.triggers.includes(val)) { input.value = ''; return; }
+      rule.triggers.push(val);
+      // add chip
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `${escHtml(val)}<button class="tag-chip-del" onclick="removeTriggerChip(this)">&#x2715;</button>`;
+      wrap.insertBefore(chip, input);
+      input.value = '';
+      updateRuleCardMeta(ruleCard, rule);
+      markDirty();
+    }
+
+    /* ── Add trigger from + button (mobile) ── */
+    function addTriggerFromBtn(btn) {
+      const input = btn.previousElementSibling;
+      const val = input.value.replace(/,/g,'').trim();
+      if (!val) { input.focus(); return; }
+      const wrap = input.closest('[data-field="triggers"]');
+      const ruleCard = input.closest('.rule-card');
+      const ruleId = ruleCard?.dataset.id;
+      const rule = arState.responses.find(r => r.id === ruleId);
+      if (!rule || rule.triggers.includes(val)) { input.value = ''; input.focus(); return; }
+      rule.triggers.push(val);
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip';
+      chip.innerHTML = `${escHtml(val)}<button class="tag-chip-del" onclick="removeTriggerChip(this)">&#x2715;</button>`;
+      wrap.insertBefore(chip, input);
+      input.value = '';
+      input.focus();
+      updateRuleCardMeta(ruleCard, rule);
+      markDirty();
+    }
+
+    /* ── Remove trigger chip ── */
+    function removeTriggerChip(btn) {
+      const chip = btn.closest('.tag-chip');
+      const text = chip.childNodes[0].textContent.trim();
+      const ruleCard = chip.closest('.rule-card');
+      const ruleId = ruleCard?.dataset.id;
+      const rule = arState.responses.find(r => r.id === ruleId);
+      if (rule) rule.triggers = rule.triggers.filter(t => t !== text);
+      chip.remove();
+      updateRuleCardMeta(ruleCard, rule);
+      markDirty();
+    }
+
+    /* ── Rule field change (select/checkbox) ── */
+    function onRuleFieldChange(el) {
+      const ruleCard = el.closest('.rule-card');
+      const ruleId   = ruleCard?.dataset.id;
+      const rule     = arState.responses.find(r => r.id === ruleId);
+      if (!rule) return;
+      const field = el.dataset.field;
+      rule[field] = el.type === 'checkbox' ? el.checked : el.value;
+      if (field === 'sendType' || field === 'triggerType') updateRuleCardMeta(ruleCard, rule);
+      markDirty();
+    }
+
+    /* ── Rule enabled checkbox ── */
+    function onRuleEnabledChange(chk) {
+      const ruleCard = chk.closest('.rule-card');
+      const ruleId   = ruleCard?.dataset.id;
+      const rule     = arState.responses.find(r => r.id === ruleId);
+      if (rule) rule.enabled = chk.checked;
+      markDirty();
+    }
+
+    /* ── Update rule card meta text ── */
+    function updateRuleCardMeta(ruleCard, rule) {
+      if (!ruleCard || !rule) return;
+      const nameEl = ruleCard.querySelector('.rule-card-name');
+      const metaEl = ruleCard.querySelector('.rule-card-meta');
+      if (nameEl) {
+        nameEl.innerHTML = rule.triggers.length
+          ? rule.triggers.slice(0,3).map(t => `<span class="tag-chip" style="pointer-events:none">${escHtml(t)}</span>`).join('')
+          : `<span style="color:var(--muted);font-size:.78rem">${IS_AR ? 'لا توجد مشغّلات' : 'No triggers'}</span>`;
+      }
+      const sendTypeOpts = [
+        {v:'send',l:IS_AR?'إرسال رسالة':'Send Message'},{v:'reply',l:IS_AR?'رد':'Reply'},
+        {v:'reply_mention',l:IS_AR?'رد مع منشن':'Reply with Mention'},{v:'dm',l:IS_AR?'رسالة خاصة':'Direct Message'}
+      ];
+      const triggerTypeOpts = [
+        {v:'equals',l:IS_AR?'يساوي':'Equals'},{v:'contains',l:IS_AR?'يحتوي':'Contains'},
+        {v:'startsWith',l:IS_AR?'يبدأ بـ':'Starts With'},{v:'endsWith',l:IS_AR?'ينتهي بـ':'Ends With'}
+      ];
+      if (metaEl) metaEl.textContent = (sendTypeOpts.find(o=>o.v===rule.sendType)?.l||rule.sendType) + ' · ' + (triggerTypeOpts.find(o=>o.v===rule.triggerType)?.l||rule.triggerType);
+    }
+
+    /* ── Add response textarea ── */
+    function addResponse(btn) {
+      const list = btn.previousElementSibling;
+      const idx  = list.children.length;
+      const div  = document.createElement('div');
+      div.className = 'response-item';
+      div.dataset.ri = idx;
+      div.innerHTML = `<textarea class="field-textarea resp-text" placeholder="${IS_AR ? 'اكتب الرد هنا...' : 'Write the response here...'}" rows="3" oninput="markDirty()"></textarea>
+        <button class="btn-rem-resp" title="${IS_AR ? 'حذف' : 'Remove'}" onclick="removeResponse(this)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`;
+      list.appendChild(div);
+      div.querySelector('textarea').focus();
+      markDirty();
+    }
+
+    /* ── Remove response ── */
+    function removeResponse(btn) {
+      const item = btn.closest('.response-item');
+      const list = item?.parentElement;
+      if (list && list.children.length <= 1) {
+        showToast(IS_AR ? 'يجب أن يكون هناك رد واحد على الأقل' : 'At least one response is required', 'error');
+        return;
+      }
+      item?.remove();
+      markDirty();
+    }
+
+    /* ── Insert variable into last focused textarea ── */
+    let _lastTA = null;
+    document.addEventListener('focusin', e => { if (e.target.classList.contains('resp-text')) _lastTA = e.target; });
+    function insertVar(pill, varStr) {
+      if (_lastTA) {
+        const s = _lastTA.selectionStart, e = _lastTA.selectionEnd;
+        _lastTA.value = _lastTA.value.slice(0,s) + varStr + _lastTA.value.slice(e);
+        _lastTA.selectionStart = _lastTA.selectionEnd = s + varStr.length;
+        _lastTA.focus();
+        markDirty();
+      } else {
+        navigator.clipboard?.writeText(varStr).catch(()=>{});
+        showToast(IS_AR ? 'تم نسخ المتغير' : 'Variable copied!');
+      }
+    }
+
+    /* ── Picker logic ── */
+    function focusPicker(row) { row.querySelector('.picker-search')?.focus(); }
+
+    function openPicker(input) {
+      const wrap = input.closest('.picker-wrap');
+      wrap?.querySelector('.picker-dropdown')?.classList.add('open');
+    }
+
+    function closePicker(wrap) {
+      wrap?.querySelector('.picker-dropdown')?.classList.remove('open');
+      if (wrap) wrap.querySelector('.picker-search').value = '';
+      // restore all opts
+      const dd = wrap?.querySelector('.picker-dropdown');
+      if (dd) dd.querySelectorAll('.picker-opt').forEach(o => o.style.display = '');
+    }
+
+    function filterPicker(input) {
+      const q = input.value.toLowerCase();
+      const dd = input.closest('.picker-wrap')?.querySelector('.picker-dropdown');
+      if (!dd) return;
+      dd.querySelectorAll('.picker-opt').forEach(opt => {
+        opt.style.display = opt.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+      });
+      dd.classList.add('open');
+    }
+
+    function attachPickerEvents(pw) {
+      const dd = pw.querySelector('.picker-dropdown');
+      if (!dd) return;
+      dd.querySelectorAll('.picker-opt').forEach(opt => {
+        opt.addEventListener('mousedown', e => {
+          e.preventDefault();
+          const isSingle = pw.dataset.single === 'true';
+          const id   = opt.dataset.id;
+          const name = opt.dataset.name;
+          const type = pw.dataset.type;
+          const field= pw.dataset.field;
+          const ruleCard = pw.closest('.rule-card');
+          const ruleId   = ruleCard?.dataset.id;
+          const rule     = arState.responses.find(r => r.id === ruleId);
+          if (!rule) return;
+
+          if (isSingle) {
+            rule[field] = id;
+            // rebuild chips area
+            const inputRow = pw.querySelector('.picker-input-row');
+            inputRow.querySelectorAll('.tag-chip').forEach(c => c.remove());
+            const role = ALL_ROLES.find(r => r.id === id);
+            const chip = document.createElement('span');
+            chip.className = 'tag-chip role';
+            chip.dataset.id = id;
+            chip.innerHTML = (role && role.color ? `<span class="picker-opt-dot" style="background:${role.color}"></span>` : '') + escHtml(name) + `<button class="tag-chip-del" onclick="removePickerItem(this)" title="Remove">&#x2715;</button>`;
+            inputRow.insertBefore(chip, inputRow.querySelector('.picker-search'));
+            // hide this opt, show others as available
+            opt.style.display = 'none';
+          } else {
+            if (!Array.isArray(rule[field])) rule[field] = [];
+            if (rule[field].includes(id)) { closePicker(pw); return; }
+            rule[field].push(id);
+            // add chip
+            const inputRow = pw.querySelector('.picker-input-row');
+            const chip = document.createElement('span');
+            chip.className = 'tag-chip ' + type;
+            chip.dataset.id = id;
+            chip.innerHTML = (type==='channel'?'# ':'') + escHtml(name) + `<button class="tag-chip-del" onclick="removePickerItem(this)" title="Remove">&#x2715;</button>`;
+            inputRow.insertBefore(chip, inputRow.querySelector('.picker-search'));
+            // hide from dropdown
+            opt.style.display = 'none';
+          }
+          closePicker(pw);
+          markDirty();
+        });
+      });
+    }
+
+    function removePickerItem(btn) {
+      const chip = btn.closest('.tag-chip');
+      const id   = chip?.dataset.id;
+      const pw   = chip?.closest('.picker-wrap');
+      const field= pw?.dataset.field;
+      const isSingle = pw?.dataset.single === 'true';
+      const ruleCard = chip?.closest('.rule-card');
+      const ruleId   = ruleCard?.dataset.id;
+      const rule     = arState.responses.find(r => r.id === ruleId);
+      if (rule && field) {
+        if (isSingle) {
+          rule[field] = '';
+          // re-show in dropdown
+          pw.querySelector(`.picker-opt[data-id="${id}"]`)?.style.setProperty('display','');
+        } else {
+          rule[field] = (rule[field] || []).filter(x => x !== id);
+          pw.querySelector(`.picker-opt[data-id="${id}"]`)?.style.setProperty('display','');
+        }
+      }
+      chip?.remove();
+      markDirty();
+    }
+
+    /* Close pickers on outside click */
+    document.addEventListener('mousedown', e => {
+      document.querySelectorAll('.picker-wrap').forEach(pw => {
+        if (!pw.contains(e.target)) closePicker(pw);
+      });
+    });
+
+    /* ── Create new rule ── */
+    document.getElementById('btn-create-rule')?.addEventListener('click', () => {
+      const rule = defaultRule();
+      arState.responses.push(rule);
+      document.getElementById('rules-count').textContent = arState.responses.length;
+      const container = document.getElementById('rules-list');
+      // remove empty state if present
+      container.querySelector('.empty-rules')?.remove();
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = buildRuleCard(rule, arState.responses.length - 1);
+      const card = wrapper.firstElementChild;
+      container.appendChild(card);
+      card.classList.add('open');
+      card.querySelectorAll('.picker-wrap').forEach(pw => attachPickerEvents(pw));
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // attach rule-field listeners
+      card.querySelectorAll('.rule-field').forEach(el => {
+        el.addEventListener('change', () => onRuleFieldChange(el));
+      });
+      markDirty();
+    });
+
+    /* attach existing rule-field listeners */
+    document.querySelectorAll('.rule-field').forEach(el => {
+      el.addEventListener('change', () => onRuleFieldChange(el));
+    });
+
+    /* ── Delete rule ── */
+    function deleteRule(btn) {
+      const card   = btn.closest('.rule-card');
+      const ruleId = card?.dataset.id;
+      arState.responses = arState.responses.filter(r => r.id !== ruleId);
+      card?.remove();
+      document.getElementById('rules-count').textContent = arState.responses.length;
+      if (!arState.responses.length) {
+        document.getElementById('rules-list').innerHTML = `<div class="empty-rules">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <p>${IS_AR ? 'لا توجد ردود تلقائية بعد. أنشئ أول رد!' : 'No auto responses yet. Create your first one!'}</p>
+        </div>`;
+      }
+      markDirty();
+    }
+
+    /* ── Collect current form state into arState.responses ── */
+    function collectState() {
+      const cards = document.querySelectorAll('.rule-card');
+      arState.responses = Array.from(cards).map(card => {
+        const ruleId = card.dataset.id;
+        const rule   = arState.responses.find(r => r.id === ruleId) || defaultRule();
+        rule.id = ruleId;
+
+        // triggers: read from chips
+        rule.triggers = Array.from(card.querySelectorAll('[data-field="triggers"] .tag-chip'))
+          .map(c => c.childNodes[0].textContent.trim()).filter(Boolean);
+
+        // triggers type
+        const ttSel = card.querySelector('.rule-field[data-field="triggerType"]');
+        if (ttSel) rule.triggerType = ttSel.value;
+
+        // send type
+        const stSel = card.querySelector('.rule-field[data-field="sendType"]');
+        if (stSel) rule.sendType = stSel.value;
+
+        // messages
+        rule.messages = Array.from(card.querySelectorAll('.resp-text'))
+          .map(ta => ta.value.trim()).filter(Boolean);
+        if (!rule.messages.length) rule.messages = [''];
+
+        // toggles
+        ['autoDeleteBotReply','deleteOnAuthorDelete','deleteUserMessage'].forEach(f => {
+          const chk = card.querySelector(`.rule-field[data-field="${f}"]`);
+          if (chk) rule[f] = chk.checked;
+        });
+
+        // enabled
+        const enChk = card.querySelector('.rule-enabled-chk');
+        if (enChk) rule.enabled = enChk.checked;
+
+        return rule;
+      });
+    }
+
+    /* ── Save ── */
+    document.getElementById('btn-save')?.addEventListener('click', async () => {
+      collectState();
+      const btn = document.getElementById('btn-save');
+      btn.classList.add('loading');
+      btn.textContent = IS_AR ? 'جاري الحفظ...' : 'Saving...';
+      try {
+        const payload = { enabled: arState.enabled, responses: arState.responses };
+        const res = await fetch(`/dashboard/${GUILD_ID}/auto-responder/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json();
+        if (json.ok) {
+          clearDirty();
+          showToast(IS_AR ? '✓ تم الحفظ بنجاح' : '✓ Saved successfully', 'success');
+        } else {
+          showToast(IS_AR ? 'حدث خطأ أثناء الحفظ' : 'Error while saving', 'error');
+        }
+      } catch (e) {
+        showToast(IS_AR ? 'فشل الاتصال بالخادم' : 'Failed to connect to server', 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> ${IS_AR ? 'حفظ التغييرات' : 'Save Changes'}`;
+      }
+    });
+
+    /* ── Discard ── */
+    document.getElementById('btn-discard')?.addEventListener('click', () => {
+      location.reload();
+    });
+
+    /* ── Warn before leaving with unsaved changes ── */
+    window.addEventListener('beforeunload', e => {
+      if (dirty) { e.preventDefault(); e.returnValue = ''; }
+    });
+  </script>
+</body>
+</html>

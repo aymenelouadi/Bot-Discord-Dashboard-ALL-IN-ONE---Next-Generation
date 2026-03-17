@@ -7,9 +7,14 @@
 const path = require('path');
 const fs   = require('fs');
 
-const SUPPORTED = ['ar', 'en'];
 const DEFAULT   = 'ar';
 const LANG_DIR  = path.join(__dirname, '../lang');
+
+// Auto-detect all lang files — adding a new XX.json is enough, no code change needed
+const SUPPORTED = fs.readdirSync(LANG_DIR)
+    .filter(f => f.endsWith('.json'))
+    .map(f => f.replace('.json', ''))
+    .sort((a, b) => (a === DEFAULT ? -1 : b === DEFAULT ? 1 : 0)); // default first
 
 const cache = {};
 
@@ -40,6 +45,8 @@ function langMiddleware(req, res, next) {
     res.locals.t    = req.t;
     res.locals.lang = lang;
     res.locals.supported = SUPPORTED;
+    res.locals.flagMap   = Object.fromEntries(SUPPORTED.map(l => [l, load(l).flag   || l]));
+    res.locals.langLabels= Object.fromEntries(SUPPORTED.map(l => [l, load(l).label  || l]));
     next();
 }
 

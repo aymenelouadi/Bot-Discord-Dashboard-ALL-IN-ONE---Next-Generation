@@ -9,7 +9,7 @@
   <%- include('partials/head_theme') %>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= lang === 'ar' ? 'الرتب التلقائية' : 'Auto Roles' %> — <%= guildInfo.name %></title>
+  <title><%= t.autoRoles.autoRoles %> — <%= guildInfo.name %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -396,14 +396,14 @@
     <!-- Page header -->
     <div class="page-header">
       <div class="page-header-left">
-        <h2><%= lang === 'ar' ? 'الرتب التلقائية' : 'Auto Roles' %></h2>
-        <p><%= lang === 'ar' ? 'حدد الرتب التي تُضاف تلقائياً عند دخول أعضاء أو بوتات جديدة.' : 'Configure roles assigned automatically when humans or bots join the server.' %></p>
+        <h2><%= t.autoRoles.autoRoles %></h2>
+        <p><%= t.autoRoles.configureRolesAssignedAutomaticallyWhenHumans %></p>
         <div class="page-header-badge">
           <i data-lucide="users" style="width:11px;height:11px;stroke:currentColor;"></i>
           Members
         </div>
       </div>
-      <label class="sw-wrap" title="<%= lang === 'ar' ? 'تفعيل / إيقاف' : 'Enable / Disable' %>">
+      <label class="sw-wrap" title="<%= t.autoRoles.enableDisable %>">
         <input type="checkbox" class="sw-input" id="toggle-enabled" <%= autoRoles.enabled ? 'checked' : '' %>>
         <span class="sw-track"><span class="sw-thumb"></span></span>
       </label>
@@ -412,19 +412,19 @@
     <!-- Stats -->
     <div class="stats-strip">
       <div class="stat-card">
-        <div class="stat-card-label"><%= lang === 'ar' ? 'رتب البشر' : 'Human Roles' %></div>
+        <div class="stat-card-label"><%= t.autoRoles.humanRoles %></div>
         <div class="stat-card-value green" id="stat-humans"><%= autoRoles.humans.length %></div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-label"><%= lang === 'ar' ? 'رتب البوتات' : 'Bot Roles' %></div>
+        <div class="stat-card-label"><%= t.autoRoles.botRoles %></div>
         <div class="stat-card-value cyan" id="stat-bots"><%= autoRoles.bots.length %></div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-label"><%= lang === 'ar' ? 'إجمالي الرتب' : 'Total Roles' %></div>
+        <div class="stat-card-label"><%= t.autoRoles.totalRoles %></div>
         <div class="stat-card-value" id="stat-total"><%= autoRoles.humans.length + autoRoles.bots.length %></div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-label"><%= lang === 'ar' ? 'قواعد الدعوات' : 'Invite Rules' %></div>
+        <div class="stat-card-label"><%= t.autoRoles.inviteRules %></div>
         <div class="stat-card-value" id="stat-invites"><%= (autoRoles.inviteRoles || []).length %></div>
       </div>
     </div>
@@ -437,19 +437,19 @@
             <i data-lucide="user-check" style="width:20px;height:20px;stroke:currentColor;"></i>
           </div>
           <div>
-            <div class="card-title"><%= lang === 'ar' ? 'رتب البشر' : 'Human Roles' %></div>
-            <div class="card-sub"><%= lang === 'ar' ? 'تُضاف هذه الرتب تلقائياً لكل عضو بشري جديد' : 'Added automatically to every new human member' %></div>
+            <div class="card-title"><%= t.autoRoles.humanRoles %></div>
+            <div class="card-sub"><%= t.autoRoles.addedAutomaticallyToEveryNewHuman %></div>
           </div>
         </div>
       </div>
 
       <div class="role-section-label">
         <span class="rs-icon human"><i data-lucide="user" style="width:13px;height:13px;stroke:currentColor;"></i></span>
-        <%= lang === 'ar' ? 'الرتب المحددة' : 'Selected Roles' %>
+        <%= t.autoRoles.selectedRoles %>
       </div>
       <div class="roles-tags-wrap" id="human-tags">
         <% if (autoRoles.humans.length === 0) { %>
-          <span class="roles-empty"><%= lang === 'ar' ? 'لا توجد رتب' : 'No roles added yet' %></span>
+          <span class="roles-empty"><%= t.autoRoles.noRolesAddedYet %></span>
         <% } else { %>
           <% autoRoles.humans.forEach(rId => {
                const role = guildRoles.find(r => r.id === rId);
@@ -470,12 +470,12 @@
       <div class="role-picker-wrap" id="human-picker-wrap">
         <button class="role-picker-btn" id="human-picker-btn" onclick="togglePicker('humans')">
           <i data-lucide="plus" style="width:15px;height:15px;stroke:currentColor;color:var(--purple-l);"></i>
-          <span><%= lang === 'ar' ? 'إضافة رتبة...' : 'Add a role...' %></span>
+          <span><%= t.autoRoles.addARole %></span>
           <span class="role-picker-chevron"><i data-lucide="chevron-down" style="width:14px;height:14px;stroke:currentColor;"></i></span>
         </button>
         <div class="role-picker-dropdown" id="human-picker-dropdown">
           <div class="role-picker-search-wrap">
-            <input class="role-picker-search" type="text" id="human-search" placeholder="<%= lang === 'ar' ? 'بحث...' : 'Search roles...' %>" oninput="filterRoles('humans', this.value)" />
+            <input class="role-picker-search" type="text" id="human-search" placeholder="<%= t.autoRoles.searchRoles %>" oninput="filterRoles('humans', this.value)" />
           </div>
           <div class="role-picker-list" id="human-role-list">
             <% guildRoles.forEach(role => { %>
@@ -498,19 +498,19 @@
             <i data-lucide="bot" style="width:20px;height:20px;stroke:currentColor;"></i>
           </div>
           <div>
-            <div class="card-title"><%= lang === 'ar' ? 'رتب البوتات' : 'Bot Roles' %></div>
-            <div class="card-sub"><%= lang === 'ar' ? 'تُضاف هذه الرتب تلقائياً لكل بوت جديد' : 'Added automatically to every new bot added to the server' %></div>
+            <div class="card-title"><%= t.autoRoles.botRoles %></div>
+            <div class="card-sub"><%= t.autoRoles.addedAutomaticallyToEveryNewBot %></div>
           </div>
         </div>
       </div>
 
       <div class="role-section-label">
         <span class="rs-icon bot"><i data-lucide="cpu" style="width:13px;height:13px;stroke:currentColor;"></i></span>
-        <%= lang === 'ar' ? 'الرتب المحددة' : 'Selected Roles' %>
+        <%= t.autoRoles.selectedRoles %>
       </div>
       <div class="roles-tags-wrap" id="bot-tags">
         <% if (autoRoles.bots.length === 0) { %>
-          <span class="roles-empty"><%= lang === 'ar' ? 'لا توجد رتب' : 'No roles added yet' %></span>
+          <span class="roles-empty"><%= t.autoRoles.noRolesAddedYet %></span>
         <% } else { %>
           <% autoRoles.bots.forEach(rId => {
                const role = guildRoles.find(r => r.id === rId);
@@ -531,12 +531,12 @@
       <div class="role-picker-wrap" id="bot-picker-wrap">
         <button class="role-picker-btn" id="bot-picker-btn" onclick="togglePicker('bots')">
           <i data-lucide="plus" style="width:15px;height:15px;stroke:currentColor;color:var(--cyan-l);"></i>
-          <span><%= lang === 'ar' ? 'إضافة رتبة...' : 'Add a role...' %></span>
+          <span><%= t.autoRoles.addARole %></span>
           <span class="role-picker-chevron"><i data-lucide="chevron-down" style="width:14px;height:14px;stroke:currentColor;"></i></span>
         </button>
         <div class="role-picker-dropdown" id="bot-picker-dropdown">
           <div class="role-picker-search-wrap">
-            <input class="role-picker-search" type="text" id="bot-search" placeholder="<%= lang === 'ar' ? 'بحث...' : 'Search roles...' %>" oninput="filterRoles('bots', this.value)" />
+            <input class="role-picker-search" type="text" id="bot-search" placeholder="<%= t.autoRoles.searchRoles %>" oninput="filterRoles('bots', this.value)" />
           </div>
           <div class="role-picker-list" id="bot-role-list">
             <% guildRoles.forEach(role => { %>
@@ -559,26 +559,26 @@
             <i data-lucide="link-2" style="width:20px;height:20px;stroke:currentColor;"></i>
           </div>
           <div>
-            <div class="card-title"><%= lang === 'ar' ? 'تعيين رتبة حسب رابط الدعوة' : 'Assign Role To Specific Invite' %></div>
-            <div class="card-sub"><%= lang === 'ar' ? 'مثال: abc123 → YouTube Member' : 'Example: abc123 → YouTube Member' %></div>
+            <div class="card-title"><%= t.autoRoles.assignRoleToSpecificInvite %></div>
+            <div class="card-sub"><%= t.autoRoles.exampleAbc123YouTubeMember %></div>
           </div>
         </div>
       </div>
 
       <div class="invite-wrap" id="invite-map-list">
         <% if (!autoRoles.inviteRoles || autoRoles.inviteRoles.length === 0) { %>
-          <div class="invite-empty" id="invite-empty"><%= lang === 'ar' ? 'لا توجد قواعد دعوات بعد' : 'No invite rules yet' %></div>
+          <div class="invite-empty" id="invite-empty"><%= t.autoRoles.noInviteRulesYet %></div>
         <% } else { %>
           <% autoRoles.inviteRoles.forEach(ir => { %>
             <div class="invite-row">
-              <input class="invite-input invite-code" placeholder="<%= lang === 'ar' ? 'كود الدعوة (مثال: abc123)' : 'Invite code (e.g. abc123)' %>" value="<%= ir.invite %>" maxlength="64" />
+              <input class="invite-input invite-code" placeholder="<%= t.autoRoles.inviteCodeEGAbc123 %>" value="<%= ir.invite %>" maxlength="64" />
               <select class="invite-select invite-role">
-                <option value=""><%= lang === 'ar' ? 'اختر رتبة...' : 'Select role...' %></option>
+                <option value=""><%= t.autoRoles.selectRole %></option>
                 <% guildRoles.forEach(role => { %>
                   <option value="<%= role.id %>" <%= ir.role === role.id ? 'selected' : '' %>><%= role.name %></option>
                 <% }) %>
               </select>
-              <button class="invite-remove" type="button" title="<%= lang === 'ar' ? 'حذف' : 'Remove' %>">
+              <button class="invite-remove" type="button" title="<%= t.autoRoles.remove %>">
                 <i data-lucide="trash-2" style="width:14px;height:14px;stroke:currentColor;"></i>
               </button>
             </div>
@@ -589,7 +589,7 @@
       <div class="divider"></div>
       <button class="btn btn-ghost" type="button" id="add-invite-row">
         <i data-lucide="plus" style="width:14px;height:14px;stroke:currentColor;"></i>
-        <%= lang === 'ar' ? 'إضافة قاعدة دعوة' : 'Add Invite Rule' %>
+        <%= t.autoRoles.addInviteRule %>
       </button>
     </div>
 
@@ -597,12 +597,12 @@
 
   <!-- Save bar -->
   <div class="save-bar" id="save-bar">
-    <span class="save-bar-hint"><%= lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %></span>
+    <span class="save-bar-hint"><%= t.autoRoles.youHaveUnsavedChanges %></span>
     <div class="save-bar-actions">
-      <button class="btn btn-ghost" id="reset-btn"><%= lang === 'ar' ? 'تراجع' : 'Reset' %></button>
+      <button class="btn btn-ghost" id="reset-btn"><%= t.autoRoles.reset %></button>
       <button class="btn btn-primary" id="save-btn">
         <i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i>
-        <%= lang === 'ar' ? 'حفظ التغييرات' : 'Save Changes' %>
+        <%= t.autoRoles.saveChanges %>
       </button>
     </div>
   </div>
@@ -616,14 +616,14 @@
   <script type="application/json" id="_init"><%- JSON.stringify({ enabled: autoRoles.enabled, humans: autoRoles.humans, bots: autoRoles.bots, inviteRoles: autoRoles.inviteRoles || [] }) %></script>
   <template id="invite-row-template">
     <div class="invite-row">
-      <input class="invite-input invite-code" placeholder="<%= lang === 'ar' ? 'كود الدعوة (مثال: abc123)' : 'Invite code (e.g. abc123)' %>" maxlength="64" />
+      <input class="invite-input invite-code" placeholder="<%= t.autoRoles.inviteCodeEGAbc123 %>" maxlength="64" />
       <select class="invite-select invite-role">
-        <option value=""><%= lang === 'ar' ? 'اختر رتبة...' : 'Select role...' %></option>
+        <option value=""><%= t.autoRoles.selectRole %></option>
         <% guildRoles.forEach(role => { %>
           <option value="<%= role.id %>"><%= role.name %></option>
         <% }) %>
       </select>
-      <button class="invite-remove" type="button" title="<%= lang === 'ar' ? 'حذف' : 'Remove' %>">
+      <button class="invite-remove" type="button" title="<%= t.autoRoles.remove %>">
         <i data-lucide="trash-2" style="width:14px;height:14px;stroke:currentColor;"></i>
       </button>
     </div>
@@ -658,7 +658,7 @@
     const profCopyId = document.getElementById('prof-copy-id');
     if (profCopyId) {
       profCopyId.addEventListener('click', () => {
-        navigator.clipboard.writeText(profCopyId.textContent.trim()).then(() => showToast('<%= lang === "ar" ? "تم نسخ المعرف ✓" : "ID copied ✓" %>', 'success'));
+        navigator.clipboard.writeText(profCopyId.textContent.trim()).then(() => showToast('<%= t.autoRoles.iDCopied %>', 'success'));
       });
     }
 
@@ -734,7 +734,7 @@
         empty = document.createElement('div');
         empty.id = 'invite-empty';
         empty.className = 'invite-empty';
-        empty.textContent = "<%= lang === 'ar' ? 'لا توجد قواعد دعوات بعد' : 'No invite rules yet' %>";
+        empty.textContent = "<%= t.autoRoles.noInviteRulesYet %>";
         list.appendChild(empty);
       }
       if (hasRows && empty) empty.remove();
@@ -840,7 +840,7 @@
       } else if (!isAdding && existing) {
         existing.remove();
         if (!tagsWrap.children.length) {
-          tagsWrap.innerHTML = `<span class="roles-empty"><%= lang === 'ar' ? 'لا توجد رتب' : 'No roles added yet' %></span>`;
+          tagsWrap.innerHTML = `<span class="roles-empty"><%= t.autoRoles.noRolesAddedYet %></span>`;
         }
       }
 
@@ -884,7 +884,7 @@
       const btn      = document.getElementById('save-btn');
       const origHTML = btn.innerHTML;
       btn.disabled   = true;
-      btn.innerHTML  = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>&nbsp;<%= lang === "ar" ? "جاري الحفظ..." : "Saving..." %>';
+      btn.innerHTML  = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>&nbsp;<%= t.autoRoles.saving %>';
       try {
         const payload = {
           enabled: document.getElementById('toggle-enabled').checked,
@@ -900,9 +900,9 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Error');
         saveBar.classList.remove('visible');
-        showToast('<%= lang === "ar" ? "تم الحفظ بنجاح ✓" : "Saved successfully ✓" %>', 'success');
+        showToast('<%= t.autoRoles.savedSuccessfully %>', 'success');
       } catch (err) {
-        showToast(err.message || '<%= lang === "ar" ? "حدث خطأ" : "An error occurred" %>', 'error');
+        showToast(err.message || '<%= t.autoRoles.anErrorOccurred %>', 'error');
       } finally {
         btn.disabled  = false;
         btn.innerHTML = origHTML;

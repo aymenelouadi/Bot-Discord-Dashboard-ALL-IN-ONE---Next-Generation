@@ -616,8 +616,8 @@
     <!-- Header -->
     <div class="page-header">
       <div class="page-header-left">
-        <h2><%= lang === 'ar' ? 'المستويات' : 'Levels' %></h2>
-        <p><%= lang === 'ar' ? 'يتتبع نشاط المستخدمين ومستوياتهم ويوفر أوامر لإعادة الضبط وعرض الترتيبات.' : 'Tracks user levels and activity, with commands to reset levels, view top rankings, and more.' %></p>
+        <h2><%= t.levels.levels %></h2>
+        <p><%= t.levels.tracksUserLevelsAndActivityWith %></p>
       </div>
       <%- include('partials/toggle_switch', { id: 'level-enable', checked: levelSettings.ENABLE }) %>
     </div>
@@ -626,9 +626,9 @@
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn active" data-tab="settings"><%= lang === 'ar' ? 'الإعدادات' : 'Settings' %></button>
-      <button class="tab-btn" data-tab="commands"><%= lang === 'ar' ? 'الأوامر' : 'Commands' %></button>
-      <button class="tab-btn" data-tab="log"><%= lang === 'ar' ? 'السجل' : 'Log' %></button>
+      <button class="tab-btn active" data-tab="settings"><%= t.levels.settings %></button>
+      <button class="tab-btn" data-tab="commands"><%= t.levels.commands %></button>
+      <button class="tab-btn" data-tab="log"><%= t.levels.log %></button>
     </div>
 
     <!-- Settings Tab -->
@@ -637,16 +637,16 @@
       <!-- Reward Roles -->
       <div class="card">
         <div class="card-header">
-          <h3><%= lang === 'ar' ? 'أدوار المكافآت' : 'Reward Roles' %></h3>
+          <h3><%= t.levels.rewardRoles %></h3>
         </div>
 
         <div class="alert alert-warning">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" fill="currentColor" style="flex-shrink:0;width:20px;height:20px"><path d="M7.81794 3.62417C11.3653 2.87982 14.5 5.57361 14.5 8.99999C14.5 11.139 13.2764 12.9817 11.5 13.8897V15.25H6.49997V13.8897C4.47225 12.8528 3.16639 10.5975 3.57418 8.08475C3.92975 5.89423 5.63841 4.08156 7.81794 3.62417Z" fill-opacity="0.4"/></svg>
-          <div><%= lang === 'ar' ? 'إذا كان أي دور يمتلك صلاحيات إدارية فلن يعمل النظام.' : 'If any of the roles have administrative permissions, the feature will not work.' %></div>
+          <div><%= t.levels.ifAnyOfTheRolesHave %></div>
         </div>
         <div class="alert alert-yellow">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" fill="currentColor" style="flex-shrink:0;width:20px;height:20px"><path opacity="0.4" d="M13.25 2H4.75C3.231 2 2 3.23 2 4.75V13.25C2 14.77 3.231 16 4.75 16H13.25C14.769 16 16 14.77 16 13.25V4.75C16 3.23 14.769 2 13.25 2Z"/><path d="M9 10.25C8.5859 10.25 8.25 9.9141 8.25 9.5V5.43115C8.25 5.01705 8.5859 4.68115 9 4.68115C9.4141 4.68115 9.75 5.01705 9.75 5.43115V9.5C9.75 9.9141 9.4141 10.25 9 10.25Z"/></svg>
-          <div><%= lang === 'ar' ? 'يجب ترتيب الأدوار من أدنى مستوى مطلوب إلى أعلاه.' : 'Roles must be ordered from lowest to highest required level.' %></div>
+          <div><%= t.levels.rolesMustBeOrderedFromLowest %></div>
         </div>
 
         <!-- Roles table -->
@@ -751,35 +751,35 @@
           </button>
         </div>
 
-        <h4 style="font-size:.95rem;margin:28px 0 12px;color:var(--white)"><%= lang === 'ar' ? 'إعدادات أدوار المكافآت' : 'Reward Roles Settings' %></h4>
+        <h4 style="font-size:.95rem;margin:28px 0 12px;color:var(--white)"><%= t.levels.rewardRolesSettings %></h4>
 
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'نوع أدوار المكافآت' : 'Reward Roles Type' %></label>
+          <label class="form-label"><%= t.levels.rewardRolesType %></label>
           <div class="cpicker" id="cpicker-reward-type">
             <button class="cpicker-btn" type="button">
-              <span class="cpicker-label"><%= levelSettings.REWARD_SETTINGS.REMOVE_PREVIOUS_ROLES ? (lang === 'ar' ? 'إزالة الدور السابق' : 'Remove Previous Reward Roles') : (lang === 'ar' ? 'تراكم جميع الأدوار' : 'Stack All Reward Roles') %></span>
+              <span class="cpicker-label"><%= levelSettings.REWARD_SETTINGS.REMOVE_PREVIOUS_ROLES ? (t.levels.removePreviousRewardRoles) : (t.levels.stackAllRewardRoles) %></span>
               <svg class="cpicker-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="cpicker-dropdown" style="display:none">
               <div class="cpicker-list">
-                <div class="cpicker-opt <%= levelSettings.REWARD_SETTINGS.REMOVE_PREVIOUS_ROLES ? 'active' : '' %>" data-value="REMOVE_PREVIOUS"><%= lang === 'ar' ? 'إزالة الدور السابق' : 'Remove Previous Reward Roles' %></div>
-                <div class="cpicker-opt <%= !levelSettings.REWARD_SETTINGS.REMOVE_PREVIOUS_ROLES ? 'active' : '' %>" data-value="STACK"><%= lang === 'ar' ? 'تراكم جميع الأدوار' : 'Stack All Reward Roles' %></div>
+                <div class="cpicker-opt <%= levelSettings.REWARD_SETTINGS.REMOVE_PREVIOUS_ROLES ? 'active' : '' %>" data-value="REMOVE_PREVIOUS"><%= t.levels.removePreviousRewardRoles %></div>
+                <div class="cpicker-opt <%= !levelSettings.REWARD_SETTINGS.REMOVE_PREVIOUS_ROLES ? 'active' : '' %>" data-value="STACK"><%= t.levels.stackAllRewardRoles %></div>
               </div>
             </div>
           </div>
           <input type="hidden" id="reward-type" value="<%= levelSettings.REWARD_SETTINGS.REMOVE_PREVIOUS_ROLES ? 'REMOVE_PREVIOUS' : 'STACK' %>">
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'تعطيل أدوار المكافآت' : 'Disable Rewards Roles' %></label>
+          <label class="form-label"><%= t.levels.disableRewardsRoles %></label>
           <div class="cpicker" id="cpicker-disable-rewards">
             <button class="cpicker-btn" type="button">
-              <span class="cpicker-label"><%= levelSettings.REWARD_SETTINGS.DISABLE_REWARDS ? (lang === 'ar' ? 'معطل' : 'Disabled') : (lang === 'ar' ? 'مفعّل' : 'Enabled') %></span>
+              <span class="cpicker-label"><%= levelSettings.REWARD_SETTINGS.DISABLE_REWARDS ? (t.levels.disabled) : (t.levels.enabled) %></span>
               <svg class="cpicker-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="cpicker-dropdown" style="display:none">
               <div class="cpicker-list">
-                <div class="cpicker-opt <%= !levelSettings.REWARD_SETTINGS.DISABLE_REWARDS ? 'active' : '' %>" data-value="false"><%= lang === 'ar' ? 'مفعّل' : 'Enabled' %></div>
-                <div class="cpicker-opt <%= levelSettings.REWARD_SETTINGS.DISABLE_REWARDS ? 'active' : '' %>" data-value="true"><%= lang === 'ar' ? 'معطل' : 'Disabled' %></div>
+                <div class="cpicker-opt <%= !levelSettings.REWARD_SETTINGS.DISABLE_REWARDS ? 'active' : '' %>" data-value="false"><%= t.levels.enabled %></div>
+                <div class="cpicker-opt <%= levelSettings.REWARD_SETTINGS.DISABLE_REWARDS ? 'active' : '' %>" data-value="true"><%= t.levels.disabled %></div>
               </div>
             </div>
           </div>
@@ -860,15 +860,15 @@
         </div>
 
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'تجاهل قنوات XP' : 'Ignore XP Channels' %></label>
+          <label class="form-label"><%= t.levels.ignoreXPChannels %></label>
           <div class="cpicker" id="cpicker-ignore-channels">
             <button class="cpicker-btn" type="button">
-              <span class="cpicker-label cpicker-muted" data-placeholder="<%= lang === 'ar' ? 'لا يوجد تجاهل' : 'No channels ignored' %>"><%= lang === 'ar' ? 'لا يوجد تجاهل' : 'No channels ignored' %></span>
+              <span class="cpicker-label cpicker-muted" data-placeholder="<%= t.levels.noChannelsIgnored %>"><%= t.levels.noChannelsIgnored %></span>
               <span class="cpicker-badge" style="display:none"></span>
               <svg class="cpicker-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="cpicker-dropdown" style="display:none">
-              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= lang === 'ar' ? 'بحث...' : 'Search channels...' %>" /></div>
+              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= t.levels.searchChannels %>" /></div>
               <div class="cpicker-list">
                 <% guildChannels.forEach(ch => { %>
                   <div class="cpicker-opt <%= (levelSettings.TEXT_ACTIVITY.IGNORE_CHANNELS || []).includes(ch.id) ? 'active' : '' %>" data-value="<%= ch.id %>">
@@ -888,15 +888,15 @@
         </div>
 
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'تجاهل أدوار XP' : 'Ignore XP Roles' %></label>
+          <label class="form-label"><%= t.levels.ignoreXPRoles %></label>
           <div class="cpicker" id="cpicker-ignore-roles">
             <button class="cpicker-btn" type="button">
-              <span class="cpicker-label cpicker-muted" data-placeholder="<%= lang === 'ar' ? 'لا يوجد تجاهل' : 'No roles ignored' %>"><%= lang === 'ar' ? 'لا يوجد تجاهل' : 'No roles ignored' %></span>
+              <span class="cpicker-label cpicker-muted" data-placeholder="<%= t.levels.noRolesIgnored %>"><%= t.levels.noRolesIgnored %></span>
               <span class="cpicker-badge" style="display:none"></span>
               <svg class="cpicker-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="cpicker-dropdown" style="display:none">
-              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= lang === 'ar' ? 'بحث...' : 'Search roles...' %>" /></div>
+              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= t.levels.searchRoles %>" /></div>
               <div class="cpicker-list">
                 <% guildRoles.forEach(role => { %>
                   <div class="cpicker-opt <%= (levelSettings.TEXT_ACTIVITY.IGNORE_ROLES || []).includes(role.id) ? 'active' : '' %>" data-value="<%= role.id %>">
@@ -919,17 +919,17 @@
           </select>
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'قناة رسائل اللفل' : 'Level-up Message Channel' %></label>
+          <label class="form-label"><%= t.levels.levelUpMessageChannel %></label>
           <div class="cpicker" id="cpicker-levelup-channel">
             <button class="cpicker-btn" type="button">
               <% const _lch = guildChannels.find(c => c.id === levelSettings.LEVELUP_CHANNEL); %>
-              <span class="cpicker-label <%= !_lch ? 'cpicker-muted' : '' %>"><%= _lch ? '#' + _lch.name : (lang === 'ar' ? 'معطل' : 'Disabled') %></span>
+              <span class="cpicker-label <%= !_lch ? 'cpicker-muted' : '' %>"><%= _lch ? '#' + _lch.name : (t.levels.disabled) %></span>
               <svg class="cpicker-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="cpicker-dropdown" style="display:none">
-              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= lang === 'ar' ? 'بحث...' : 'Search channels...' %>" /></div>
+              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= t.levels.searchChannels %>" /></div>
               <div class="cpicker-list">
-                <div class="cpicker-opt <%= !levelSettings.LEVELUP_CHANNEL ? 'active' : '' %>" data-value=""><%= lang === 'ar' ? 'معطل' : 'Disabled' %></div>
+                <div class="cpicker-opt <%= !levelSettings.LEVELUP_CHANNEL ? 'active' : '' %>" data-value=""><%= t.levels.disabled %></div>
                 <% guildChannels.forEach(ch => { %>
                   <div class="cpicker-opt <%= levelSettings.LEVELUP_CHANNEL === ch.id ? 'active' : '' %>" data-value="<%= ch.id %>">
                     <svg width="14" height="14" viewBox="0 0 18 18" fill="currentColor" style="opacity:.5;flex-shrink:0"><path d="M7.61 1.46a.75.75 0 0 0-1.47.28L6.5 3.5H3.75a.75.75 0 0 0 0 1.5H6.7l-.5 3H3.25a.75.75 0 0 0 0 1.5H5.9l-.4 2.76a.75.75 0 0 0 1.47.28L7.4 9.5h3l-.4 2.76a.75.75 0 0 0 1.47.28l.43-3.04h2.35a.75.75 0 0 0 0-1.5H11.7l.5-3h2.55a.75.75 0 0 0 0-1.5H12.5l.39-2.76a.75.75 0 0 0-1.47-.28L11.1 3.5H8.1l.39-2.76zm.28 4.54l-.5 3h3l.5-3h-3z"/></svg>
@@ -954,20 +954,20 @@
       <!-- Reward Role Message -->
       <div class="card">
         <div class="card-header">
-          <h3><%= lang === 'ar' ? 'رسالة دور المكافأة' : 'Reward Role Message' %></h3>
+          <h3><%= t.levels.rewardRoleMessage %></h3>
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'القناة (اتركها فارغة = قناة المستخدم الحالية)' : 'Channel (empty = current channel)' %></label>
+          <label class="form-label"><%= t.levels.channelEmptyCurrentChannel %></label>
           <div class="cpicker" id="cpicker-reward-msg-channel">
             <button class="cpicker-btn" type="button">
               <% const _rmc = guildChannels.find(c => c.id === (levelSettings.MESSAGES && levelSettings.MESSAGES.REWARD_ROLE && levelSettings.MESSAGES.REWARD_ROLE.CHANNEL)); %>
-              <span class="cpicker-label <%= !_rmc ? 'cpicker-muted' : '' %>"><%= _rmc ? '#'+_rmc.name : (lang==='ar' ? 'قناة الأحداث (الافتراضية)' : 'Event channel (default)') %></span>
+              <span class="cpicker-label <%= !_rmc ? 'cpicker-muted' : '' %>"><%= _rmc ? '#'+_rmc.name : (t.levels.eventChannelDefault) %></span>
               <svg class="cpicker-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="cpicker-dropdown" style="display:none">
-              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= lang==='ar' ? 'بحث...' : 'Search channels...' %>" /></div>
+              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= t.levels.searchChannels %>" /></div>
               <div class="cpicker-list">
-                <div class="cpicker-opt <%= !_rmc ? 'active' : '' %>" data-value=""><%= lang==='ar' ? 'قناة الأحداث (الافتراضية)' : 'Event channel (default)' %></div>
+                <div class="cpicker-opt <%= !_rmc ? 'active' : '' %>" data-value=""><%= t.levels.eventChannelDefault %></div>
                 <% guildChannels.forEach(ch => { %>
                   <div class="cpicker-opt <%= (levelSettings.MESSAGES && levelSettings.MESSAGES.REWARD_ROLE && levelSettings.MESSAGES.REWARD_ROLE.CHANNEL === ch.id) ? 'active' : '' %>" data-value="<%= ch.id %>">#<%= ch.name %></div>
                 <% }) %>
@@ -977,16 +977,16 @@
           <input type="hidden" id="reward-msg-channel" value="<%= (levelSettings.MESSAGES && levelSettings.MESSAGES.REWARD_ROLE && levelSettings.MESSAGES.REWARD_ROLE.CHANNEL) || '' %>">
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'نص الرسالة' : 'Message Text' %></label>
+          <label class="form-label"><%= t.levels.messageText %></label>
           <div class="msg-textarea-wrap" style="position:relative">
             <textarea class="msg-textarea" id="reward-msg-text" maxlength="1000" data-preview="reward-preview"><%= (levelSettings.MESSAGES && levelSettings.MESSAGES.REWARD_ROLE && levelSettings.MESSAGES.REWARD_ROLE.TEXT) || "**🎉 Congrats, [user]!** You've leveled up from `[oldLevel]` to `[newLevel]` and earned the **[roleName]** role! 🚀" %></textarea>
-            <button class="msg-emoji-btn" type="button" data-target="reward-msg-text" title="<%= lang==='ar' ? 'إدراج إيموجي' : 'Insert emoji' %>">
+            <button class="msg-emoji-btn" type="button" data-target="reward-msg-text" title="<%= t.levels.insertEmoji %>">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 18 18" fill="currentColor"><path opacity=".4" d="M9 17C4.589 17 1 13.411 1 9S4.589 1 9 1s8 3.589 8 8-3.589 8-8 8Z"/><circle cx="6" cy="8" r="1"/><circle cx="12" cy="8" r="1"/><path d="M11.897 10.758c-.154-.155-.366-.22-.583-.188-1.532.239-3.112.238-4.638-.001-.214-.031-.421.036-.573.186-.154.153-.227.376-.191.598.23 1.511 1.558 2.651 3.089 2.651 1.531 0 2.86-1.14 3.089-2.648.033-.216-.039-.437-.193-.598Z"/></svg>
             </button>
           </div>
           <!-- Discord-style preview -->
           <div class="dc-preview-wrap">
-            <div class="dc-preview-label"><%= lang==='ar' ? 'معاينة الرسالة' : 'Message Preview' %></div>
+            <div class="dc-preview-label"><%= t.levels.messagePreview %></div>
             <div class="dc-preview">
               <div class="dc-msg-row">
                 <% if (botUser.avatar) { %>
@@ -1009,18 +1009,18 @@
           </div>
           <!-- Variables -->
           <div class="vars-box">
-            <div class="vars-title"><%= lang==='ar' ? 'المتغيرات المتاحة (اضغط للنسخ)' : 'Available Variables (click to insert)' %></div>
+            <div class="vars-title"><%= t.levels.availableVariablesClickToInsert %></div>
             <div class="vars-grid" data-target="reward-msg-text">
-              <div class="var-item"><span class="var-tag" data-var="[user]">[user]</span><span class="var-desc"><%= lang==='ar' ? 'ذكر المستخدم' : 'User mention' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[userName]">[userName]</span><span class="var-desc"><%= lang==='ar' ? 'اسم المستخدم' : 'Username' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[roleName]">[roleName]</span><span class="var-desc"><%= lang==='ar' ? 'اسم الدور' : 'Role name' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[oldLevel]">[oldLevel]</span><span class="var-desc"><%= lang==='ar' ? 'المستوى السابق' : 'Previous level' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[newLevel]">[newLevel]</span><span class="var-desc"><%= lang==='ar' ? 'المستوى الجديد' : 'New level' %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[user]">[user]</span><span class="var-desc"><%= t.levels.userMention %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[userName]">[userName]</span><span class="var-desc"><%= t.levels.username %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[roleName]">[roleName]</span><span class="var-desc"><%= t.levels.roleName %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[oldLevel]">[oldLevel]</span><span class="var-desc"><%= t.levels.previousLevel %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[newLevel]">[newLevel]</span><span class="var-desc"><%= t.levels.newLevel %></span></div>
             </div>
           </div>
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang==='ar' ? 'إرسال كرسالة خاصة للعضو' : 'DM Member' %></label>
+          <label class="form-label"><%= t.levels.dMMember %></label>
           <%- include('partials/toggle_switch', { id: 'reward-msg-dm', checked: (levelSettings.MESSAGES && levelSettings.MESSAGES.REWARD_ROLE && levelSettings.MESSAGES.REWARD_ROLE.DM) }) %>
         </div>
       </div>
@@ -1028,20 +1028,20 @@
       <!-- Text Level Up Message -->
       <div class="card">
         <div class="card-header">
-          <h3><%= lang === 'ar' ? 'رسالة الارتقاء بالنص' : 'Text Level Up Message' %></h3>
+          <h3><%= t.levels.textLevelUpMessage %></h3>
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'القناة' : 'Channel' %></label>
+          <label class="form-label"><%= t.levels.channel %></label>
           <div class="cpicker" id="cpicker-text-msg-channel">
             <button class="cpicker-btn" type="button">
               <% const _tmc = guildChannels.find(c => c.id === (levelSettings.MESSAGES && levelSettings.MESSAGES.TEXT_LEVELUP && levelSettings.MESSAGES.TEXT_LEVELUP.CHANNEL)); %>
-              <span class="cpicker-label <%= !_tmc ? 'cpicker-muted' : '' %>"><%= _tmc ? '#'+_tmc.name : (lang==='ar' ? 'قناة الأحداث (الافتراضية)' : 'Event channel (default)') %></span>
+              <span class="cpicker-label <%= !_tmc ? 'cpicker-muted' : '' %>"><%= _tmc ? '#'+_tmc.name : (t.levels.eventChannelDefault) %></span>
               <svg class="cpicker-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="cpicker-dropdown" style="display:none">
-              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= lang==='ar' ? 'بحث...' : 'Search channels...' %>" /></div>
+              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= t.levels.searchChannels %>" /></div>
               <div class="cpicker-list">
-                <div class="cpicker-opt <%= !_tmc ? 'active' : '' %>" data-value=""><%= lang==='ar' ? 'قناة الأحداث (الافتراضية)' : 'Event channel (default)' %></div>
+                <div class="cpicker-opt <%= !_tmc ? 'active' : '' %>" data-value=""><%= t.levels.eventChannelDefault %></div>
                 <% guildChannels.forEach(ch => { %>
                   <div class="cpicker-opt <%= (levelSettings.MESSAGES && levelSettings.MESSAGES.TEXT_LEVELUP && levelSettings.MESSAGES.TEXT_LEVELUP.CHANNEL === ch.id) ? 'active' : '' %>" data-value="<%= ch.id %>">#<%= ch.name %></div>
                 <% }) %>
@@ -1051,15 +1051,15 @@
           <input type="hidden" id="text-msg-channel" value="<%= (levelSettings.MESSAGES && levelSettings.MESSAGES.TEXT_LEVELUP && levelSettings.MESSAGES.TEXT_LEVELUP.CHANNEL) || '' %>">
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'نص الرسالة' : 'Message Text' %></label>
+          <label class="form-label"><%= t.levels.messageText %></label>
           <div class="msg-textarea-wrap" style="position:relative">
             <textarea class="msg-textarea" id="text-msg-text" maxlength="1000" data-preview="text-preview"><%= (levelSettings.MESSAGES && levelSettings.MESSAGES.TEXT_LEVELUP && levelSettings.MESSAGES.TEXT_LEVELUP.TEXT) || "**💬 Congrats, [user]!** You've leveled up in text from `[oldLevel]` to `[newLevel]`!" %></textarea>
-            <button class="msg-emoji-btn" type="button" data-target="text-msg-text" title="<%= lang==='ar' ? 'إدراج إيموجي' : 'Insert emoji' %>">
+            <button class="msg-emoji-btn" type="button" data-target="text-msg-text" title="<%= t.levels.insertEmoji %>">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 18 18" fill="currentColor"><path opacity=".4" d="M9 17C4.589 17 1 13.411 1 9S4.589 1 9 1s8 3.589 8 8-3.589 8-8 8Z"/><circle cx="6" cy="8" r="1"/><circle cx="12" cy="8" r="1"/><path d="M11.897 10.758c-.154-.155-.366-.22-.583-.188-1.532.239-3.112.238-4.638-.001-.214-.031-.421.036-.573.186-.154.153-.227.376-.191.598.23 1.511 1.558 2.651 3.089 2.651 1.531 0 2.86-1.14 3.089-2.648.033-.216-.039-.437-.193-.598Z"/></svg>
             </button>
           </div>
           <div class="dc-preview-wrap">
-            <div class="dc-preview-label"><%= lang==='ar' ? 'معاينة الرسالة' : 'Message Preview' %></div>
+            <div class="dc-preview-label"><%= t.levels.messagePreview %></div>
             <div class="dc-preview">
               <div class="dc-msg-row">
                 <% if (botUser.avatar) { %>
@@ -1081,12 +1081,12 @@
             </div>
           </div>
           <div class="vars-box">
-            <div class="vars-title"><%= lang==='ar' ? 'المتغيرات المتاحة (اضغط للإدراج)' : 'Available Variables (click to insert)' %></div>
+            <div class="vars-title"><%= t.levels.availableVariablesClickToInsert2 %></div>
             <div class="vars-grid" data-target="text-msg-text">
-              <div class="var-item"><span class="var-tag" data-var="[user]">[user]</span><span class="var-desc"><%= lang==='ar' ? 'ذكر المستخدم' : 'User mention' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[userName]">[userName]</span><span class="var-desc"><%= lang==='ar' ? 'اسم المستخدم' : 'Username' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[oldLevel]">[oldLevel]</span><span class="var-desc"><%= lang==='ar' ? 'المستوى السابق' : 'Previous level' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[newLevel]">[newLevel]</span><span class="var-desc"><%= lang==='ar' ? 'المستوى الجديد' : 'New level' %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[user]">[user]</span><span class="var-desc"><%= t.levels.userMention %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[userName]">[userName]</span><span class="var-desc"><%= t.levels.username %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[oldLevel]">[oldLevel]</span><span class="var-desc"><%= t.levels.previousLevel %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[newLevel]">[newLevel]</span><span class="var-desc"><%= t.levels.newLevel %></span></div>
             </div>
           </div>
         </div>
@@ -1095,20 +1095,20 @@
       <!-- Voice Level Up Message -->
       <div class="card">
         <div class="card-header">
-          <h3><%= lang === 'ar' ? 'رسالة الارتقاء بالصوت' : 'Voice Level Up Message' %></h3>
+          <h3><%= t.levels.voiceLevelUpMessage %></h3>
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'القناة' : 'Channel' %></label>
+          <label class="form-label"><%= t.levels.channel %></label>
           <div class="cpicker" id="cpicker-voice-msg-channel">
             <button class="cpicker-btn" type="button">
               <% const _vmc = guildChannels.find(c => c.id === (levelSettings.MESSAGES && levelSettings.MESSAGES.VOICE_LEVELUP && levelSettings.MESSAGES.VOICE_LEVELUP.CHANNEL)); %>
-              <span class="cpicker-label <%= !_vmc ? 'cpicker-muted' : '' %>"><%= _vmc ? '#'+_vmc.name : (lang==='ar' ? 'قناة الأحداث (الافتراضية)' : 'Event channel (default)') %></span>
+              <span class="cpicker-label <%= !_vmc ? 'cpicker-muted' : '' %>"><%= _vmc ? '#'+_vmc.name : (t.levels.eventChannelDefault) %></span>
               <svg class="cpicker-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="cpicker-dropdown" style="display:none">
-              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= lang==='ar' ? 'بحث...' : 'Search channels...' %>" /></div>
+              <div class="cpicker-search-wrap"><input type="text" placeholder="<%= t.levels.searchChannels %>" /></div>
               <div class="cpicker-list">
-                <div class="cpicker-opt <%= !_vmc ? 'active' : '' %>" data-value=""><%= lang==='ar' ? 'قناة الأحداث (الافتراضية)' : 'Event channel (default)' %></div>
+                <div class="cpicker-opt <%= !_vmc ? 'active' : '' %>" data-value=""><%= t.levels.eventChannelDefault %></div>
                 <% guildChannels.forEach(ch => { %>
                   <div class="cpicker-opt <%= (levelSettings.MESSAGES && levelSettings.MESSAGES.VOICE_LEVELUP && levelSettings.MESSAGES.VOICE_LEVELUP.CHANNEL === ch.id) ? 'active' : '' %>" data-value="<%= ch.id %>">#<%= ch.name %></div>
                 <% }) %>
@@ -1118,15 +1118,15 @@
           <input type="hidden" id="voice-msg-channel" value="<%= (levelSettings.MESSAGES && levelSettings.MESSAGES.VOICE_LEVELUP && levelSettings.MESSAGES.VOICE_LEVELUP.CHANNEL) || '' %>">
         </div>
         <div class="form-row">
-          <label class="form-label"><%= lang === 'ar' ? 'نص الرسالة' : 'Message Text' %></label>
+          <label class="form-label"><%= t.levels.messageText %></label>
           <div class="msg-textarea-wrap" style="position:relative">
             <textarea class="msg-textarea" id="voice-msg-text" maxlength="1000" data-preview="voice-preview"><%= (levelSettings.MESSAGES && levelSettings.MESSAGES.VOICE_LEVELUP && levelSettings.MESSAGES.VOICE_LEVELUP.TEXT) || "**🎙️ Congrats, [user]!** You've leveled up in voice from `[oldLevel]` to `[newLevel]`!" %></textarea>
-            <button class="msg-emoji-btn" type="button" data-target="voice-msg-text" title="<%= lang==='ar' ? 'إدراج إيموجي' : 'Insert emoji' %>">
+            <button class="msg-emoji-btn" type="button" data-target="voice-msg-text" title="<%= t.levels.insertEmoji %>">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 18 18" fill="currentColor"><path opacity=".4" d="M9 17C4.589 17 1 13.411 1 9S4.589 1 9 1s8 3.589 8 8-3.589 8-8 8Z"/><circle cx="6" cy="8" r="1"/><circle cx="12" cy="8" r="1"/><path d="M11.897 10.758c-.154-.155-.366-.22-.583-.188-1.532.239-3.112.238-4.638-.001-.214-.031-.421.036-.573.186-.154.153-.227.376-.191.598.23 1.511 1.558 2.651 3.089 2.651 1.531 0 2.86-1.14 3.089-2.648.033-.216-.039-.437-.193-.598Z"/></svg>
             </button>
           </div>
           <div class="dc-preview-wrap">
-            <div class="dc-preview-label"><%= lang==='ar' ? 'معاينة الرسالة' : 'Message Preview' %></div>
+            <div class="dc-preview-label"><%= t.levels.messagePreview %></div>
             <div class="dc-preview">
               <div class="dc-msg-row">
                 <% if (botUser.avatar) { %>
@@ -1148,12 +1148,12 @@
             </div>
           </div>
           <div class="vars-box">
-            <div class="vars-title"><%= lang==='ar' ? 'المتغيرات المتاحة (اضغط للإدراج)' : 'Available Variables (click to insert)' %></div>
+            <div class="vars-title"><%= t.levels.availableVariablesClickToInsert2 %></div>
             <div class="vars-grid" data-target="voice-msg-text">
-              <div class="var-item"><span class="var-tag" data-var="[user]">[user]</span><span class="var-desc"><%= lang==='ar' ? 'ذكر المستخدم' : 'User mention' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[userName]">[userName]</span><span class="var-desc"><%= lang==='ar' ? 'اسم المستخدم' : 'Username' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[oldLevel]">[oldLevel]</span><span class="var-desc"><%= lang==='ar' ? 'المستوى السابق' : 'Previous level' %></span></div>
-              <div class="var-item"><span class="var-tag" data-var="[newLevel]">[newLevel]</span><span class="var-desc"><%= lang==='ar' ? 'المستوى الجديد' : 'New level' %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[user]">[user]</span><span class="var-desc"><%= t.levels.userMention %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[userName]">[userName]</span><span class="var-desc"><%= t.levels.username %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[oldLevel]">[oldLevel]</span><span class="var-desc"><%= t.levels.previousLevel %></span></div>
+              <div class="var-item"><span class="var-tag" data-var="[newLevel]">[newLevel]</span><span class="var-desc"><%= t.levels.newLevel %></span></div>
             </div>
           </div>
         </div>
@@ -1168,11 +1168,11 @@
   <div class="save-bar" id="save-bar">
     <span class="save-bar-hint" id="save-hint"></span>
     <button class="btn btn-primary" id="save-btn"
-      data-save-text="<%= lang === 'ar' ? 'حفظ الإعدادات' : 'Save Settings' %>"
-      data-saving-text="<%= lang === 'ar' ? 'جاري الحفظ...' : 'Saving...' %>"
-      data-saved-text="<%= lang === 'ar' ? '✓ تم الحفظ!' : '✓ Saved!' %>">
+      data-save-text="<%= t.levels.saveSettings %>"
+      data-saving-text="<%= t.levels.saving %>"
+      data-saved-text="<%= t.levels.saved %>">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 10v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4M12 7l-3-3-3 3M9 4v9"/></svg>
-      <span id="save-label"><%= lang === 'ar' ? 'حفظ الإعدادات' : 'Save Settings' %></span>
+      <span id="save-label"><%= t.levels.saveSettings %></span>
     </button>
   </div>
 

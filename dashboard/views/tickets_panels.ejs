@@ -3102,7 +3102,7 @@
             <div class="panel-selector-bar" id="panel-selector-bar">
               <div id="panel-sel-wrap" style="position:relative;display:inline-block;min-width:220px">
                 <div id="panel-sel-trigger" class="form-select csel-trigger">
-                  <span id="panel-sel-display" class="csel-disp">✦ <%= lang==='ar' ? 'لوحة جديدة' : 'New Panel' %>
+                  <span id="panel-sel-display" class="csel-disp">✦ <%= t.ticketsPanels.newPanel %>
                       </span>
                   <svg class="csel-chevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
@@ -3112,19 +3112,19 @@
                 </div>
                 <div id="panel-sel-list" class="csel-list" style="display:none"></div>
                 <select id="panel-selector" style="display:none">
-                  <option value="">✦ <%= lang==='ar' ? 'لوحة جديدة' : 'New Panel' %>
+                  <option value="">✦ <%= t.ticketsPanels.newPanel %>
                   </option>
                 </select>
               </div>
               <span class="panel-count-badge" id="panel-count-badge"></span>
               <button type="button" id="panel-delete-btn" class="btn-danger-sm" style="display:none"
-                title="<%= lang === 'ar' ? 'حذف هذه اللوحة' : 'Delete this panel' %>"><svg
+                title="<%= t.ticketsPanels.deleteThisPanel %>"><svg
                   xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                   <path d="M3 6h18" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
                   <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
-                <%= lang==='ar' ? 'حذف' : 'Delete' %>
+                <%= t.ticketsPanels.delete %>
               </button>
             </div>
             <input type="hidden" id="panel-id" value="" />
@@ -3163,11 +3163,10 @@
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'تفعيل السجل النصي' : 'Enable Transcript' %>
+                  <%= t.ticketsPanels.enableTranscript %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'حفظ سجل HTML كامل عند إغلاق التذكرة'
-                    : 'Save a full HTML transcript when this ticket is closed' %>
+                  <%= t.ticketsPanels.saveAFullHTMLTranscriptWhen %>
                 </p>
               </div>
               <%- include('partials/toggle_switch', { id: 'panel-transcript-enabled' }) %>
@@ -3198,11 +3197,10 @@
             <div class="form-row" id="panel-transcript-dm-row" style="display:none">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'إرسال للمستخدم عبر DM' : 'Send to User via DM' %>
+                  <%= t.ticketsPanels.sendToUserViaDM %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'إرسال ملف HTML لصاحب التذكرة عبر الرسائل الخاصة'
-                    : 'Send the HTML transcript file to the ticket creator via direct message' %>
+                  <%= t.ticketsPanels.sendTheHTMLTranscriptFileTo %>
                 </p>
               </div>
               <%- include('partials/toggle_switch', { id: 'panel-transcript-dm' }) %>
@@ -3346,18 +3344,16 @@
             <div class="form-row form-row-col">
               <div class="form-row-left" style="width:100%">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'رتب المسؤولين (خاص باللوحة)' : 'Panel Support Roles' %>
+                  <%= t.ticketsPanels.panelSupportRoles %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar'
-                    ? 'الرتب المخصصة لهذه اللوحة — تستطيع رؤية التذكرة واستخدام أزرار الإدارة (إغلاق، استلام، إضافة/إزالة مستخدم).'
-                    : 'Roles specific to this panel — they can view the ticket and use all admin buttons (close, claim, add/remove user).'
+                  <%= t.ticketsPanels.rolesSpecificToThisPanelThey
                     %>
                 </p>
               </div>
               <select class="form-select" id="panel-support-role-sel" style="max-width:340px">
                 <option value="">
-                  <%= lang==='ar' ? '— اختر رتبة —' : '— select role —' %>
+                  <%= t.ticketsPanels.selectRole %>
                 </option>
                 <% guildRoles.forEach(function(r) { %>
                   <option value="<%= r.id %>">
@@ -3372,22 +3368,21 @@
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'شكل أزرار التحكم' : 'Action Buttons Display' %>
+                  <%= t.ticketsPanels.actionButtonsDisplay %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'اختر هل تظهر أزرار التحكم في رسالة الترحيب كأزرار منفصلة أم كقائمة منسدلة واحدة.'
-                    : 'Choose whether the ticket action controls appear as individual buttons or a single select menu.'
+                  <%= t.ticketsPanels.chooseWhetherTheTicketActionControls
                     %>
                 </p>
               </div>
               <div class="ab-mode-group">
                 <button type="button" class="ab-mode-opt active" data-val="buttons"><i data-lucide="layout-grid"
                     style="width:14px;height:14px;vertical-align:-2px"></i>
-                  <%= lang==='ar' ? 'أزرار' : 'Buttons' %>
+                  <%= t.ticketsPanels.buttons %>
                 </button>
                 <button type="button" class="ab-mode-opt" data-val="select"><i data-lucide="chevrons-up-down"
                     style="width:14px;height:14px;vertical-align:-2px"></i>
-                  <%= lang==='ar' ? 'قائمة منسدلة' : 'Select Menu' %>
+                  <%= t.ticketsPanels.selectMenu %>
                 </button>
               </div>
               <input type="hidden" id="ab-mode-val" value="buttons" />
@@ -3396,9 +3391,7 @@
             <!-- Per-button config (buttons mode only) -->
             <div id="ab-btns-config" class="form-row form-row-col">
               <p class="form-help" style="width:100%;margin-bottom:4px">
-                <%= lang==='ar'
-                  ? 'ايموجي: أدخل يونيكود مثل 🔒 أو إيموجي سيرفر بالصيغة <:اسم:ID>. اللون: Primary=أزرق / Secondary=رمادي / Success=أخضر / Danger=أحمر.'
-                  : 'Emoji: Unicode like 🔒 or server emoji as <:name:id>. Style: Primary=Blue / Secondary=Grey / Success=Green / Danger=Red.'
+                <%= t.ticketsPanels.emojiUnicodeLikeOrServerEmoji
                   %>
               </p>
               <div class="ab-config-wrap">
@@ -3407,7 +3400,7 @@
                 <div class="ab-config-row" data-key="close">
                   <span class="ab-config-name"><i data-lucide="lock"
                       style="width:13px;height:13px;vertical-align:-2px"></i>
-                    <%= lang==='ar' ? 'إغلاق' : 'Close' %>
+                    <%= t.ticketsPanels.close %>
                   </span>
                   <input type="text" id="ab-close-emoji" class="form-input ab-emoji-inp" placeholder="🔒"
                     maxlength="64" />
@@ -3422,13 +3415,13 @@
                   <span class="ab-config-sep">|</span>
                   <div class="ab-label-group" id="ab-close-label-group">
                     <button type="button" class="ab-label-opt active" data-val="both">
-                      <%= lang==='ar' ? 'الاثنان' : 'Both' %>
+                      <%= t.ticketsPanels.both %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="text_only">
-                      <%= lang==='ar' ? 'نص' : 'Text' %>
+                      <%= t.ticketsPanels.text %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="emoji_only">
-                      <%= lang==='ar' ? 'ايموجي' : 'Emoji' %>
+                      <%= t.ticketsPanels.emoji %>
                     </button>
                   </div>
                   <input type="hidden" id="ab-close-label-val" value="both" />
@@ -3438,7 +3431,7 @@
                 <div class="ab-config-row" data-key="claim">
                   <span class="ab-config-name"><i data-lucide="hand"
                       style="width:13px;height:13px;vertical-align:-2px"></i>
-                    <%= lang==='ar' ? 'استلام' : 'Claim' %>
+                    <%= t.ticketsPanels.claim %>
                   </span>
                   <input type="text" id="ab-claim-emoji" class="form-input ab-emoji-inp" placeholder="🙋"
                     maxlength="64" />
@@ -3453,13 +3446,13 @@
                   <span class="ab-config-sep">|</span>
                   <div class="ab-label-group" id="ab-claim-label-group">
                     <button type="button" class="ab-label-opt active" data-val="both">
-                      <%= lang==='ar' ? 'الاثنان' : 'Both' %>
+                      <%= t.ticketsPanels.both %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="text_only">
-                      <%= lang==='ar' ? 'نص' : 'Text' %>
+                      <%= t.ticketsPanels.text %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="emoji_only">
-                      <%= lang==='ar' ? 'ايموجي' : 'Emoji' %>
+                      <%= t.ticketsPanels.emoji %>
                     </button>
                   </div>
                   <input type="hidden" id="ab-claim-label-val" value="both" />
@@ -3469,7 +3462,7 @@
                 <div class="ab-config-row" data-key="unclaim">
                   <span class="ab-config-name"><i data-lucide="undo-2"
                       style="width:13px;height:13px;vertical-align:-2px"></i>
-                    <%= lang==='ar' ? 'إلغاء استلام' : 'Unclaim' %>
+                    <%= t.ticketsPanels.unclaim %>
                   </span>
                   <input type="text" id="ab-unclaim-emoji" class="form-input ab-emoji-inp" placeholder="↩️"
                     maxlength="64" />
@@ -3484,13 +3477,13 @@
                   <span class="ab-config-sep">|</span>
                   <div class="ab-label-group" id="ab-unclaim-label-group">
                     <button type="button" class="ab-label-opt active" data-val="both">
-                      <%= lang==='ar' ? 'الاثنان' : 'Both' %>
+                      <%= t.ticketsPanels.both %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="text_only">
-                      <%= lang==='ar' ? 'نص' : 'Text' %>
+                      <%= t.ticketsPanels.text %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="emoji_only">
-                      <%= lang==='ar' ? 'ايموجي' : 'Emoji' %>
+                      <%= t.ticketsPanels.emoji %>
                     </button>
                   </div>
                   <input type="hidden" id="ab-unclaim-label-val" value="both" />
@@ -3500,7 +3493,7 @@
                 <div class="ab-config-row" data-key="add">
                   <span class="ab-config-name"><i data-lucide="user-plus"
                       style="width:13px;height:13px;vertical-align:-2px"></i>
-                    <%= lang==='ar' ? 'إضافة' : 'Add' %>
+                    <%= t.ticketsPanels.add %>
                   </span>
                   <input type="text" id="ab-add-emoji" class="form-input ab-emoji-inp" placeholder="➕" maxlength="64" />
                   <span class="ab-config-sep">|</span>
@@ -3514,13 +3507,13 @@
                   <span class="ab-config-sep">|</span>
                   <div class="ab-label-group" id="ab-add-label-group">
                     <button type="button" class="ab-label-opt active" data-val="both">
-                      <%= lang==='ar' ? 'الاثنان' : 'Both' %>
+                      <%= t.ticketsPanels.both %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="text_only">
-                      <%= lang==='ar' ? 'نص' : 'Text' %>
+                      <%= t.ticketsPanels.text %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="emoji_only">
-                      <%= lang==='ar' ? 'ايموجي' : 'Emoji' %>
+                      <%= t.ticketsPanels.emoji %>
                     </button>
                   </div>
                   <input type="hidden" id="ab-add-label-val" value="both" />
@@ -3530,7 +3523,7 @@
                 <div class="ab-config-row" data-key="remove">
                   <span class="ab-config-name"><i data-lucide="user-minus"
                       style="width:13px;height:13px;vertical-align:-2px"></i>
-                    <%= lang==='ar' ? 'إزالة' : 'Remove' %>
+                    <%= t.ticketsPanels.remove %>
                   </span>
                   <input type="text" id="ab-remove-emoji" class="form-input ab-emoji-inp" placeholder="➖"
                     maxlength="64" />
@@ -3545,13 +3538,13 @@
                   <span class="ab-config-sep">|</span>
                   <div class="ab-label-group" id="ab-remove-label-group">
                     <button type="button" class="ab-label-opt active" data-val="both">
-                      <%= lang==='ar' ? 'الاثنان' : 'Both' %>
+                      <%= t.ticketsPanels.both %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="text_only">
-                      <%= lang==='ar' ? 'نص' : 'Text' %>
+                      <%= t.ticketsPanels.text %>
                     </button>
                     <button type="button" class="ab-label-opt" data-val="emoji_only">
-                      <%= lang==='ar' ? 'ايموجي' : 'Emoji' %>
+                      <%= t.ticketsPanels.emoji %>
                     </button>
                   </div>
                   <input type="hidden" id="ab-remove-label-val" value="both" />
@@ -3572,11 +3565,10 @@
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'نموذج عند الفتح' : 'Open-Ticket Form' %>
+                  <%= t.ticketsPanels.openTicketForm %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'اعرض نموذجاً يطلب إجابات من المستخدم قبل فتح التذكرة (حتى 5 أسئلة).'
-                    : 'Show a Discord modal with up to 5 questions when the user opens this panel.' %>
+                  <%= t.ticketsPanels.showADiscordModalWithUp %>
                 </p>
               </div>
               <%- include('partials/toggle_switch', { id: 'panel-form-enabled' }) %>
@@ -3586,7 +3578,7 @@
             <div id="panel-form-builder" class="form-q-builder-wrap" style="display:none">
               <div class="form-q-header">
                 <span class="form-q-title">
-                  <%= lang==='ar' ? 'الأسئلة' : 'Questions' %>
+                  <%= t.ticketsPanels.questions %>
                 </span>
                 <span class="form-q-counter" id="form-q-counter">0 / 5</span>
               </div>
@@ -3596,7 +3588,7 @@
                   stroke="currentColor" stroke-width="2.5">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
-                <%= lang==='ar' ? 'إضافة سؤال' : 'Add Question' %>
+                <%= t.ticketsPanels.addQuestion %>
               </button>
             </div>
 
@@ -3604,11 +3596,10 @@
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'تفعيل التقييمات' : 'Enable Ratings / Feedback' %>
+                  <%= t.ticketsPanels.enableRatingsFeedback %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'اسأل المستخدم عن تقييمه بعد إغلاق التذكرة'
-                    : 'Ask the user for a 1–5 star rating after the ticket is closed' %>
+                  <%= t.ticketsPanels.askTheUserForA1 %>
                 </p>
               </div>
               <%- include('partials/toggle_switch', { id: 'panel-feedback-enabled' }) %>
@@ -3618,11 +3609,10 @@
             <div class="form-row" id="panel-feedback-dm-row" style="display:none">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'إرسال التقييم عبر DM' : 'Send Feedback Prompt via DM' %>
+                  <%= t.ticketsPanels.sendFeedbackPromptViaDM %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'يُرسَل طلب التقييم للمستخدم عبر الرسائل الخاصة — مفعّل إلزامياً مع تفعيل التقييمات'
-                    : 'Star-rating card is sent via DM — enabled automatically when ratings are on' %>
+                  <%= t.ticketsPanels.starRatingCardIsSentVia %>
                 </p>
               </div>
               <%- include('partials/toggle_switch', { id: 'panel-feedback-dm' , disabled: true }) %>
@@ -3632,16 +3622,15 @@
             <div class="form-row" id="panel-feedback-channel-row" style="display:none">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'غرفة نتائج التقييمات' : 'Feedback Results Channel' %>
+                  <%= t.ticketsPanels.feedbackResultsChannel %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'الغرفة التي تُرسَل إليها نتيجة كل تقييم. إذا لم تُحدَّد تُحفَظ محلياً فقط'
-                    : 'Channel where each submitted rating is posted. Leave empty to only save locally' %>
+                  <%= t.ticketsPanels.channelWhereEachSubmittedRatingIs %>
                 </p>
               </div>
               <select id="panel-feedback-channel" class="form-select">
                 <option value="">
-                  <%= lang==='ar' ? 'لا شيء (حفظ محلي فقط)' : 'None (save locally only)' %>
+                  <%= t.ticketsPanels.noneSaveLocallyOnly %>
                 </option>
                 <% guildChannels.forEach(function(c) { %>
                   <option value="<%= c.id %>">#<%= c.name %>
@@ -3654,11 +3643,10 @@
             <div class="form-row" id="panel-feedback-role-row" style="display:none">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'منشن مستلم التقييم' : 'Feedback Receiver Mention' %>
+                  <%= t.ticketsPanels.feedbackReceiverMention %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'الرتبة التي يتم منشنها في غرفة النتائج عند استلام تقييم جديد'
-                    : 'Role to @mention in the results channel when a new rating is received' %>
+                  <%= t.ticketsPanels.roleToMentionInTheResults %>
                 </p>
               </div>
               <select id="panel-feedback-role" class="form-select">
@@ -3760,15 +3748,14 @@
             <div class="form-row form-row-col">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'الوصف' : 'Description' %>
+                  <%= t.ticketsPanels.description %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'نص يظهر أسفل العنوان داخل رسالة اللوحة'
-                    : 'Text shown below the title inside the panel message. Supports Discord markdown.' %>
+                  <%= t.ticketsPanels.textShownBelowTheTitleInside %>
                 </p>
               </div>
               <textarea id="panel-description" class="form-input form-input-wide" rows="3"
-                placeholder="<%= lang === 'ar' ? 'اضغط الزر أدناه لفتح تذكرة...' : 'Click the button below to open a ticket...' %>"
+                placeholder="<%= t.ticketsPanels.clickTheButtonBelowToOpen %>"
                 style="resize:vertical;min-height:60px"></textarea>
             </div>
 
@@ -3776,11 +3763,10 @@
             <div class="form-row form-row-col">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'صورة البانر' : 'Banner Image' %>
+                  <%= t.ticketsPanels.bannerImage %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'PNG، JPG، JPEG، WEBP — الحد الأقصى 20 MB. اتركه فارغًا لعدم وجود صورة.'
-                    : 'PNG, JPG, JPEG, WEBP — max 20 MB. Leave blank for no image.' %>
+                  <%= t.ticketsPanels.pNGJPGJPEGWEBPMax20 %>
                 </p>
               </div>
               <div class="banner-upload-wrap">
@@ -3792,16 +3778,16 @@
                   <input type="url" id="panel-banner-url" class="form-input form-input-wide"
                     placeholder="https://..." />
                   <span class="banner-or">
-                    <%= lang==='ar' ? 'أو' : 'or' %>
+                    <%= t.ticketsPanels.or %>
                   </span>
                   <label class="btn btn-ghost btn-sm banner-file-label">
-                    <%= lang==='ar' ? 'رفع صورة' : 'Upload' %>
+                    <%= t.ticketsPanels.upload %>
                       <input type="file" id="panel-banner-file" accept="image/png,image/jpeg,image/webp"
                         style="display:none" />
                   </label>
                 </div>
                 <span class="banner-uploading" id="panel-banner-progress" style="display:none">
-                  <%= lang==='ar' ? 'جارٍ الرفع...' : 'Uploading...' %>
+                  <%= t.ticketsPanels.uploading %>
                 </span>
               </div>
             </div>
@@ -3810,11 +3796,10 @@
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'لون التذكرة' : 'Ticket Colour' %>
+                  <%= t.ticketsPanels.ticketColour %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'شريط لوني على يسار رسالة اللوحة في ديسكورد'
-                    : 'Coloured accent stripe on the left of the panel message in Discord.' %>
+                  <%= t.ticketsPanels.colouredAccentStripeOnTheLeft %>
                 </p>
               </div>
               <div class="accent-color-wrap">
@@ -3837,7 +3822,7 @@
                     title="White"></button>
                 </div>
                 <button type="button" class="accent-color-clear" id="panel-accent-clear">
-                  <%= lang==='ar' ? 'بلا لون' : 'No colour' %>
+                  <%= t.ticketsPanels.noColour %>
                 </button>
                 <input type="hidden" id="panel-accent-color-val" value="" />
               </div>
@@ -3847,21 +3832,20 @@
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'نوع التفاعل' : 'Interaction Type' %>
+                  <%= t.ticketsPanels.interactionType %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'بتقدر تستعمل قائمة منسدلة حتى لو لوحة واحدة'
-                    : 'You can use a select menu even with a single panel.' %>
+                  <%= t.ticketsPanels.youCanUseASelectMenu %>
                 </p>
               </div>
               <div class="display-mode-group">
                 <button type="button" class="display-mode-btn selected" id="panel-mode-btn" data-mode="button">
                   <i data-lucide="square" style="width:13px;height:13px;stroke:currentColor;fill:none;"></i>
-                  <%= lang==='ar' ? 'زر' : 'Button' %>
+                  <%= t.ticketsPanels.button %>
                 </button>
                 <button type="button" class="display-mode-btn" id="panel-mode-select" data-mode="select">
                   <i data-lucide="list" style="width:13px;height:13px;stroke:currentColor;fill:none;"></i>
-                  <%= lang==='ar' ? 'قائمة منسدلة' : 'Select Menu' %>
+                  <%= t.ticketsPanels.selectMenu %>
                 </button>
               </div>
               <input type="hidden" id="panel-use-select-menu" value="false" />
@@ -3890,7 +3874,7 @@
                 <div id="panel-emoji-anchor" style="position:relative;display:inline-flex;align-items:center;gap:6px">
                   <input type="text" id="panel-btn-emoji" class="form-input" placeholder="🎫" style="max-width:140px" />
                   <button type="button" id="panel-emoji-pick-btn" class="emoji-pick-open-btn"
-                    title="<%= lang === 'ar' ? 'اختر ايموجي' : 'Pick Emoji' %>">
+                    title="<%= t.ticketsPanels.pickEmoji %>">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10" />
@@ -3914,19 +3898,19 @@
                   <div class="btn-color-group" id="panel-btn-color-group">
                     <button type="button" class="btn-color-opt selected" data-val="1"><span class="btn-color-dot"
                         style="background:#5865f2"></span>
-                      <%= lang==='ar' ? 'أزرق' : 'Blue' %>
+                      <%= t.ticketsPanels.blue %>
                     </button>
                     <button type="button" class="btn-color-opt" data-val="2"><span class="btn-color-dot"
                         style="background:#4f545c"></span>
-                      <%= lang==='ar' ? 'رمادي' : 'Grey' %>
+                      <%= t.ticketsPanels.grey %>
                     </button>
                     <button type="button" class="btn-color-opt" data-val="3"><span class="btn-color-dot"
                         style="background:#57f287"></span>
-                      <%= lang==='ar' ? 'أخضر' : 'Green' %>
+                      <%= t.ticketsPanels.green %>
                     </button>
                     <button type="button" class="btn-color-opt" data-val="4"><span class="btn-color-dot"
                         style="background:#ed4245"></span>
-                      <%= lang==='ar' ? 'أحمر' : 'Red' %>
+                      <%= t.ticketsPanels.red %>
                     </button>
                     <input type="hidden" id="panel-btn-color-val" value="1" />
                   </div>
@@ -3941,36 +3925,32 @@
                 <p class="form-help" style="margin:0;color:var(--purple-l);display:flex;align-items:center;gap:6px;"><i
                     data-lucide="lightbulb"
                     style="width:14px;height:14px;stroke:var(--purple-l);fill:none;flex-shrink:0;"></i>
-                  <%= lang==='ar'
-                    ? 'حقلا الاسم والإيموجي أعلاه يُستخدمان أيضاً كاسم وأيقونة الخيار في القائمة المنسدلة.'
-                    : 'The Label and Emoji fields above are used as the option label & icon in the select menu.' %>
+                  <%= t.ticketsPanels.theLabelAndEmojiFieldsAbove %>
                 </p>
               </div>
               <div class="form-row">
                 <div class="form-row-left">
                   <label class="form-label">
-                    <%= lang==='ar' ? 'وصف الخيار' : 'Option Description' %>
+                    <%= t.ticketsPanels.optionDescription %>
                   </label>
                   <p class="form-help">
-                    <%= lang==='ar' ? 'نص صغير يظهر تحت اسم الخيار في القائمة المنسدلة (50 حرف كحد أقصى)'
-                      : 'Short text shown below the option name in the select menu (max 50 chars).' %>
+                    <%= t.ticketsPanels.shortTextShownBelowTheOption %>
                   </p>
                 </div>
                 <input type="text" id="panel-select-desc" class="form-input form-input-wide" maxlength="50"
-                  placeholder="<%= lang === 'ar' ? 'افتح تذكرة دعم...' : 'Open a support ticket...' %>" />
+                  placeholder="<%= t.ticketsPanels.openASupportTicket %>" />
               </div>
               <div class="form-row">
                 <div class="form-row-left">
                   <label class="form-label">
-                    <%= lang==='ar' ? 'نص القائمة الافتراضي' : 'Select Menu Placeholder' %>
+                    <%= t.ticketsPanels.selectMenuPlaceholder %>
                   </label>
                   <p class="form-help">
-                    <%= lang==='ar' ? 'النص الظاهر قبل اختيار عنصر من القائمة'
-                      : 'Text shown before the user picks an option.' %>
+                    <%= t.ticketsPanels.textShownBeforeTheUserPicks %>
                   </p>
                 </div>
                 <input type="text" id="panel-select-placeholder" class="form-input form-input-wide"
-                  placeholder="<%= lang === 'ar' ? 'اختر تذكرة...' : 'Select a ticket...' %>" />
+                  placeholder="<%= t.ticketsPanels.selectATicket %>" />
               </div>
             </div>
 
@@ -4121,17 +4101,17 @@
               <div class="send-action-left">
                 <span class="send-dot unsent" id="panel-send-dot"></span>
                 <span class="send-action-status-text" id="panel-send-status">
-                  <%= lang==='ar' ? 'لم يُرسل بعد' : 'Not sent yet' %>
+                  <%= t.ticketsPanels.notSentYet %>
                 </span>
               </div>
               <div class="send-btn-group">
                 <button type="button" class="btn btn-send-panel" id="panel-send-btn" disabled>
                   <i data-lucide="pencil" style="width:15px;height:15px;stroke:currentColor;fill:none;"></i>
-                  <%= lang==='ar' ? 'تعديل اللوحة' : 'Edit Panel' %>
+                  <%= t.ticketsPanels.editPanel %>
                 </button>
                 <button type="button" class="btn-send-new" id="panel-resend-btn" disabled>
                   <i data-lucide="send" style="width:15px;height:15px;stroke:currentColor;fill:none;"></i>
-                  <%= lang==='ar' ? 'إرسال من جديد' : 'Send New' %>
+                  <%= t.ticketsPanels.sendNew %>
                 </button>
               </div>
             </div>
@@ -4156,18 +4136,18 @@
             <!-- Multi-panel selector bar -->
             <div class="panel-selector-bar" id="mp-selector-bar">
               <select id="mp-selector" class="form-select" style="min-width:220px">
-                <option value="">✦ <%= lang==='ar' ? 'لوحة متعددة جديدة' : 'New Multi-Panel' %>
+                <option value="">✦ <%= t.ticketsPanels.newMultiPanel %>
                 </option>
               </select>
               <span class="panel-count-badge" id="mp-count-badge"></span>
               <button type="button" id="mp-delete-btn" class="btn-danger-sm" style="display:none"
-                title="<%= lang === 'ar' ? 'حذف هذه اللوحة المتعددة' : 'Delete this multi-panel' %>"><svg
+                title="<%= t.ticketsPanels.deleteThisMultiPanel %>"><svg
                   xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                   <path d="M3 6h18" />
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
                   <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
-                <%= lang==='ar' ? 'حذف' : 'Delete' %>
+                <%= t.ticketsPanels.delete %>
               </button>
             </div>
             <input type="hidden" id="mp-id" value="" />
@@ -4217,7 +4197,7 @@
                   <div id="mp-panel-sel-wrap" style="position:relative;flex:1;min-width:0">
                     <div id="mp-panel-sel-trigger" class="form-select csel-trigger" style="width:100%">
                       <span id="mp-panel-sel-display" class="csel-disp">
-                        <%= lang==='ar' ? '— اختر لوحة —' : '— Select a panel —' %>
+                        <%= t.ticketsPanels.selectAPanel %>
                       </span>
                       <svg class="csel-chevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
@@ -4265,11 +4245,10 @@
             <div class="form-row" id="mp-refresh-btn-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'إضافة زر تحديث' : 'Add Refresh Button' %>
+                  <%= t.ticketsPanels.addRefreshButton %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'يضيف زرًا أسفل القائمة يُعيد إرسالها عند النقر'
-                    : 'Adds a button below the select menu that re-sends it when clicked' %>
+                  <%= t.ticketsPanels.addsAButtonBelowTheSelect %>
                 </p>
               </div>
               <%- include('partials/toggle_switch', { id: 'mp-show-refresh-btn' }) %>
@@ -4279,14 +4258,14 @@
             <div class="form-row" id="mp-refresh-label-row" style="display:none">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'نص زر التحديث' : 'Refresh Button Label' %>
+                  <%= t.ticketsPanels.refreshButtonLabel %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'النص الظاهر على زر التحديث' : 'Text shown on the refresh button' %>
+                  <%= t.ticketsPanels.textShownOnTheRefreshButton %>
                 </p>
               </div>
               <input type="text" id="mp-refresh-btn-label" class="form-input form-input-wide"
-                placeholder="<%= lang === 'ar' ? '🔄 تحديث' : '🔄 Refresh' %>" maxlength="80" />
+                placeholder="<%= t.ticketsPanels.refresh %>" maxlength="80" />
             </div>
 
             <!-- Panel Customization -->
@@ -4310,30 +4289,28 @@
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'عنوان اللوحة' : 'Panel Title' %>
+                  <%= t.ticketsPanels.panelTitle %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'يظهر كعنوان كبير أعلى رسالة اللوحة المتعددة.'
-                    : 'Shown as a large heading at the top of the multi-panel message.' %>
+                  <%= t.ticketsPanels.shownAsALargeHeadingAt %>
                 </p>
               </div>
               <input type="text" id="mp-title" class="form-input form-input-wide"
-                placeholder="<%= lang === 'ar' ? 'اختر الموضوع...' : 'Choose a category...' %>" maxlength="256" />
+                placeholder="<%= t.ticketsPanels.chooseACategory %>" maxlength="256" />
             </div>
 
             <!-- MP Description -->
             <div class="form-row form-row-col">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'الوصف' : 'Description' %>
+                  <%= t.ticketsPanels.description %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'نص يظهر أسفل العنوان. يدعم Markdown الخاص بديسكورد.'
-                    : 'Text shown below the title. Supports Discord markdown.' %>
+                  <%= t.ticketsPanels.textShownBelowTheTitleSupports %>
                 </p>
               </div>
               <textarea id="mp-description" class="form-input form-input-wide" rows="3"
-                placeholder="<%= lang === 'ar' ? 'اضغط على الزر أو اخترمن القائمة لفتح تذكرة...' : 'Click a button or select from the menu to open a ticket...' %>"
+                placeholder="<%= t.ticketsPanels.clickAButtonOrSelectFrom %>"
                 style="resize:vertical;min-height:60px"></textarea>
             </div>
 
@@ -4341,11 +4318,10 @@
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'لون اللوحة' : 'Panel Colour' %>
+                  <%= t.ticketsPanels.panelColour %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'شريط لوني على يسار رسالة اللوحات المتعددة'
-                    : 'Coloured accent stripe on the left of the multi-panel message.' %>
+                  <%= t.ticketsPanels.colouredAccentStripeOnTheLeft2 %>
                 </p>
               </div>
               <div class="accent-color-wrap">
@@ -4361,7 +4337,7 @@
                   <button type="button" class="accent-preset" style="background:#ffffff" data-color="#ffffff"></button>
                 </div>
                 <button type="button" class="accent-color-clear" id="mp-accent-clear">
-                  <%= lang==='ar' ? 'بلا لون' : 'No colour' %>
+                  <%= t.ticketsPanels.noColour %>
                 </button>
                 <input type="hidden" id="mp-accent-color-val" value="" />
               </div>
@@ -4371,11 +4347,10 @@
             <div class="form-row form-row-col">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'صورة البانر' : 'Banner Image' %>
+                  <%= t.ticketsPanels.bannerImage %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'PNG، JPG، JPEG، WEBP — الحد الأقصى 20 MB. اتركه فارغًا لعدم وجود صورة.'
-                    : 'PNG, JPG, JPEG, WEBP — max 20 MB. Leave blank for no image.' %>
+                  <%= t.ticketsPanels.pNGJPGJPEGWEBPMax20 %>
                 </p>
               </div>
               <div class="banner-upload-wrap">
@@ -4386,16 +4361,16 @@
                 <div class="banner-inputs">
                   <input type="url" id="mp-banner-url" class="form-input form-input-wide" placeholder="https://..." />
                   <span class="banner-or">
-                    <%= lang==='ar' ? 'أو' : 'or' %>
+                    <%= t.ticketsPanels.or %>
                   </span>
                   <label class="btn btn-ghost btn-sm banner-file-label">
-                    <%= lang==='ar' ? 'رفع صورة' : 'Upload' %>
+                    <%= t.ticketsPanels.upload %>
                       <input type="file" id="mp-banner-file" accept="image/png,image/jpeg,image/webp"
                         style="display:none" />
                   </label>
                 </div>
                 <span class="banner-uploading" id="mp-banner-progress" style="display:none">
-                  <%= lang==='ar' ? 'جارٍ الرفع...' : 'Uploading...' %>
+                  <%= t.ticketsPanels.uploading %>
                 </span>
               </div>
             </div>
@@ -4406,17 +4381,17 @@
               <div class="send-action-left">
                 <span class="send-dot unsent" id="mp-send-dot"></span>
                 <span class="send-action-status-text" id="mp-send-status">
-                  <%= lang==='ar' ? 'لم يُرسل بعد' : 'Not sent yet' %>
+                  <%= t.ticketsPanels.notSentYet %>
                 </span>
               </div>
               <div class="send-btn-group">
                 <button type="button" class="btn btn-send-panel" id="mp-send-btn" disabled>
                   <i data-lucide="pencil" style="width:15px;height:15px;stroke:currentColor;fill:none;"></i>
-                  <%= lang==='ar' ? 'تعديل اللوحة المتعددة' : 'Edit Multi-Panel' %>
+                  <%= t.ticketsPanels.editMultiPanel %>
                 </button>
                 <button type="button" class="btn-send-new" id="mp-resend-btn" disabled>
                   <i data-lucide="send" style="width:15px;height:15px;stroke:currentColor;fill:none;"></i>
-                  <%= lang==='ar' ? 'إرسال من جديد' : 'Send New' %>
+                  <%= t.ticketsPanels.sendNew %>
                 </button>
               </div>
             </div>
@@ -4432,7 +4407,7 @@
             <div class="card-header-icon" style="color:#f87171;"><i data-lucide="triangle-alert"
                 style="width:18px;height:18px;stroke:#f87171;fill:none;"></i></div>
             <h3 style="color:#f87171;">
-              <%= lang==='ar' ? 'منطقة الخطر' : 'Danger Zone' %>
+              <%= t.ticketsPanels.dangerZone %>
             </h3>
           </div>
           <div class="card-body">
@@ -4440,50 +4415,46 @@
               style="border-bottom:1px solid rgba(239,68,68,.1);padding-bottom:18px;margin-bottom:4px;">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'إعادة تعيين اللوحات' : 'Reset Panels' %>
+                  <%= t.ticketsPanels.resetPanels %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar'
-                    ? 'يحذف جميع اللوحات واللوحات المتعددة (المبنية عليها) والتذاكر المفتوحة والمواعيد. لا يمكن التراجع.'
-                    : 'Deletes all panels and multi-panels (which depend on them), open tickets and cooldowns. Cannot be undone.'
+                  <%= t.ticketsPanels.deletesAllPanelsAndMultiPanels
                     %>
                 </p>
               </div>
               <button type="button" id="panels-reset-btn" class="btn btn-danger btn-sm">
                 <i data-lucide="layout-dashboard" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
-                <%= lang==='ar' ? 'إعادة تعيين اللوحات' : 'Reset Panels' %>
+                <%= t.ticketsPanels.resetPanels %>
               </button>
             </div>
             <div class="form-row"
               style="border-bottom:1px solid rgba(239,68,68,.1);padding-bottom:18px;margin-bottom:4px;">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'إعادة تعيين اللوحات المتعددة فقط' : 'Reset Multi-Panels Only' %>
+                  <%= t.ticketsPanels.resetMultiPanelsOnly %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'يحذف اللوحات المتعددة فقط مع الإبقاء على اللوحات الفردية.'
-                    : 'Deletes only multi-panels while keeping single panels intact.' %>
+                  <%= t.ticketsPanels.deletesOnlyMultiPanelsWhileKeeping %>
                 </p>
               </div>
               <button type="button" id="mp-reset-btn" class="btn btn-danger btn-sm">
                 <i data-lucide="layers" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
-                <%= lang==='ar' ? 'إعادة تعيين المتعددة' : 'Reset Multi-Panels' %>
+                <%= t.ticketsPanels.resetMultiPanels %>
               </button>
             </div>
             <div class="form-row">
               <div class="form-row-left">
                 <label class="form-label">
-                  <%= lang==='ar' ? 'إعادة تعيين كل بيانات التذاكر' : 'Reset All Ticket Data' %>
+                  <%= t.ticketsPanels.resetAllTicketData %>
                 </label>
                 <p class="form-help">
-                  <%= lang==='ar' ? 'يحذف جميع اللوحات والتذاكر المفتوحة والتقييمات والمواعيد نهائياً ولا يمكن التراجع'
-                    : 'Permanently deletes all panels, multi-panels, open tickets, feedback and cooldowns. Cannot be undone.'
+                  <%= t.ticketsPanels.permanentlyDeletesAllPanelsMultiPanels
                     %>
                 </p>
               </div>
               <button type="button" id="tickets-reset-btn" class="btn btn-danger btn-sm">
                 <i data-lucide="trash-2" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
-                <%= lang==='ar' ? 'إعادة تعيين الكل' : 'Reset All Data' %>
+                <%= t.ticketsPanels.resetAllData %>
               </button>
             </div>
           </div>
@@ -4862,11 +4833,11 @@
       <!-- Save Bar -->
       <div class="save-bar" id="save-bar">
         <span class="save-bar-text">
-          <%= lang==='ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %>
+          <%= t.ticketsPanels.youHaveUnsavedChanges %>
         </span>
         <div class="save-bar-actions">
           <button class="btn btn-ghost" id="reset-btn">
-            <%= lang==='ar' ? 'إلغاء' : 'Reset' %>
+            <%= t.ticketsPanels.reset %>
           </button>
           <button class="btn btn-primary" id="save-btn">
             <%= t.tickets.saveBtn %>
@@ -4908,7 +4879,7 @@
           <button type="button" class="ep-tab active" data-ep="std">😀 Standard</button>
           ${hasSrv ? '<button type="button" class="ep-tab" data-ep="srv">🖥️ Server</button>' : ''}
         </div>
-        <div class="ep-search"><input type="text" placeholder="<%= lang === 'ar' ? 'ابحث...' : 'Search...' %>" id="ep-q" autocomplete="off" /></div>
+        <div class="ep-search"><input type="text" placeholder="<%= t.ticketsPanels.search %>" id="ep-q" autocomplete="off" /></div>
         <div class="ep-grid" id="ep-g"></div>`;
             anchor.appendChild(picker);
             let _tab = 'std';
@@ -4925,10 +4896,10 @@
                     grid.appendChild(b);
                   });
                 });
-                if (!grid.children.length) grid.innerHTML = '<span class="ep-empty"><%= lang === "ar" ? "لا توجد نتائج" : "No results" %></span>';
+                if (!grid.children.length) grid.innerHTML = '<span class="ep-empty"><%= t.ticketsPanels.noResults %></span>';
               } else {
                 const list = _GUILD_EMOJIS.filter(e => !q || e.name.toLowerCase().includes(q));
-                if (!list.length) { grid.innerHTML = '<span class="ep-empty"><%= lang === "ar" ? "لا توجد إيموجيات مخصصة" : "No server emojis" %></span>'; return; }
+                if (!list.length) { grid.innerHTML = '<span class="ep-empty"><%= t.ticketsPanels.noServerEmojis %></span>'; return; }
                 list.forEach(e => {
                   const b = document.createElement('button');
                   b.type = 'button'; b.className = 'ep-btn ep-custom'; b.title = ':' + e.name + ':';
@@ -5052,28 +5023,28 @@
           <div class="form-q-num">${i + 1}</div>
           <div class="form-q-fields">
             <input type="text" class="form-input form-input-wide form-q-label-inp"
-              placeholder="<%= lang === 'ar' ? 'نص السؤال (حتى 45 حرف)' : 'Question text (max 45 chars)' %>"
+              placeholder="<%= t.ticketsPanels.questionTextMax45Chars %>"
               maxlength="45" />
             <input type="text" class="form-input form-input-wide form-q-ph-inp"
-              placeholder="<%= lang === 'ar' ? 'نص توضيحي / placeholder (اختياري)' : 'Placeholder hint (optional, max 100 chars)' %>"
+              placeholder="<%= t.ticketsPanels.placeholderHintOptionalMax100Chars %>"
               maxlength="100" />
             <div class="form-q-meta">
               <div class="form-q-style-group">
                 <button type="button" class="form-q-style-opt" data-val="short">
                   <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h10"/></svg>
-                  <%= lang === 'ar' ? 'قصيرة' : 'Short' %>
+                  <%= t.ticketsPanels.short %>
                 </button>
                 <button type="button" class="form-q-style-opt" data-val="paragraph">
                   <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h12"/></svg>
-                  <%= lang === 'ar' ? 'طويلة' : 'Paragraph' %>
+                  <%= t.ticketsPanels.paragraph %>
                 </button>
               </div>
               <button type="button" class="form-q-req-pill">
                 <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <input type="checkbox" class="form-q-req-chk" />
-                <span><%= lang === 'ar' ? 'ضروري' : 'Required' %></span>
+                <span><%= t.ticketsPanels.required %></span>
               </button>
-              <button type="button" class="form-q-del" title="<%= lang === 'ar' ? 'حذف' : 'Remove' %>">
+              <button type="button" class="form-q-del" title="<%= t.ticketsPanels.remove2 %>">
                 <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.8" d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -5192,7 +5163,7 @@
             const pSel = document.getElementById('panel-selector');
             const val = pSel ? pSel.value : '';
             if (!val) {
-              disp.innerHTML = '\u2726 <%= lang === "ar" ? "\u0644\u0648\u062d\u0629 \u062c\u062f\u064a\u062f\u0629" : "New Panel" %>';
+              disp.innerHTML = '\u2726 <%= t.ticketsPanels.newPanel2 %>';
               return;
             }
             const entry = _panelList.find(p => p.id === val);
@@ -5211,7 +5182,7 @@
             list.innerHTML = '';
             const ni = document.createElement('div');
             ni.className = 'csel-item' + (!curVal ? ' csel-active' : '');
-            ni.innerHTML = '<span>\u2726 <%= lang === "ar" ? "\u0644\u0648\u062d\u0629 \u062c\u062f\u064a\u062f\u0629" : "New Panel" %></span>';
+            ni.innerHTML = '<span>\u2726 <%= t.ticketsPanels.newPanel2 %></span>';
             ni.addEventListener('click', () => _cselPick(''));
             list.appendChild(ni);
             _panelList.forEach(entry => {
@@ -5723,11 +5694,11 @@
               const file = fileInp.files[0]; if (!file) return;
               const ok = ['image/png', 'image/jpeg', 'image/webp'];
               if (!ok.includes(file.type)) {
-                alert('<%= lang === "ar" ? "الصيغة غير مدعومة. PNG/JPG/WEBP فقط" : "Only PNG, JPG, JPEG, WEBP allowed." %>');
+                alert('<%= t.ticketsPanels.onlyPNGJPGJPEGWEBPAllowed %>');
                 fileInp.value = ''; return;
               }
               if (file.size > 20 * 1024 * 1024) {
-                alert('<%= lang === "ar" ? "الحد الأقصى 20 ميغابايت" : "Max file size is 20 MB." %>');
+                alert('<%= t.ticketsPanels.maxFileSizeIs20MB %>');
                 fileInp.value = ''; return;
               }
               prog.style.display = '';
@@ -5756,8 +5727,8 @@
             const panelSel = !!document.getElementById('panel-id')?.value;
             if (dot) dot.className = 'send-dot ' + (hasMsgId ? 'sent' : 'unsent');
             txt.textContent = hasMsgId
-              ? ('<%= lang === "ar" ? "تم الإرسال" : "Sent" %>')
-              : ('<%= lang === "ar" ? "لم يُرسل بعد" : "Not sent yet" %>');
+              ? ('<%= t.ticketsPanels.sent %>')
+              : ('<%= t.ticketsPanels.notSentYet %>');
             if (editBtn) editBtn.disabled = !hasMsgId || !panelSel;
             if (newBtn) newBtn.disabled = !panelSel;
           }
@@ -5773,8 +5744,8 @@
             const mpSel = !!document.getElementById('mp-id')?.value;
             if (dot) dot.className = 'send-dot ' + (hasMsgId ? 'sent' : 'unsent');
             txt.textContent = hasMsgId
-              ? ('<%= lang === "ar" ? "تم الإرسال" : "Sent" %>')
-              : ('<%= lang === "ar" ? "لم يُرسل بعد" : "Not sent yet" %>');
+              ? ('<%= t.ticketsPanels.sent %>')
+              : ('<%= t.ticketsPanels.notSentYet %>');
             if (editBtn) editBtn.disabled = !hasMsgId || !mpSel;
             if (newBtn) newBtn.disabled = !mpSel;
           }
@@ -5919,12 +5890,12 @@
 
           // ─── Localised strings for danger handlers ─────────────────────────────
           const _L = {
-            delPanel: '<%= lang === "ar" ? "هل أنت متأكد من حذف اللوحة" : "Delete panel" %>',
-            delMp: '<%= lang === "ar" ? "هل أنت متأكد من حذف اللوحة المتعددة" : "Delete multi-panel" %>',
-            cantUndo: '<%= lang === "ar" ? "لا يمكن التراجع." : "This cannot be undone." %>',
-            resetWord: '<%= lang === "ar" ? "تأكيد" : "RESET" %>',
-            resetPrompt: '<%= lang === "ar" ? "اكتب تأكيد للمتابعة:" : "Type RESET to confirm:" %>',
-            resetAbort: '<%= lang === "ar" ? "لم يتم التأكيد. لم يُحذف شيء." : "Not confirmed. Nothing was deleted." %>',
+            delPanel: '<%= t.ticketsPanels.deletePanel %>',
+            delMp: '<%= t.ticketsPanels.deleteMultiPanel %>',
+            cantUndo: '<%= t.ticketsPanels.thisCannotBeUndone %>',
+            resetWord: '<%= t.ticketsPanels.rESET %>',
+            resetPrompt: '<%= t.ticketsPanels.typeRESETToConfirm %>',
+            resetAbort: '<%= t.ticketsPanels.notConfirmedNothingWasDeleted %>',
           };
 
           // ─── Confirm Modal helper ────────────────────────────────────────────────
@@ -5945,7 +5916,7 @@
             iconWrap.style.background = iconBg;
             iconEl.style.stroke = iconColor; iconEl.style.fill = 'none';
             lucide.createIcons({ nodes: [iconWrap] });
-            confirmEl.textContent = confirmText || ('<%= lang === "ar" ? "تأكيد" : "Confirm" %>');
+            confirmEl.textContent = confirmText || ('<%= t.ticketsPanels.confirm %>');
             confirmEl.className = 'btn ' + confirmClass;
             inputWrap.style.display = requireInput ? '' : 'none';
             if (requireInput) {
@@ -5985,10 +5956,10 @@
             const rawName = pSel.options[pSel.selectedIndex]?.textContent?.trim() || panelId;
             const nameHTML = _emojiToHTML(rawName);
             _modal({
-              title: '<%= lang === "ar" ? "حذف اللوحة" : "Delete Panel" %>',
-              body: `<%= lang === "ar" ? "سيتم حذف" : "Permanently deleting" %> <strong style="color:var(--white)">&ldquo;${nameHTML}&rdquo;</strong>.<br><small style="color:var(--muted)"><%= lang === "ar" ? "لا يمكن التراجع عن هذا الإجراء." : "This action cannot be undone." %></small>`,
+              title: '<%= t.ticketsPanels.deletePanel2 %>',
+              body: `<%= t.ticketsPanels.permanentlyDeleting %> <strong style="color:var(--white)">&ldquo;${nameHTML}&rdquo;</strong>.<br><small style="color:var(--muted)"><%= t.ticketsPanels.thisActionCannotBeUndone %></small>`,
               icon: 'trash-2', iconBg: 'rgba(239,68,68,.12)', iconColor: '#f87171',
-              confirmText: '<%= lang === "ar" ? "حذف" : "Delete" %>',
+              confirmText: '<%= t.ticketsPanels.delete %>',
               confirmClass: 'btn-danger',
               onConfirm: async () => {
                 try {
@@ -6024,10 +5995,10 @@
             const rawName = mSel.options[mSel.selectedIndex]?.textContent?.trim() || mpId;
             const nameHTML = _emojiToHTML(rawName);
             _modal({
-              title: '<%= lang === "ar" ? "حذف اللوحة المتعددة" : "Delete Multi-Panel" %>',
-              body: `<%= lang === "ar" ? "سيتم حذف" : "Permanently deleting" %> <strong style="color:var(--white)">&ldquo;${nameHTML}&rdquo;</strong>.<br><small style="color:var(--muted)"><%= lang === "ar" ? "لا يمكن التراجع عن هذا الإجراء." : "This action cannot be undone." %></small>`,
+              title: '<%= t.ticketsPanels.deleteMultiPanel2 %>',
+              body: `<%= t.ticketsPanels.permanentlyDeleting %> <strong style="color:var(--white)">&ldquo;${nameHTML}&rdquo;</strong>.<br><small style="color:var(--muted)"><%= t.ticketsPanels.thisActionCannotBeUndone %></small>`,
               icon: 'trash-2', iconBg: 'rgba(239,68,68,.12)', iconColor: '#f87171',
-              confirmText: '<%= lang === "ar" ? "حذف" : "Delete" %>',
+              confirmText: '<%= t.ticketsPanels.delete %>',
               confirmClass: 'btn-danger',
               onConfirm: async () => {
                 try {
@@ -6058,14 +6029,14 @@
           // ─── Reset All Ticket Data ───────────────────────────────────────────────
           document.getElementById('tickets-reset-btn').addEventListener('click', () => {
             _modal({
-              title: '<%= lang === "ar" ? "إعادة تعيين جميع بيانات التذاكر" : "Reset All Ticket Data" %>',
-              body: '<%= lang === "ar" ? "سيتم حذف جميع اللوحات والتذاكر والسجلات بشكل نهائي. اكتب الكلمة أدناه للتأكيد." : "All panels, tickets and records will be permanently deleted. Type the word below to confirm." %>',
+              title: '<%= t.ticketsPanels.resetAllTicketData2 %>',
+              body: '<%= t.ticketsPanels.allPanelsTicketsAndRecordsWill %>',
               icon: 'shield-alert', iconBg: 'rgba(239,68,68,.15)', iconColor: '#f87171',
-              confirmText: '<%= lang === "ar" ? "إعادة تعيين" : "Reset" %>',
+              confirmText: '<%= t.ticketsPanels.reset2 %>',
               confirmClass: 'btn-danger',
               requireInput: {
                 placeholder: _L.resetWord,
-                hint: '<%= lang === "ar" ? "اكتب:\u00a0" : "Type:\u00a0" %>' + _L.resetWord,
+                hint: '<%= t.ticketsPanels.typeU00a0 %>' + _L.resetWord,
                 expected: _L.resetWord,
               },
               onConfirm: async () => {
@@ -6081,10 +6052,10 @@
           // ─── Reset Panels + Multi-Panels ─────────────────────────────────────────
           document.getElementById('panels-reset-btn').addEventListener('click', () => {
             _modal({
-              title: '<%= lang === "ar" ? "إعادة تعيين اللوحات" : "Reset Panels" %>',
-              body: '<%= lang === "ar" ? "سيتم حذف جميع اللوحات واللوحات المتعددة والتذاكر المفتوحة والحدود الزمنية. لا يمكن التراجع عن هذا الإجراء." : "All panels, multi-panels, open tickets and cooldowns will be deleted. This cannot be undone." %>',
+              title: '<%= t.ticketsPanels.resetPanels %>',
+              body: '<%= t.ticketsPanels.allPanelsMultiPanelsOpenTickets %>',
               icon: 'layers', iconBg: 'rgba(239,68,68,.12)', iconColor: '#f87171',
-              confirmText: '<%= lang === "ar" ? "إعادة تعيين" : "Reset" %>',
+              confirmText: '<%= t.ticketsPanels.reset2 %>',
               confirmClass: 'btn-danger',
               onConfirm: async () => {
                 try {
@@ -6099,10 +6070,10 @@
           // ─── Reset Multi-Panels Only ──────────────────────────────────────────────
           document.getElementById('mp-reset-btn').addEventListener('click', () => {
             _modal({
-              title: '<%= lang === "ar" ? "إعادة تعيين اللوحات المتعددة" : "Reset Multi-Panels" %>',
-              body: '<%= lang === "ar" ? "سيتم حذف جميع اللوحات المتعددة فقط. لا يمكن التراجع عن هذا الإجراء." : "All multi-panels will be permanently deleted. This cannot be undone." %>',
+              title: '<%= t.ticketsPanels.resetMultiPanels2 %>',
+              body: '<%= t.ticketsPanels.allMultiPanelsWillBePermanently %>',
               icon: 'layout-grid', iconBg: 'rgba(239,68,68,.12)', iconColor: '#f87171',
-              confirmText: '<%= lang === "ar" ? "إعادة تعيين" : "Reset" %>',
+              confirmText: '<%= t.ticketsPanels.reset2 %>',
               confirmClass: 'btn-danger',
               onConfirm: async () => {
                 try {
@@ -6118,11 +6089,11 @@
           document.getElementById('panel-resend-btn').addEventListener('click', async () => {
             const btn = document.getElementById('panel-resend-btn');
             if (btn.disabled) return;
-            btn.disabled = true; btn.textContent = '<%= lang === "ar" ? "جارٍ الإرسال…" : "Sending…" %>';
+            btn.disabled = true; btn.textContent = '<%= t.ticketsPanels.sending %>';
             const panelId = document.getElementById('panel-id').value;
             const pSel = document.getElementById('panel-selector');
             const channelId = document.getElementById('panel-channel').value;
-            if (!panelId || !channelId) { btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> <%= lang === "ar" ? "إرسال من جديد" : "Send New" %>'; lucide.createIcons({ nodes: [btn] }); return; }
+            if (!panelId || !channelId) { btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> <%= t.ticketsPanels.sendNew %>'; lucide.createIcons({ nodes: [btn] }); return; }
             const panelData = _panelList.find(p => p.id === panelId);
             if (!panelData) { btn.disabled = false; return; }
             try {
@@ -6137,7 +6108,7 @@
                 _updatePanelSendStatus(panelData.messageId || null);
               }
             } catch (err) { alert('Network error: ' + err.message); }
-            btn.innerHTML = '<i data-lucide="send"></i> <%= lang === "ar" ? "إرسال من جديد" : "Send New" %>';
+            btn.innerHTML = '<i data-lucide="send"></i> <%= t.ticketsPanels.sendNew %>';
             lucide.createIcons({ nodes: [btn] }); btn.disabled = false;
           });
 
@@ -6145,11 +6116,11 @@
           document.getElementById('mp-resend-btn').addEventListener('click', async () => {
             const btn = document.getElementById('mp-resend-btn');
             if (btn.disabled) return;
-            btn.disabled = true; btn.textContent = '<%= lang === "ar" ? "جارٍ الإرسال…" : "Sending…" %>';
+            btn.disabled = true; btn.textContent = '<%= t.ticketsPanels.sending %>';
             const mpId = document.getElementById('mp-id').value;
             const mSel = document.getElementById('mp-selector');
             const channelId = document.getElementById('mp-channel').value;
-            if (!mpId || !channelId) { btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> <%= lang === "ar" ? "إرسال من جديد" : "Send New" %>'; lucide.createIcons({ nodes: [btn] }); return; }
+            if (!mpId || !channelId) { btn.disabled = false; btn.innerHTML = '<i data-lucide="send"></i> <%= t.ticketsPanels.sendNew %>'; lucide.createIcons({ nodes: [btn] }); return; }
             const mpData = _mpList.find(m => m.id === mpId);
             if (!mpData) { btn.disabled = false; return; }
             try {
@@ -6164,7 +6135,7 @@
                 _updateMpSendStatus(mpData.messageId || null);
               }
             } catch (err) { alert('Network error: ' + err.message); }
-            btn.innerHTML = '<i data-lucide="send"></i> <%= lang === "ar" ? "إرسال من جديد" : "Send New" %>';
+            btn.innerHTML = '<i data-lucide="send"></i> <%= t.ticketsPanels.sendNew %>';
             lucide.createIcons({ nodes: [btn] }); btn.disabled = false;
           });
 
@@ -6203,7 +6174,7 @@
             // placeholder
             const ni = document.createElement('div');
             ni.className = 'csel-item';
-            ni.innerHTML = '<span><%= lang === "ar" ? "— اختر لوحة —" : "— Select a panel —" %></span>';
+            ni.innerHTML = '<span><%= t.ticketsPanels.selectAPanel %></span>';
             ni.addEventListener('click', e => { e.stopPropagation(); _mpCselPick(''); });
             list.appendChild(ni);
             _panelList.forEach(entry => {
@@ -6218,7 +6189,7 @@
             if (list.children.length === 1) {
               const empty = document.createElement('div');
               empty.className = 'csel-item'; empty.style.opacity = '.5'; empty.style.pointerEvents = 'none';
-              empty.innerHTML = '<span><%= lang === "ar" ? "لا توجد لوحات متاحة" : "No panels available" %></span>';
+              empty.innerHTML = '<span><%= t.ticketsPanels.noPanelsAvailable %></span>';
               list.appendChild(empty);
             }
           }
@@ -6232,7 +6203,7 @@
             const wrap = document.getElementById('mp-panel-sel-wrap');
             if (inp) inp.value = val;
             if (disp) {
-              if (!val) { disp.innerHTML = '<%= lang === "ar" ? "— اختر لوحة —" : "— Select a panel —" %>'; }
+              if (!val) { disp.innerHTML = '<%= t.ticketsPanels.selectAPanel %>'; }
               else { const e = _panelList.find(p => p.id === val); disp.innerHTML = e ? _renderSelItemHTML(e) : `<span>${val}</span>`; }
             }
             if (list) list.style.display = 'none';
@@ -6315,7 +6286,7 @@
                 row.innerHTML = `
             <div class="mp-customize-row-header">
               <span class="mp-customize-row-title">${_dispName}</span>
-              <button type="button" class="mp-edit-panel-btn" data-pname="${p.name}"><%= lang === 'ar' ? '✎ تعديل' : '✎ Edit' %></button>
+              <button type="button" class="mp-edit-panel-btn" data-pname="${p.name}"><%= t.ticketsPanels.edit %></button>
               <i data-lucide="chevron-down" style="width:13px;height:13px;stroke:var(--muted);fill:none;"></i>
             </div>
             <div class="mp-customize-body">
@@ -6342,7 +6313,7 @@
                 row.querySelector('.mp-edit-panel-btn').addEventListener('click', () => {
                   const found = _panelList.find(pl => (pl.panelTitle || pl.name || '') === p.name || pl.id === (p.panelId || ''));
                   if (!found) {
-                    alert('<%= lang === "ar" ? "لم يتم العثور على اللوحة. تأكد من حفظها أولاً." : "Panel not found. Make sure it is saved first." %>');
+                    alert('<%= t.ticketsPanels.panelNotFoundMakeSureIt %>');
                     return;
                   }
                   const pSel = document.getElementById('panel-selector');
@@ -6581,7 +6552,7 @@
               console.error(err);
               saveBtn.textContent = saveLabel;
               saveBtn.disabled = false;
-              alert('<%= lang === "ar" ? "فشل الحفظ، حاول مجدداً" : "Save failed, please try again." %>');
+              alert('<%= t.ticketsPanels.saveFailedPleaseTryAgain %>');
             }
           });
 
@@ -6597,12 +6568,12 @@
             const dot = document.getElementById('panel-send-dot');
             const statusTx = document.getElementById('panel-send-status');
             if (!panelId) {
-              alert('<%= lang === "ar" ? "احفظ اللوحة أولاً ثم أعد المحاولة" : "Save the panel first before sending." %>');
+              alert('<%= t.ticketsPanels.saveThePanelFirstBeforeSending %>');
               return;
             }
             sendBtn.disabled = true;
             dot.className = 'send-dot sending';
-            statusTx.textContent = '<%= lang === "ar" ? "جارٍ الإرسال..." : "Sending..." %>';
+            statusTx.textContent = '<%= t.ticketsPanels.sending2 %>';
             try {
               const res = await fetch('/dashboard/<%= guildId %>/tickets/panels/send', {
                 method: 'POST',
@@ -6617,7 +6588,7 @@
             } catch (err) {
               console.error('[Send Panel]', err);
               dot.className = 'send-dot unsent';
-              statusTx.textContent = (err.message || '<%= lang === "ar" ? "فشل الإرسال" : "Send failed" %>');
+              statusTx.textContent = (err.message || '<%= t.ticketsPanels.sendFailed %>');
             } finally {
               sendBtn.disabled = false;
             }
@@ -6632,16 +6603,16 @@
             const statusTx = document.getElementById('mp-send-status');
             const channelId = document.getElementById('mp-channel').value;
             if (!mpId) {
-              alert('<%= lang === "ar" ? "احفظ اللوحة المتعددة أولاً ثم أعد المحاولة" : "Save the multi-panel first before sending." %>');
+              alert('<%= t.ticketsPanels.saveTheMultiPanelFirstBefore %>');
               return;
             }
             if (!channelId) {
-              alert('<%= lang === "ar" ? "اختر قناة للإرسال أولاً." : "Please choose a channel first." %>');
+              alert('<%= t.ticketsPanels.pleaseChooseAChannelFirst %>');
               return;
             }
             sendBtn.disabled = true;
             dot.className = 'send-dot sending';
-            statusTx.textContent = '<%= lang === "ar" ? "جارٍ الإرسال..." : "Sending..." %>';
+            statusTx.textContent = '<%= t.ticketsPanels.sending2 %>';
             try {
               const res = await fetch('/dashboard/<%= guildId %>/tickets/multi-panels/send', {
                 method: 'POST',
@@ -6656,7 +6627,7 @@
             } catch (err) {
               console.error('[Send Multi-Panel]', err);
               dot.className = 'send-dot unsent';
-              statusTx.textContent = (err.message || '<%= lang === "ar" ? "فشل الإرسال" : "Send failed" %>');
+              statusTx.textContent = (err.message || '<%= t.ticketsPanels.sendFailed %>');
             } finally {
               sendBtn.disabled = false;
             }
@@ -6730,10 +6701,10 @@
             </div>
             <div class="cm-actions">
               <button type="button" id="cm-cancel" class="btn btn-surface">
-                <%= lang==='ar' ? 'إلغاء' : 'Cancel' %>
+                <%= t.ticketsPanels.cancel %>
               </button>
               <button type="button" id="cm-confirm" class="btn btn-danger">
-                <%= lang==='ar' ? 'تأكيد' : 'Confirm' %>
+                <%= t.ticketsPanels.confirm %>
               </button>
             </div>
           </div>

@@ -1457,6 +1457,57 @@
       color: var(--gold-l);
     }
 
+    /* ── Activity sparkline cards ───────────────────── */
+    .act-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .act-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color .22s, box-shadow .22s;
+    }
+    .act-card:hover {
+      border-color: var(--border-h);
+      box-shadow: 0 0 24px -6px rgba(124,58,237,.15);
+    }
+    .act-card-body { padding: 16px 18px 0; }
+    .act-card-label {
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+    .act-card-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1;
+      font-family: 'Orbitron', monospace;
+    }
+    .act-card-change {
+      font-size: .65rem;
+      font-weight: 700;
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding-bottom: 6px;
+    }
+    .act-card-change.up   { color: #4ade80; }
+    .act-card-change.down { color: #f87171; }
+    .act-card-change.flat { color: var(--muted); }
+    .act-chart-wrap { height: 55px; }
+
     /* ── Stat card sub-info ─────────────────────────── */
     .stat-sub {
       display: flex;
@@ -1817,6 +1868,54 @@
         <h2><%= t.guild.overview %></h2>
       </div>
 
+      <!-- Activity sparkline cards (fetched client-side) -->
+      <div class="act-grid">
+        <div class="act-card">
+          <div class="act-card-body">
+            <div class="act-card-label">
+              <i data-lucide="user-plus" style="width:10px;height:10px;stroke:#4ade80;flex-shrink:0;"></i>
+              Joins <span style="opacity:.5;font-size:.55rem;margin-left:2px;">(Today)</span>
+            </div>
+            <div class="act-card-value" style="color:#4ade80;" id="actJoinsVal">—</div>
+            <div class="act-card-change flat" id="actJoinsChange">Loading...</div>
+          </div>
+          <div class="act-chart-wrap" id="actJoinsChart"></div>
+        </div>
+        <div class="act-card">
+          <div class="act-card-body">
+            <div class="act-card-label">
+              <i data-lucide="user-minus" style="width:10px;height:10px;stroke:#f87171;flex-shrink:0;"></i>
+              Leaves <span style="opacity:.5;font-size:.55rem;margin-left:2px;">(Today)</span>
+            </div>
+            <div class="act-card-value" style="color:#f87171;" id="actLeavesVal">—</div>
+            <div class="act-card-change flat" id="actLeavesChange">Loading...</div>
+          </div>
+          <div class="act-chart-wrap" id="actLeavesChart"></div>
+        </div>
+        <div class="act-card">
+          <div class="act-card-body">
+            <div class="act-card-label">
+              <i data-lucide="message-square" style="width:10px;height:10px;stroke:#a78bfa;flex-shrink:0;"></i>
+              Messages <span style="opacity:.5;font-size:.55rem;margin-left:2px;">(Today)</span>
+            </div>
+            <div class="act-card-value" style="color:#a78bfa;" id="actMessagesVal">—</div>
+            <div class="act-card-change flat" id="actMessagesChange">Loading...</div>
+          </div>
+          <div class="act-chart-wrap" id="actMessagesChart"></div>
+        </div>
+        <div class="act-card">
+          <div class="act-card-body">
+            <div class="act-card-label">
+              <i data-lucide="mic" style="width:10px;height:10px;stroke:#38bdf8;flex-shrink:0;"></i>
+              Voice <span style="opacity:.5;font-size:.55rem;margin-left:2px;">(Today)</span>
+            </div>
+            <div class="act-card-value" style="color:#38bdf8;" id="actVoiceVal">—</div>
+            <div class="act-card-change flat" id="actVoiceChange">Loading...</div>
+          </div>
+          <div class="act-chart-wrap" id="actVoiceChart"></div>
+        </div>
+      </div>
+
       <div class="stats-grid">
         <% if (memberCount !== null) { %>
         <div class="stat-card">
@@ -1924,6 +2023,46 @@
             <%= moduleStatus.levels ? t.guild.enabledBadge : t.guild.disabledBadge %>
           </span>
         </div>
+
+        <div class="module-card">
+          <div class="module-card-left">
+            <i data-lucide="message-square-reply" class="mod-icon <%= moduleStatus.autoResponder ? 'mod-on' : 'mod-off' %>" style="width:18px;height:18px;flex-shrink:0;"></i>
+            <span class="module-card-label">Auto Responder</span>
+          </div>
+          <span class="module-badge <%= moduleStatus.autoResponder ? 'on' : 'off' %>">
+            <%= moduleStatus.autoResponder ? t.guild.enabledBadge : t.guild.disabledBadge %>
+          </span>
+        </div>
+
+        <div class="module-card">
+          <div class="module-card-left">
+            <i data-lucide="lightbulb" class="mod-icon <%= moduleStatus.suggestions ? 'mod-on' : 'mod-off' %>" style="width:18px;height:18px;flex-shrink:0;"></i>
+            <span class="module-card-label">Suggestions</span>
+          </div>
+          <span class="module-badge <%= moduleStatus.suggestions ? 'on' : 'off' %>">
+            <%= moduleStatus.suggestions ? t.guild.enabledBadge : t.guild.disabledBadge %>
+          </span>
+        </div>
+
+        <div class="module-card">
+          <div class="module-card-left">
+            <i data-lucide="star" class="mod-icon <%= moduleStatus.staffPoints ? 'mod-on' : 'mod-off' %>" style="width:18px;height:18px;flex-shrink:0;"></i>
+            <span class="module-card-label">Ticket Points</span>
+          </div>
+          <span class="module-badge <%= moduleStatus.staffPoints ? 'on' : 'off' %>">
+            <%= moduleStatus.staffPoints ? t.guild.enabledBadge : t.guild.disabledBadge %>
+          </span>
+        </div>
+
+        <div class="module-card">
+          <div class="module-card-left">
+            <i data-lucide="zap" class="mod-icon <%= moduleStatus.interactionPoints ? 'mod-on' : 'mod-off' %>" style="width:18px;height:18px;flex-shrink:0;"></i>
+            <span class="module-card-label">Interaction Points</span>
+          </div>
+          <span class="module-badge <%= moduleStatus.interactionPoints ? 'on' : 'off' %>">
+            <%= moduleStatus.interactionPoints ? t.guild.enabledBadge : t.guild.disabledBadge %>
+          </span>
+        </div>
       </div>
     </section>
 
@@ -1952,6 +2091,22 @@
         <a href="/dashboard/<%= guildId %>/levels" class="qa-btn gold">
           <i data-lucide="trending-up" style="width:15px;height:15px;"></i>
           <%= t.guild.qaLevels %>
+        </a>
+        <a href="/dashboard/<%= guildId %>/auto-responder" class="qa-btn cyan">
+          <i data-lucide="message-square-reply" style="width:15px;height:15px;"></i>
+          Auto Responder
+        </a>
+        <a href="/dashboard/<%= guildId %>/suggestions" class="qa-btn green">
+          <i data-lucide="lightbulb" style="width:15px;height:15px;"></i>
+          Suggestions
+        </a>
+        <a href="/dashboard/<%= guildId %>/points/tickets" class="qa-btn gold">
+          <i data-lucide="star" style="width:15px;height:15px;"></i>
+          Ticket Points
+        </a>
+        <a href="/dashboard/<%= guildId %>/points/interactions" class="qa-btn purple">
+          <i data-lucide="zap" style="width:15px;height:15px;"></i>
+          Interaction Points
         </a>
         <a href="/dashboard/<%= guildId %>/settings" class="qa-btn purple" style="opacity:.75;">
           <i data-lucide="settings" style="width:15px;height:15px;"></i>
@@ -2100,43 +2255,6 @@
         </div>
       </div>
 
-      <!-- Badges — Discord public_flags bitfield + Nitro premium_type -->
-      <%
-        var _gFlags = Number(user.publicFlags || 0);
-        var _gPrem  = Number(user.premiumType  || 0);
-        var _BDGC   = '/badge-icons/';
-        var _gBadges = [];
-        if (_gFlags & 1)       _gBadges.push({ label: t.home.badgeStaff,       img: 'staff.png' });
-        if (_gFlags & 2)       _gBadges.push({ label: t.home.badgePartner,      img: 'partner.png' });
-        if (_gFlags & 4)       _gBadges.push({ label: t.home.badgeHsEvents,     img: 'hypesquad.png' });
-        if (_gFlags & 8)       _gBadges.push({ label: t.home.badgeBug1,         img: 'bug_hunter_level_1.png' });
-        if (_gFlags & 64)      _gBadges.push({ label: t.home.badgeBravery,      img: 'hypesquad_house_1.png' });
-        if (_gFlags & 128)     _gBadges.push({ label: t.home.badgeBrilliance,   img: 'hypesquad_house_2.png' });
-        if (_gFlags & 256)     _gBadges.push({ label: t.home.badgeBalance,      img: 'hypesquad_house_3.png' });
-        if (_gFlags & 512)     _gBadges.push({ label: t.home.badgeEarlySupp,    img: 'early_supporter.png' });
-        if (_gFlags & 16384)   _gBadges.push({ label: t.home.badgeBug2,         img: 'bug_hunter_level_2.png' });
-        if (_gFlags & 131072)  _gBadges.push({ label: t.home.badgeVerifDev,     img: 'verified_bot_developer.png' });
-        if (_gFlags & 262144)  _gBadges.push({ label: t.home.badgeModAlumni,    img: 'certified_moderator.png' });
-        if (_gFlags & 4194304) _gBadges.push({ label: t.home.badgeActiveDev,    img: 'active_developer.png' });
-        if (_gFlags & 8388608) _gBadges.push({ label: t.home.badgeQuest,        img: 'quest_completed.png' });
-        if (_gPrem > 0)        _gBadges.push({ label: t.home.badgeNitro,        img: 'nitro.png' });
-      %>
-      <div class="prof-block">
-        <div class="prof-block-label"><%= t.home.profileBadges %></div>
-        <div class="prof-badges">
-          <% if (_gBadges.length === 0) { %>
-            <span style="font-size:.75rem;color:var(--muted);">—</span>
-          <% } else { %>
-            <% _gBadges.forEach(function(b) { %>
-              <div class="prof-badge">
-                <img src="<%= _BDGC %><%= b.img %>" alt="<%= b.label %>"
-                  onerror="this.closest('.prof-badge').style.display='none'" />
-                <span class="prof-badge-tip"><%= b.label %></span>
-              </div>
-            <% }); %>
-          <% } %>
-        </div>
-      </div>
     </section>
 
   </main>
@@ -2204,11 +2322,10 @@
 
     if (copyId) {
       copyId.addEventListener('click', () => {
-        navigator.clipboard.writeText(copyId.textContent.trim()).then(() => {
-          const orig = copyId.textContent;
-          copyId.textContent = '✓ Copied!';
-          copyId.style.color = 'var(--cyan-l)';
-          setTimeout(() => { copyId.textContent = orig; copyId.style.color = ''; }, 1500);
+        const uid = copyId.dataset.uid || copyId.textContent.trim();
+        const lbl = document.getElementById('prof-copy-label');
+        navigator.clipboard.writeText(uid).then(() => {
+          if (lbl) { const orig = lbl.textContent; lbl.textContent = '✓ Copied!'; lbl.style.color = 'var(--cyan-l)'; setTimeout(() => { lbl.textContent = orig; lbl.style.color = ''; }, 1500); }
         });
       });
     }
@@ -2273,6 +2390,107 @@
         e.preventDefault(); fadeOut(this.href);
       });
     });
+  </script>
+
+  <!-- ── Activity sparkline charts ────────────────────────────────────── -->
+  <script>
+  (function () {
+    const guildId = '<%= guildId %>';
+
+    function changeEl(el, cur, prev) {
+      if (prev === 0 && cur === 0) {
+        el.textContent = 'No data yet';
+        el.className = 'act-card-change flat';
+        return;
+      }
+      if (prev === 0) {
+        el.innerHTML = '&#9650; +100% Vs Last 24h';
+        el.className = 'act-card-change up';
+        return;
+      }
+      const p = ((cur - prev) / prev * 100).toFixed(1);
+      if (parseFloat(p) > 0) {
+        el.innerHTML = '&#9650; +' + p + '% Vs Last 24h';
+        el.className = 'act-card-change up';
+      } else if (parseFloat(p) < 0) {
+        el.innerHTML = '&#9660; ' + p + '% Vs Last 24h';
+        el.className = 'act-card-change down';
+      } else {
+        el.innerHTML = '&#9679; 0% Vs Last 24h';
+        el.className = 'act-card-change flat';
+      }
+    }
+
+    function sparkOpts(data, color) {
+      return {
+        chart: { type: 'area', height: 55, sparkline: { enabled: true }, animations: { enabled: true, speed: 700 }, background: 'transparent' },
+        stroke: { curve: 'smooth', width: 2 },
+        fill: { type: 'gradient', gradient: { shade: 'dark', type: 'vertical', shadeIntensity: 0.5, opacityFrom: 0.35, opacityTo: 0.02, stops: [0, 100] } },
+        colors: [color],
+        series: [{ name: '', data: data }],
+        tooltip: { enabled: false },
+        grid: { show: false },
+        xaxis: { labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false } },
+        yaxis: { show: false, min: 0 },
+      };
+    }
+
+    function render(d) {
+      const half = Math.floor(d.joins.length / 2);
+      const sum  = (arr) => arr.reduce((a, b) => a + b, 0);
+
+      const totals  = { joins: sum(d.joins),    leaves: sum(d.leaves),    messages: sum(d.messages),    voice: sum(d.voice) };
+      const prevHalf = { joins: sum(d.joins.slice(0,half)),   leaves: sum(d.leaves.slice(0,half)),   messages: sum(d.messages.slice(0,half)),   voice: sum(d.voice.slice(0,half)) };
+      const curHalf  = { joins: sum(d.joins.slice(half)),     leaves: sum(d.leaves.slice(half)),     messages: sum(d.messages.slice(half)),     voice: sum(d.voice.slice(half)) };
+
+      document.getElementById('actJoinsVal').textContent    = totals.joins;
+      document.getElementById('actLeavesVal').textContent   = totals.leaves;
+      document.getElementById('actMessagesVal').textContent = totals.messages;
+      document.getElementById('actVoiceVal').textContent    = totals.voice;
+
+      changeEl(document.getElementById('actJoinsChange'),    curHalf.joins,    prevHalf.joins);
+      changeEl(document.getElementById('actLeavesChange'),   curHalf.leaves,   prevHalf.leaves);
+      changeEl(document.getElementById('actMessagesChange'), curHalf.messages, prevHalf.messages);
+      changeEl(document.getElementById('actVoiceChange'),    curHalf.voice,    prevHalf.voice);
+
+      new ApexCharts(document.getElementById('actJoinsChart'),    sparkOpts(d.joins,    '#4ade80')).render();
+      new ApexCharts(document.getElementById('actLeavesChart'),   sparkOpts(d.leaves,   '#f87171')).render();
+      new ApexCharts(document.getElementById('actMessagesChart'), sparkOpts(d.messages, '#a78bfa')).render();
+      new ApexCharts(document.getElementById('actVoiceChart'),    sparkOpts(d.voice,    '#38bdf8')).render();
+    }
+
+    function boot() {
+      if (window.ApexCharts) { loadData(); return; }
+      const s = document.createElement('script');
+      s.src = '/apexcharts.js';
+      s.onerror = () => {
+        const cdn = document.createElement('script');
+        cdn.src = 'https://cdn.jsdelivr.net/npm/apexcharts@3/dist/apexcharts.min.js';
+        cdn.onload = loadData;
+        document.head.appendChild(cdn);
+      };
+      s.onload = loadData;
+      document.head.appendChild(s);
+    }
+
+    function loadData() {
+      fetch('/dashboard/' + guildId + '/stats/activity')
+        .then(r => r.json())
+        .then(render)
+        .catch(() => {
+          ['actJoinsVal','actLeavesVal','actMessagesVal','actVoiceVal'].forEach(id => {
+            document.getElementById(id).textContent = '—';
+          });
+          ['actJoinsChange','actLeavesChange','actMessagesChange','actVoiceChange'].forEach(id => {
+            const el = document.getElementById(id);
+            el.textContent = 'No data';
+            el.className = 'act-card-change flat';
+          });
+        });
+    }
+
+    boot();
+  })();
   </script>
 </body>
 

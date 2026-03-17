@@ -803,15 +803,15 @@
             <line x1="10" y1="9" x2="8" y2="9"/>
           </svg>
         </div>
-        <h3><%= lang === 'ar' ? 'زر القوانين' : 'Rules Button' %></h3>
+        <h3><%= t.ticketsGeneral.rulesButton %></h3>
       </div>
       <div class="card-body">
 
         <!-- Enable Rules Button -->
         <div class="form-row">
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'تفعيل زر القوانين' : 'Enable Rules Button' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'يظهر زر في رسالة ترحيب التكت، عند الضغط عليه يرى المستخدم نص القوانين.' : 'Adds a Rules button to the ticket welcome message. Clicking it shows the rules text ephemerally.' %></p>
+            <label class="form-label"><%= t.ticketsGeneral.enableRulesButton %></label>
+            <p class="form-help"><%= t.ticketsGeneral.addsARulesButtonToThe %></p>
           </div>
           <%- include('partials/toggle_switch', { id: 'ticket-rules-enabled', checked: ticketSettings.RULES_BTN_ENABLED }) %>
         </div>
@@ -819,32 +819,32 @@
         <!-- Rules Text -->
         <div class="form-row form-row-col" id="rules-text-row" <%- ticketSettings.RULES_BTN_ENABLED ? '' : 'style="display:none"' %>>
           <div class="form-row-left" style="width:100%">
-            <label class="form-label"><%= lang === 'ar' ? 'نص القوانين' : 'Rules Text' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'النص الذي يظهر للمستخدم عند الضغط على زر القوانين (يدعم Markdown).' : 'Text shown to the user when they click the Rules button (supports Markdown).' %></p>
+            <label class="form-label"><%= t.ticketsGeneral.rulesText %></label>
+            <p class="form-help"><%= t.ticketsGeneral.textShownToTheUserWhen %></p>
           </div>
-          <textarea id="ticket-rules-text" class="form-textarea" rows="6" maxlength="3000" placeholder="<%= lang === 'ar' ? 'اكتب قوانين السيرفر هنا...' : 'Write your server rules here...' %>"><%= ticketSettings.RULES_BTN_TEXT || '' %></textarea>
+          <textarea id="ticket-rules-text" class="form-textarea" rows="6" maxlength="3000" placeholder="<%= t.ticketsGeneral.writeYourServerRulesHere %>"><%= ticketSettings.RULES_BTN_TEXT || '' %></textarea>
         </div>
 
         <!-- Rules Button Appearance -->
         <div class="form-row" id="rules-btn-style-row" <%- ticketSettings.RULES_BTN_ENABLED ? '' : 'style="display:none"' %>>
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'مظهر زر القوانين' : 'Rules Button Appearance' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'نص الزر وايموجيه ولونه في رسالة الترحيب.' : 'Button label, emoji and color shown in the ticket welcome message.' %></p>
+            <label class="form-label"><%= t.ticketsGeneral.rulesButtonAppearance %></label>
+            <p class="form-help"><%= t.ticketsGeneral.buttonLabelEmojiAndColorShown %></p>
           </div>
           <div class="rules-btn-cfg">
             <div class="rules-btn-cfg-row">
-              <label class="rules-cfg-lbl"><%= lang === 'ar' ? 'النص' : 'Label' %></label>
+              <label class="rules-cfg-lbl"><%= t.ticketsGeneral.label %></label>
               <input type="text" id="ticket-rules-label" class="form-input" style="width:180px" maxlength="40"
                      placeholder="Rules" value="<%= ticketSettings.RULES_BTN_LABEL || '' %>" />
             </div>
             <div class="rules-btn-cfg-row">
-              <label class="rules-cfg-lbl"><%= lang === 'ar' ? 'الايموجي' : 'Emoji' %></label>
+              <label class="rules-cfg-lbl"><%= t.ticketsGeneral.emoji %></label>
               <div style="position:relative;display:inline-flex;align-items:center;gap:6px">
                 <input type="text" id="ticket-rules-emoji" class="form-input" style="width:170px"
                        maxlength="64" placeholder="📜 or &lt;:name:id&gt;"
                        value="<%= ticketSettings.RULES_BTN_EMOJI || '' %>" />
 <% if (typeof guildEmojis !== 'undefined' && guildEmojis && guildEmojis.length) { %>
-                <button type="button" id="rules-emoji-picker-btn" class="rules-emoji-picker-btn" title="<%= lang === 'ar' ? 'ايموجيات السيرفر' : 'Server Emojis' %>">
+                <button type="button" id="rules-emoji-picker-btn" class="rules-emoji-picker-btn" title="<%= t.ticketsGeneral.serverEmojis %>">
                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M16 5c0-1.1.9-1 2-1"/></svg>
                 </button>
                 <div id="rules-emoji-picker-pop" class="rules-emoji-pop" style="display:none">
@@ -858,7 +858,7 @@
               </div>
             </div>
             <div class="rules-btn-cfg-row">
-              <label class="rules-cfg-lbl"><%= lang === 'ar' ? 'اللون' : 'Style' %></label>
+              <label class="rules-cfg-lbl"><%= t.ticketsGeneral.style %></label>
               <div class="rules-style-group" id="ticket-rules-style-group">
                 <button type="button" class="rules-style-opt<%= (ticketSettings.RULES_BTN_STYLE||2)==1?' active':'' %>" data-val="1">Primary</button>
                 <button type="button" class="rules-style-opt<%= (ticketSettings.RULES_BTN_STYLE||2)==2?' active':'' %>" data-val="2">Secondary</button>
@@ -884,15 +884,15 @@
             <line x1="15" y1="17" x2="3" y2="17"/>
           </svg>
         </div>
-        <h3><%= lang === 'ar' ? 'تصعيد التكت' : 'Escalate Ticket' %></h3>
+        <h3><%= t.ticketsGeneral.escalateTicket %></h3>
       </div>
       <div class="card-body">
 
         <!-- Enable Escalate -->
         <div class="form-row">
           <div class="form-row-left">
-            <label class="form-label"><%= lang === 'ar' ? 'تفعيل زر التصعيد' : 'Enable Escalate Button' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'يظهر زر Escalate في رسالة الترحيب بالتكت. عند الضغط يتم نقل التكت إلى كاتيغوري أخرى.' : 'Shows an Escalate button in the ticket welcome message. Clicking it moves the ticket to another category.' %></p>
+            <label class="form-label"><%= t.ticketsGeneral.enableEscalateButton %></label>
+            <p class="form-help"><%= t.ticketsGeneral.showsAnEscalateButtonInThe %></p>
           </div>
           <%- include('partials/toggle_switch', { id: 'ticket-escalate-enabled', checked: ticketSettings.ESCALATE_ENABLED }) %>
         </div>
@@ -900,12 +900,12 @@
         <!-- Escalation Categories -->
         <div class="form-row form-row-col" id="escalate-cats-row" <%- ticketSettings.ESCALATE_ENABLED ? '' : 'style="display:none"' %>>
           <div class="form-row-left" style="width:100%">
-            <label class="form-label"><%= lang === 'ar' ? 'الكاتيغوريات المتاحة للتصعيد' : 'Escalation Categories' %></label>
-            <p class="form-help"><%= lang === 'ar' ? 'اختر الكاتيغوريات التي يمكن نقل التكت إليها (بحد أقصى 25).' : 'Select the categories the ticket can be moved to (max 25).' %></p>
+            <label class="form-label"><%= t.ticketsGeneral.escalationCategories %></label>
+            <p class="form-help"><%= t.ticketsGeneral.selectTheCategoriesTheTicketCan %></p>
           </div>
           <div class="esc-select-wrap">
             <select id="ticket-escalate-cats-sel" class="form-select">
-              <option value=""><%= lang === 'ar' ? '-- اختر كاتيغوري --' : '-- Select a category --' %></option>
+              <option value=""><%= t.ticketsGeneral.selectACategory %></option>
 <% guildCategories.forEach(function(cat) { %>
               <option value="<%= cat.id %>"><%= cat.name %></option>
 <% }) %>
@@ -914,7 +914,7 @@
           </div>
           <input type="hidden" id="ticket-escalate-cats-json" value="<%= JSON.stringify(ticketSettings.ESCALATE_CATEGORIES || []) %>" />
 <% if (!guildCategories.length) { %>
-            <p class="form-help" style="margin:0"><%= lang === 'ar' ? 'لا توجد كاتيغوريات في هذا السيرفر.' : 'No categories found in this server.' %></p>
+            <p class="form-help" style="margin:0"><%= t.ticketsGeneral.noCategoriesFoundInThisServer %></p>
 <% } %>
         </div>
 
@@ -926,9 +926,9 @@
 
   <!-- Save Bar -->
   <div class="save-bar" id="save-bar">
-    <span class="save-bar-text" id="save-bar-text"><%= lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %></span>
+    <span class="save-bar-text" id="save-bar-text"><%= t.ticketsGeneral.youHaveUnsavedChanges %></span>
     <div class="save-bar-actions">
-      <button class="btn btn-ghost" id="reset-btn"><%= lang === 'ar' ? 'إلغاء' : 'Reset' %></button>
+      <button class="btn btn-ghost" id="reset-btn"><%= t.ticketsGeneral.reset %></button>
       <button class="btn btn-primary" id="save-btn"><%= t.tickets.saveBtn %></button>
     </div>
   </div>
@@ -1405,7 +1405,7 @@
         console.error(err);
         saveBtn.textContent = saveLabel;
         saveBtn.disabled = false;
-        alert('<%= lang === "ar" ? "فشل الحفظ، حاول مجدداً" : "Save failed, please try again." %>');
+        alert('<%= t.ticketsGeneral.saveFailedPleaseTryAgain %>');
       }
     });
   </script>

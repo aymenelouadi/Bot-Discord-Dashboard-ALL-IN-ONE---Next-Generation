@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This project was programmed by the Code Nexus team.
  * If you encounter any problems, open an Issue or log into the Discord server:
  * https://discord.gg/UvEYbFd2rj
@@ -125,31 +125,6 @@ try {
     });
 } catch (_e) { /* apexcharts not in node_modules, CDN fallback used */ }
 
-// ── Discord badge icons (CDN is 404 — serve locally as SVG) ─────────────
-const _BADGE_SVGS = {
-    'staff.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#5865F2" d="M10 1 3 4.5V10c0 4.3 3 7.8 7 9 4-1.2 7-4.7 7-9V4.5Z"/><path fill="white" d="M10 5.5A4 4 0 0 0 6.7 12a6.8 6.8 0 0 1 3.3-.8c1.2 0 2.4.3 3.3.8A4 4 0 0 0 10 5.5Zm0 1.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/></svg>`,
-    'partner.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#3498db" d="M10 1 3 4.5V10c0 4.3 3 7.8 7 9 4-1.2 7-4.7 7-9V4.5Z"/><path fill="white" stroke="white" stroke-width=".5" d="M7.5 10.2 9.2 12l3.8-4"/><path fill="none" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M7 10 9 12.2l4.3-4.8"/></svg>`,
-    'hypesquad.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#faa61a" d="M11.3 2 7 10.5h3.6L8.7 18l7.3-9.5h-3.8Z"/><path fill="#e08800" d="M11.3 2 9.4 5.8l.6 1.2H13Z"/></svg>`,
-    'bug_hunter_level_1.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><ellipse cx="10" cy="11" rx="4.5" ry="5.5" fill="#e67e22"/><ellipse cx="10" cy="11" rx="4.5" ry="5.5" fill="none" stroke="#b35500" stroke-width=".8"/><line x1="10" y1="5.5" x2="10" y2="11" stroke="#b35500" stroke-width=".8"/><ellipse cx="10" cy="6" rx="2" ry="2" fill="#c0392b"/><path fill="none" stroke="#b35500" stroke-width=".8" stroke-linecap="round" d="M5.5 10 3 8.5M5.5 12 3 12M5.5 14 3 15.5M14.5 10 17 8.5M14.5 12 17 12M14.5 14 17 15.5"/><path fill="none" stroke="#b35500" stroke-width=".8" stroke-linecap="round" d="M8.5 4.5 7 3M11.5 4.5 13 3"/></svg>`,
-    'hypesquad_house_1.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#e4405f" d="M10 1.5 4 6v5.5c0 3.2 2.2 6 6 7 3.8-1 6-3.8 6-7V6Zm0 1.8 4.5 3.5v4.2c0 2.2-1.6 4.2-4.5 5-2.9-.8-4.5-2.8-4.5-5V6.8Z"/><path fill="#e4405f" d="M10 1.5 4 6v5.5c0 3.2 2.2 6 6 7 3.8-1 6-3.8 6-7V6Z"/><path fill="white" d="M10 7 8 9.5l2 2 2-2Z"/></svg>`,
-    'hypesquad_house_2.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#9b59b6" d="M10 1.5 4 6v5.5c0 3.2 2.2 6 6 7 3.8-1 6-3.8 6-7V6Z"/><path fill="white" d="M7.5 9.5h2V8h1v1.5h2v1h-2V12h-1v-1.5h-2Z"/></svg>`,
-    'hypesquad_house_3.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#1abc9c" d="M10 1.5 4 6v5.5c0 3.2 2.2 6 6 7 3.8-1 6-3.8 6-7V6Z"/><path fill="none" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M7 10h6M10 7v6"/></svg>`,
-    'early_supporter.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#c0a0ff" d="M10 16.5 4.5 11a3.5 3.5 0 0 1 5-5c.2.2.3.3.5.5.2-.2.3-.3.5-.5a3.5 3.5 0 0 1 5 5Z"/><path fill="#9b57ff" d="M15 6.5c0-1.8 0-3.5-3-3.5-1.5 0-2 .8-2 .8S9.5 3 8 3C5 3 5 4.7 5 6.5c0 .5.2 1 .5 1.5A3.5 3.5 0 0 1 10 16.5a3.5 3.5 0 0 1 4.5-8.5c.3-.5.5-1 .5-1.5Z" opacity=".3"/></svg>`,
-    'bug_hunter_level_2.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><ellipse cx="10" cy="11.5" rx="4.5" ry="5" fill="#f1c40f"/><ellipse cx="10" cy="11.5" rx="4.5" ry="5" fill="none" stroke="#c89b00" stroke-width=".8"/><line x1="10" y1="6.5" x2="10" y2="11.5" stroke="#c89b00" stroke-width=".8"/><ellipse cx="10" cy="7" rx="2" ry="2" fill="#e6a817"/><path fill="none" stroke="#c89b00" stroke-width=".8" stroke-linecap="round" d="M5.5 10.5 3 9M5.5 12.5 3 12.5M5.5 14.5 3 16M14.5 10.5 17 9M14.5 12.5 17 12.5M14.5 14.5 17 16"/><path fill="#f39c12" d="M10 4 9 5.5h2Z"/><path d="M8 3.5 10 4l2-0.5" fill="none" stroke="#c89b00" stroke-width=".7" stroke-linecap="round"/></svg>`,
-    'verified_bot_developer.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><text x="2" y="14.5" font-family="monospace" font-size="10" font-weight="bold" fill="#5865F2">&lt;/&gt;</text></svg>`,
-    'certified_moderator.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#23a55a" d="M10 1.5 3 5v5c0 4.3 3 7.8 7 9 4-1.2 7-4.7 7-9V5Z"/><path fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M6.8 10.2 9 12.4l4.5-5"/></svg>`,
-    'active_developer.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="none" stroke="#23a55a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M8 6 4 10l4 4M12 6l4 4-4 4"/></svg>`,
-    'nitro.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#5865F2" d="M11.3 2 7 10.5h3.6L8.7 18l7.3-9.5h-3.8Z"/><circle cx="10" cy="10" r="9" fill="none" stroke="#5865F2" stroke-width="1.2"/></svg>`,
-    'quest_completed.png': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#f1c40f" d="M10 2 12.4 7.5l5.6.5-4.2 3.7 1.3 5.5L10 14.4l-5.1 2.8 1.3-5.5L2 8l5.6-.5Z"/></svg>`,
-};
-app.get('/badge-icons/:name', (req, res) => {
-    const svg = _BADGE_SVGS[req.params.name];
-    if (!svg) return res.status(404).end();
-    res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'public, max-age=604800');
-    res.end(svg);
-});
-
 /* ── View engine ────────────────────────────────────── */
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -266,6 +241,9 @@ app.get('/settings', require('./middleware/auth'), (req, res) => {
         shipsCfg: {
             SHIPS: Array.isArray(cfg.DASHBOARD?.SHIPS) ? cfg.DASHBOARD.SHIPS : [],
         },
+        ownersCfg: {
+            OWNERS: Array.isArray(cfg.DASHBOARD?.OWNERS) ? cfg.DASHBOARD.OWNERS : [],
+        },
     });
 });
 
@@ -353,6 +331,30 @@ app.delete('/settings/ships/:userId', require('./middleware/auth'), (req, res) =
     if (cfg.DASHBOARD?.SHIPS) cfg.DASHBOARD.SHIPS = cfg.DASHBOARD.SHIPS.filter(s => s !== id);
     writeSettingsCfg(cfg);
     res.json({ success: true, ships: cfg.DASHBOARD?.SHIPS || [] });
+});
+
+/* ── POST /settings/owners (SHIPS only) – add owner ── */
+app.post('/settings/owners', require('./middleware/auth'), express.json(), (req, res) => {
+    if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
+    const { userId } = req.body;
+    if (!userId || !/^\d{10,20}$/.test(String(userId))) return res.status(400).json({ error: 'Invalid user ID' });
+    const cfg = readSettingsCfg();
+    if (!cfg.DASHBOARD) cfg.DASHBOARD = {};
+    if (!Array.isArray(cfg.DASHBOARD.OWNERS)) cfg.DASHBOARD.OWNERS = [];
+    const id = String(userId);
+    if (!cfg.DASHBOARD.OWNERS.includes(id)) cfg.DASHBOARD.OWNERS.push(id);
+    writeSettingsCfg(cfg);
+    res.json({ success: true, owners: cfg.DASHBOARD.OWNERS });
+});
+
+/* ── DELETE /settings/owners/:userId (SHIPS only) – remove owner ── */
+app.delete('/settings/owners/:userId', require('./middleware/auth'), (req, res) => {
+    if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
+    const id  = String(req.params.userId);
+    const cfg = readSettingsCfg();
+    if (cfg.DASHBOARD?.OWNERS) cfg.DASHBOARD.OWNERS = cfg.DASHBOARD.OWNERS.filter(o => o !== id);
+    writeSettingsCfg(cfg);
+    res.json({ success: true, owners: cfg.DASHBOARD?.OWNERS || [] });
 });
 
 /* ── GET /settings/geo (SHIPS only) – IP geolocation ── */
@@ -511,6 +513,19 @@ app.get('/dashboard', require('./middleware/auth'), (req, res) => {
     });
 });
 
+// ── Guild activity stats API ───────────────────────────────────────────────
+app.get('/dashboard/:guildId/stats/activity', require('./middleware/auth'), (req, res) => {
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    try {
+        const tracker = require('./utils/activityTracker');
+        return res.json(tracker.getLast24h(guildId));
+    } catch (_) {
+        return res.json({ joins: [], leaves: [], messages: [], voice: [], labels: [] });
+    }
+});
+
 app.get('/dashboard/:guildId', require('./middleware/auth'), (req, res) => {
     const guildDb   = require('./utils/guildDb');
     const { getClient } = require('./utils/botClient');
@@ -547,9 +562,6 @@ app.get('/dashboard/:guildId', require('./middleware/auth'), (req, res) => {
     }
 
     // Country flag emojis
-    const langFlags = { ar: getUnicodeFlagIcon('SA'), en: getUnicodeFlagIcon('US') };
-    const langLabels = { ar: 'عربي', en: 'English' };
-    const supported  = ['ar', 'en'];
 
     // Server stats from Discord cache
     const discordGuild  = botClient ? botClient.guilds.cache.get(guildId) : null;
@@ -583,11 +595,22 @@ app.get('/dashboard/:guildId', require('./middleware/auth'), (req, res) => {
     const autoRoleAll   = readBotDb('auto_role');
     const autoRoleEntry = autoRoleAll[guildId] || null;
 
+    const autoResponderAll  = readBotDb('auto_responder');
+    const autoResponderEntry = autoResponderAll[guildId] || null;
+    const suggestionsAll    = readBotDb('suggestions');
+    const suggestionsEntry  = suggestionsAll[guildId] || null;
+    const staffPointsData    = guildDb.read(guildId, 'staff_points', null);
+    const interactionPtsData = guildDb.read(guildId, 'interaction_points', null);
+
     const moduleStatus = {
-        protection: !!(protData && Object.keys(protData).length > 0),
-        tickets:    panelCount > 0,
-        autoRoles:  !!(autoRoleEntry && autoRoleEntry.enabled === true),
-        levels:     Object.keys(levelsData).length > 0,
+        protection:        !!(protData && Object.keys(protData).length > 0),
+        tickets:           panelCount > 0,
+        autoRoles:         !!(autoRoleEntry && autoRoleEntry.enabled === true),
+        levels:            Object.keys(levelsData).length > 0,
+        autoResponder:     !!(autoResponderEntry && autoResponderEntry.enabled === true),
+        suggestions:       !!(suggestionsEntry && suggestionsEntry.enabled === true),
+        staffPoints:       !!(staffPointsData && staffPointsData.enabled === true),
+        interactionPoints: !!(interactionPtsData && interactionPtsData.enabled === true),
     };
 
     res.render('guild', {
@@ -599,9 +622,6 @@ app.get('/dashboard/:guildId', require('./middleware/auth'), (req, res) => {
         rank,
         t:          req.t,
         lang:       req.lang,
-        langFlags,
-        langLabels,
-        supported,
         guildId,
         isShip:     getIsShip(req.session.user?.id),
         memberCount,
@@ -634,9 +654,6 @@ app.get('/dashboard/:guildId/setting', require('./middleware/auth'), async (req,
         inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id),
     }));
 
-    const langFlags  = { ar: getUnicodeFlagIcon('SA'), en: getUnicodeFlagIcon('US') };
-    const langLabels = { ar: 'عربي', en: 'English' };
-    const supported  = ['ar', 'en'];
 
     // System settings
     const settingsData   = guildDb.read(guildId, 'settings', {});
@@ -699,9 +716,6 @@ app.get('/dashboard/:guildId/setting', require('./middleware/auth'), async (req,
         guilds,
         t:        req.t,
         lang:     req.lang,
-        langFlags,
-        langLabels,
-        supported,
         guildId,
         systemSettings,
         botInfo,
@@ -914,9 +928,6 @@ app.get('/dashboard/:guildId/levels', require('./middleware/auth'), (req, res) =
     }
 
     // Country flag emojis
-    const langFlags = { ar: getUnicodeFlagIcon('SA'), en: getUnicodeFlagIcon('US') };
-    const langLabels = { ar: 'عربي', en: 'English' };
-    const supported  = ['ar', 'en'];
 
     res.render('levels', {
         user: req.session.user,
@@ -929,9 +940,6 @@ app.get('/dashboard/:guildId/levels', require('./middleware/auth'), (req, res) =
         botUser,
         t: req.t,
         lang: req.lang,
-        langFlags,
-        langLabels,
-        supported,
         guildId,
         isShip: getIsShip(req.session.user?.id),
     });
@@ -1099,9 +1107,6 @@ function _ticketsCommon(req, res) {
     const guilds = raw.map(g => ({
         ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id),
     }));
-    const langFlags  = { ar: getUnicodeFlagIcon('SA'), en: getUnicodeFlagIcon('US') };
-    const langLabels = { ar: 'عربي', en: 'English' };
-    const supported  = ['ar', 'en'];
 
     let guildChannels = [], guildCategories = [], guildRoles = [], guildEmojis = [];
     if (botClient) {
@@ -1124,7 +1129,6 @@ function _ticketsCommon(req, res) {
         guildId, guildInfo, guilds,
         ticketData, ticketSettings, ticketStats, avgDisplay,
         guildChannels, guildCategories, guildRoles, guildEmojis,
-        langFlags, langLabels, supported,
         isShip: getIsShip(req.session.user?.id),
     };
 }
@@ -1689,9 +1693,6 @@ app.get('/dashboard/:guildId/utility', require('./middleware/auth'), (req, res) 
         }
     }
 
-    const langFlags  = { ar: getUnicodeFlagIcon('SA'), en: getUnicodeFlagIcon('US') };
-    const langLabels = { ar: 'عربي', en: 'English' };
-    const supported  = ['ar', 'en'];
 
     const guildCmdsUtil = require('../utils/guildCmds');
     const utilityActions = guildCmdsUtil.resolveAllPublic(guildId);
@@ -1706,9 +1707,6 @@ app.get('/dashboard/:guildId/utility', require('./middleware/auth'), (req, res) 
         guildChannels,
         t: req.t,
         lang: req.lang,
-        langFlags,
-        langLabels,
-        supported,
         guildId,
         isShip: getIsShip(req.session.user?.id),
         utilityActions,
@@ -1783,9 +1781,6 @@ app.get('/dashboard/:guildId/moderation', require('./middleware/auth'), (req, re
         }
     }
 
-    const langFlags  = { ar: getUnicodeFlagIcon('SA'), en: getUnicodeFlagIcon('US') };
-    const langLabels = { ar: 'عربي', en: 'English' };
-    const supported  = ['ar', 'en'];
 
     const guildCmdsUtil = require('../utils/guildCmds');
     const moderationActions = guildCmdsUtil.resolveAllAdmin(guildId);
@@ -1800,9 +1795,6 @@ app.get('/dashboard/:guildId/moderation', require('./middleware/auth'), (req, re
         guildChannels,
         t: req.t,
         lang: req.lang,
-        langFlags,
-        langLabels,
-        supported,
         guildId,
         isShip: getIsShip(req.session.user?.id),
         moderationActions,
@@ -1835,6 +1827,10 @@ app.post('/dashboard/:guildId/moderation/save', require('./middleware/auth'), (r
             if (typeof updates.requireAdministrator === 'boolean') patch.requireAdministrator = updates.requireAdministrator;
             if (typeof updates.autoDeleteAuthor === 'boolean')     patch.autoDeleteAuthor = updates.autoDeleteAuthor;
             if (typeof updates.autoDeleteReply === 'boolean')      patch.autoDeleteReply = updates.autoDeleteReply;
+            if (key === 'jail') {
+                if (typeof updates.addRole === 'string')   patch.addRole  = updates.addRole;
+                if (Array.isArray(updates.showRoom))       patch.showRoom = updates.showRoom;
+            }
             guildCmdsUtil.set(guildId, key, patch);
         });
         return res.json({ ok: true });
@@ -1884,6 +1880,37 @@ app.get('/api/user/:userId', require('./middleware/auth'), async (req, res) => {
     }
 });
 
+/* ── Current user's Discord presence (real status + custom status) ── */
+app.get('/api/me/presence', require('./middleware/auth'), (req, res) => {
+    try {
+        const { getClient } = require('./utils/botClient');
+        const botClient = getClient();
+        const userId = String(req.session.user?.id || '');
+        if (!botClient || !userId) return res.json({ status: 'offline', customStatus: null });
+
+        let presence = null;
+        for (const [, guild] of botClient.guilds.cache) {
+            const member = guild.members.cache.get(userId);
+            if (member?.presence) { presence = member.presence; break; }
+        }
+
+        const status = presence?.status || 'offline';
+        let customStatus = null;
+        if (presence?.activities) {
+            const custom = presence.activities.find(a => a.type === 4); // ActivityType.Custom
+            if (custom) {
+                const parts = [];
+                if (custom.emoji?.name) parts.push(custom.emoji.name);
+                if (custom.state) parts.push(custom.state);
+                customStatus = parts.join(' ') || null;
+            }
+        }
+        res.json({ status, customStatus });
+    } catch (e) {
+        res.json({ status: 'offline', customStatus: null });
+    }
+});
+
 /* ── Guild stats API (member count + online count for topbar) ── */
 app.get('/api/guild-stats/:guildId', require('./middleware/auth'), (req, res) => {
     const { getClient } = require('./utils/botClient');
@@ -1930,9 +1957,6 @@ app.get('/dashboard/:guildId/protection', require('./middleware/auth'), (req, re
         inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id),
     }));
 
-    const langFlags  = { ar: getUnicodeFlagIcon('SA'), en: getUnicodeFlagIcon('US') };
-    const langLabels = { ar: 'عربي', en: 'English' };
-    const supported  = ['ar', 'en'];
 
     // Per-guild protection config (fallback to global defaults)
     const globalCfg      = readSettingsCfg();
@@ -1967,9 +1991,6 @@ app.get('/dashboard/:guildId/protection', require('./middleware/auth'), (req, re
         guilds,
         t: req.t,
         lang: req.lang,
-        langFlags,
-        langLabels,
-        supported,
         guildId,
         isShip: getIsShip(req.session.user?.id),
         protectionCfg,
@@ -2125,9 +2146,6 @@ app.get('/dashboard/:guildId/auto-roles', require('./middleware/auth'), (req, re
         }
     } catch (_) { /* no file yet – use defaults */ }
 
-    const langFlags  = { ar: getUnicodeFlagIcon('SA'), en: getUnicodeFlagIcon('US') };
-    const langLabels = { ar: 'عربي', en: 'English' };
-    const supported  = ['ar', 'en'];
 
     res.render('auto_roles', {
         user: req.session.user,
@@ -2137,9 +2155,6 @@ app.get('/dashboard/:guildId/auto-roles', require('./middleware/auth'), (req, re
         autoRoles,
         t: req.t,
         lang: req.lang,
-        langFlags,
-        langLabels,
-        supported,
         guildId,
         isShip: getIsShip(req.session.user?.id)
     });
@@ -2186,6 +2201,480 @@ app.post('/dashboard/:guildId/auto-roles/save', require('./middleware/auth'), (r
         res.json({ ok: true });
     } catch (err) {
         console.error('[auto-roles/save]', err);
+        res.status(500).json({ error: 'Failed to save' });
+    }
+});
+
+/* ── Suggestions ─────────────────────────────────────── */
+app.get('/dashboard/:guildId/suggestions', require('./middleware/auth'), (req, res) => {
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.redirect('/dashboard');
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : guildDb.exists(guildId);
+    if (!inBot) return res.redirect('/dashboard');
+
+    const guildInfo = raw.find(g => g.id === guildId);
+    const guilds    = raw.map(g => ({ ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id) }));
+
+    let guildChannels = [];
+    let guildRoles    = [];
+    let guildEmojis   = [];
+    if (botClient) {
+        const guild = botClient.guilds.cache.get(guildId);
+        if (guild) {
+            guildChannels = guild.channels.cache
+                .filter(c => c.type === 0)
+                .map(c => ({ id: c.id, name: c.name }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            guildRoles = guild.roles.cache
+                .filter(r => !r.managed && r.id !== guildId)
+                .map(r => ({ id: r.id, name: r.name, color: r.color ? '#' + r.color.toString(16).padStart(6, '0') : null }))
+                .sort((a, b) => (b.position || 0) - (a.position || 0));
+            guildEmojis = guild.emojis.cache
+                .map(e => ({ id: e.id, name: e.name, animated: e.animated, url: e.imageURL({ size: 32 }) }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+        }
+    }
+
+    // Default settings
+    const defaultSettings = {
+        enabled: false, channel: '', allowThreads: false,
+        voting: { enabled: true, type: 'upvote_downvote', upvoteEmoji: '\uD83D\uDC4D', downvoteEmoji: '\uD83D\uDC4E', multipleReactions: [] },
+        autoThreshold: { enabled: false, minUpvotes: 10, minDownvotes: 5 },
+        permissions: { allowAll: true, allowedRoles: [], minAccountAge: 0, minServerLevel: 0 },
+        spam: { cooldown: 10, maxPerDay: 3 },
+        moderation: { requireApproval: false, pendingChannel: '', requireRejectReason: true },
+        statusTags: { accepted: 'Accepted', rejected: 'Rejected', considered: 'Under Review' }
+    };
+
+    let suggestions = { ...defaultSettings };
+    try {
+        const dbPath = path.join(__dirname, '../database/suggestions.json');
+        const rawDb  = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        if (rawDb[guildId]) suggestions = Object.assign({}, defaultSettings, rawDb[guildId]);
+    } catch (_) {}
+
+    res.render('suggestions', {
+        user:         req.session.user,
+        guildInfo,
+        guilds,
+        guildChannels,
+        guildRoles,
+        guildEmojis,
+        suggestions,
+        guildId,
+        t:            req.t,
+        lang:         req.lang,
+        isShip:       getIsShip(req.session.user?.id),
+    });
+});
+
+app.post('/dashboard/:guildId/suggestions/save', require('./middleware/auth'), (req, res) => {
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+
+    try {
+        const body = req.body || {};
+        const toInt = (v, def) => { const n = parseInt(v, 10); return isNaN(n) || n < 0 ? def : n; };
+        const toBool = (v) => v === true || v === 'true' || v === 1 || v === '1';
+        const toStr = (v, def = '') => (typeof v === 'string' ? v.trim().slice(0, 200) : def);
+
+        const voting = body.voting || {};
+        const autoT  = body.autoThreshold || {};
+        const perms  = body.permissions || {};
+        const spam   = body.spam || {};
+        const mod    = body.moderation || {};
+        const tags   = body.statusTags || {};
+
+        const multipleReactions = Array.isArray(voting.multipleReactions)
+            ? voting.multipleReactions.map(e => toStr(e)).filter(Boolean).slice(0, 10)
+            : [];
+        const allowedRoles = Array.isArray(perms.allowedRoles)
+            ? perms.allowedRoles.map(String).filter(Boolean)
+            : [];
+
+        const data = {
+            guildId,
+            enabled:      toBool(body.enabled),
+            channel:      toStr(body.channel),
+            allowThreads: toBool(body.allowThreads),
+            voting: {
+                enabled:           toBool(voting.enabled),
+                type:              ['upvote_downvote','multiple_reactions','buttons'].includes(voting.type) ? voting.type : 'upvote_downvote',
+                upvoteEmoji:       toStr(voting.upvoteEmoji, '\uD83D\uDC4D'),
+                downvoteEmoji:     toStr(voting.downvoteEmoji, '\uD83D\uDC4E'),
+                multipleReactions
+            },
+            autoThreshold: {
+                enabled:     toBool(autoT.enabled),
+                minUpvotes:  toInt(autoT.minUpvotes, 10),
+                minDownvotes: toInt(autoT.minDownvotes, 5)
+            },
+            permissions: {
+                allowAll:      toBool(perms.allowAll),
+                allowedRoles,
+                minAccountAge: toInt(perms.minAccountAge, 0),
+                minServerLevel: toInt(perms.minServerLevel, 0)
+            },
+            spam: {
+                cooldown:  toInt(spam.cooldown, 10),
+                maxPerDay: toInt(spam.maxPerDay, 3)
+            },
+            moderation: {
+                requireApproval:     toBool(mod.requireApproval),
+                pendingChannel:      toStr(mod.pendingChannel),
+                requireRejectReason: toBool(mod.requireRejectReason)
+            },
+            statusTags: {
+                accepted:   toStr(tags.accepted, 'Accepted'),
+                rejected:   toStr(tags.rejected, 'Rejected'),
+                considered: toStr(tags.considered, 'Under Review')
+            }
+        };
+
+        const dbPath = path.join(__dirname, '../database/suggestions.json');
+        let db = {};
+        try { db = JSON.parse(fs.readFileSync(dbPath, 'utf8')); } catch (_) {}
+        db[guildId] = data;
+        fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8');
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('[suggestions/save]', err);
+        res.status(500).json({ error: 'Failed to save' });
+    }
+});
+
+/* ── Auto Responder ──────────────────────────────────── */
+app.get('/dashboard/:guildId/auto-responder', require('./middleware/auth'), (req, res) => {
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.redirect('/dashboard');
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : guildDb.exists(guildId);
+    if (!inBot) return res.redirect('/dashboard');
+
+    const guildInfo = raw.find(g => g.id === guildId);
+    const guilds    = raw.map(g => ({ ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id) }));
+
+    let guildRoles = [], guildChannels = [];
+    if (botClient) {
+        const guild = botClient.guilds.cache.get(guildId);
+        if (guild) {
+            guildRoles = guild.roles.cache
+                .filter(r => !r.managed && r.id !== guildId)
+                .map(r => ({ id: r.id, name: r.name, color: r.color ? '#' + r.color.toString(16).padStart(6, '0') : null }))
+                .sort((a, b) => (b.position || 0) - (a.position || 0));
+            guildChannels = guild.channels.cache
+                .filter(c => c.type === 0)
+                .map(c => ({ id: c.id, name: c.name }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+        }
+    }
+
+    const defaultAR = { enabled: false, responses: [] };
+    let autoResponder = { ...defaultAR };
+    try {
+        const dbPath = path.join(__dirname, '../database/auto_responder.json');
+        const raw2   = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        if (raw2[guildId]) autoResponder = Object.assign({}, defaultAR, raw2[guildId]);
+    } catch (_) {}
+
+    res.render('auto_responder', {
+        user:     req.session.user,
+        guildInfo,
+        guilds,
+        guildId,
+        guildRoles,
+        guildChannels,
+        autoResponder,
+        t:        req.t,
+        lang:     req.lang,
+        isShip:   getIsShip(req.session.user?.id),
+    });
+});
+
+app.post('/dashboard/:guildId/auto-responder/save', require('./middleware/auth'), express.json(), (req, res) => {
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    try {
+        const body    = req.body || {};
+        const toBool  = v => v === true || v === 'true' || v === 1 || v === '1';
+        const toStr   = (v, def = '') => (typeof v === 'string' ? v.trim().slice(0, 2000) : def);
+        const toArr   = v => Array.isArray(v) ? v : [];
+        const toInt   = (v, def) => { const n = parseInt(v, 10); return isNaN(n) || n < 0 ? def : n; };
+
+        const responses = toArr(body.responses).map(r => ({
+            id:                 (typeof r.id === 'string' && r.id) ? r.id : (Date.now().toString(36) + Math.random().toString(36).slice(2)),
+            triggers:           toArr(r.triggers).map(t => toStr(t)).filter(Boolean).slice(0, 20),
+            triggerType:        ['equals','contains','startsWith','endsWith'].includes(r.triggerType) ? r.triggerType : 'contains',
+            sendType:           ['send','reply','reply_mention','dm'].includes(r.sendType) ? r.sendType : 'reply',
+            messages:           toArr(r.messages).map(m => toStr(m)).filter(Boolean).slice(0, 10),
+            giveRole:           toStr(r.giveRole),
+            ignoredChannels:    toArr(r.ignoredChannels).map(String).filter(Boolean),
+            ignoredRoles:       toArr(r.ignoredRoles).map(String).filter(Boolean),
+            enabledChannels:    toArr(r.enabledChannels).map(String).filter(Boolean),
+            allowedRoles:       toArr(r.allowedRoles).map(String).filter(Boolean),
+            autoDeleteBotReply: toBool(r.autoDeleteBotReply),
+            deleteOnAuthorDelete: toBool(r.deleteOnAuthorDelete),
+            deleteUserMessage:  toBool(r.deleteUserMessage),
+            enabled:            toBool(r.enabled !== undefined ? r.enabled : true),
+        })).slice(0, 50);
+
+        const data = { enabled: toBool(body.enabled), responses };
+        const dbPath = path.join(__dirname, '../database/auto_responder.json');
+        let db = {};
+        try { db = JSON.parse(fs.readFileSync(dbPath, 'utf8')); } catch (_) {}
+        db[guildId] = data;
+        fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8');
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('[auto-responder/save]', err);
+        res.status(500).json({ error: 'Failed to save' });
+    }
+});
+
+/* ── Points: Ticket Points ───────────────────────────── */
+app.get('/dashboard/:guildId/points/tickets', require('./middleware/auth'), (req, res) => {
+    const fs            = require('fs');
+    const path          = require('path');
+    const guildDb       = require('./utils/guildDb');
+    const staffPoints   = require('../systems/points_tickets');
+    const { getClient } = require('./utils/botClient');
+    const botClient     = getClient();
+    const { guildId }   = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.redirect('/dashboard');
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : guildDb.exists(guildId);
+    if (!inBot) return res.redirect('/dashboard');
+    const guildInfo = raw.find(g => g.id === guildId);
+    const guilds    = raw.map(g => ({ ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id) }));
+
+    // Load staff points config and scores
+    const staffPointsConfig = staffPoints.getConfig(guildId);
+    const staffScores       = staffPoints.getScores(guildId);
+
+    // Fetch channels and roles from the bot client
+    let guildChannels = [];
+    let guildRoles    = [];
+    if (botClient) {
+        const guild = botClient.guilds.cache.get(guildId);
+        if (guild) {
+            guildChannels = guild.channels.cache
+                .filter(c => c.type === 0)
+                .map(c => ({ id: c.id, name: c.name }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            guildRoles = guild.roles.cache
+                .filter(r => !r.managed && r.id !== guild.id)
+                .map(r => ({ id: r.id, name: r.name, color: r.hexColor }))
+                .sort((a, b) => b.position - a.position);
+        }
+    }
+
+    // Read all available bot commands from the commands folder
+    let guildCommands = [];
+    try {
+        const cmdsDir = path.join(__dirname, '../commands');
+        guildCommands = fs.readdirSync(cmdsDir)
+            .filter(f => f.endsWith('.js'))
+            .map(f => f.replace('.js', '').replace(/_/g, ' '))
+            .sort();
+    } catch (_) {}
+
+    res.render('points_tickets', {
+        user: req.session.user, guildInfo, guilds,
+        t: req.t, lang: req.lang, guildId,
+        isShip: getIsShip(req.session.user?.id),
+        staffPointsConfig, staffScores,
+        guildChannels, guildRoles, guildCommands,
+    });
+});
+
+/* ── Points: Ticket Points — Save ───────────────────────── */
+app.post('/dashboard/:guildId/points/tickets/save', require('./middleware/auth'), express.json(), (req, res) => {
+    try {
+        const guildDb     = require('./utils/guildDb');
+        const staffPoints = require('../systems/staff_points');
+        const { guildId } = req.params;
+        const raw = req.session.guilds || [];
+        if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+
+        const body   = req.body || {};
+        const current = staffPoints.getConfig(guildId);
+
+        // Build sanitised config from request body
+        const toNum  = (v, fallback) => { const n = parseInt(v, 10); return isNaN(n) ? fallback : n; };
+        const toBool = (v, fallback) => (typeof v === 'boolean' ? v : (v === 'true' ? true : (v === 'false' ? false : fallback)));
+
+        const newConfig = {
+            enabled: toBool(body.enabled, current.enabled),
+            ticketPoints: {
+                enabled: toBool(body.ticketPoints?.enabled, current.ticketPoints.enabled),
+                claim: {
+                    enabled: toBool(body.ticketPoints?.claim?.enabled, current.ticketPoints.claim.enabled),
+                    points:  toNum(body.ticketPoints?.claim?.points, current.ticketPoints.claim.points),
+                },
+                close: {
+                    enabled: toBool(body.ticketPoints?.close?.enabled, current.ticketPoints.close.enabled),
+                    points:  toNum(body.ticketPoints?.close?.points, current.ticketPoints.close.points),
+                },
+            },
+            ratingPoints: {
+                enabled: toBool(body.ratingPoints?.enabled, current.ratingPoints?.enabled ?? false),
+                // Per-star points (1–5)
+                stars: {
+                    5: toNum(body.ratingPoints?.stars?.[5] ?? body.ratingPoints?.stars?.['5'], 10),
+                    4: toNum(body.ratingPoints?.stars?.[4] ?? body.ratingPoints?.stars?.['4'], 5),
+                    3: toNum(body.ratingPoints?.stars?.[3] ?? body.ratingPoints?.stars?.['3'], 0),
+                    2: toNum(body.ratingPoints?.stars?.[2] ?? body.ratingPoints?.stars?.['2'], -2),
+                    1: toNum(body.ratingPoints?.stars?.[1] ?? body.ratingPoints?.stars?.['1'], -5),
+                },
+            },
+            commandPoints: {
+                enabled: toBool(body.commandPoints?.enabled, current.commandPoints.enabled),
+                // Dynamic array of { id, name, points }
+                commands: Array.isArray(body.commandPoints?.commands)
+                    ? body.commandPoints.commands
+                        .filter(c => c.name && typeof c.name === 'string')
+                        .map(c => ({
+                            id:     String(c.id || Date.now()),
+                            name:   String(c.name).replace(/[^a-z0-9_ -]/gi, '').toLowerCase().trim().slice(0, 50),
+                            points: toNum(c.points, 1),
+                        }))
+                        .filter(c => c.name)
+                    : (Array.isArray(current.commandPoints.commands) ? current.commandPoints.commands : []),
+            },
+            logsChannelId: body.logsChannelId || null,
+            antiAbuse: {
+                enabled:          toBool(body.antiAbuse?.enabled, current.antiAbuse.enabled),
+                noSelfClaim:      toBool(body.antiAbuse?.noSelfClaim, current.antiAbuse.noSelfClaim),
+                noSelfRate:       toBool(body.antiAbuse?.noSelfRate, current.antiAbuse.noSelfRate),
+                noDuplicatePoints:toBool(body.antiAbuse?.noDuplicatePoints, current.antiAbuse.noDuplicatePoints),
+                cooldownMinutes:  toNum(body.antiAbuse?.cooldownMinutes, current.antiAbuse.cooldownMinutes),
+            },
+            rewards: {
+                enabled: toBool(body.rewards?.enabled, current.rewards.enabled),
+                list: Array.isArray(body.rewards?.list) ? body.rewards.list.map(r => ({
+                    id:     String(r.id || Date.now()),
+                    points: toNum(r.points, 100),
+                    roleId: String(r.roleId || ''),
+                    label:  String(r.label || '').slice(0, 80),
+                })).filter(r => r.points > 0) : current.rewards.list,
+            },
+        };
+
+        guildDb.write(guildId, 'staff_points', newConfig);
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('[points/tickets/save]', err);
+        res.status(500).json({ error: 'Failed to save' });
+    }
+});
+
+/* ── Points: Interaction Points ─────────────────────── */
+app.get('/dashboard/:guildId/points/interactions', require('./middleware/auth'), (req, res) => {
+    const guildDb    = require('./utils/guildDb');
+    const { getClient } = require('./utils/botClient');
+    const interactionPoints = require('../systems/points_interactions');
+    const botClient  = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.redirect('/dashboard');
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : guildDb.exists(guildId);
+    if (!inBot) return res.redirect('/dashboard');
+    const guildInfo  = raw.find(g => g.id === guildId);
+    const guilds     = raw.map(g => ({ ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id) }));
+    const interactionConfig = interactionPoints.getConfig(guildId);
+
+    let guildChannels = [], guildRoles = [];
+    if (botClient) {
+        const guild = botClient.guilds.cache.get(guildId);
+        if (guild) {
+            guildChannels = guild.channels.cache
+                .filter(c => c.type === 0)
+                .map(c => ({ id: c.id, name: c.name }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            guildRoles = guild.roles.cache
+                .filter(r => !r.managed && r.id !== guild.id)
+                .map(r => ({ id: r.id, name: r.name }))
+                .sort((a, b) => b.position - a.position);
+        }
+    }
+
+    res.render('points_interactions', {
+        user: req.session.user, guildInfo, guilds,
+        t: req.t, lang: req.lang, guildId,
+        isShip: getIsShip(req.session.user?.id),
+        interactionConfig, guildChannels, guildRoles,
+    });
+});
+
+/* ── Points: Interaction Points — Save ─────────────────── */
+app.post('/dashboard/:guildId/points/interactions/save', require('./middleware/auth'), express.json(), (req, res) => {
+    try {
+        const guildDb    = require('./utils/guildDb');
+        const interactionPoints = require('../systems/points_interactions');
+        const { guildId } = req.params;
+        const raw = req.session.guilds || [];
+        if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+
+        const body    = req.body || {};
+        const current = interactionPoints.getConfig(guildId);
+        const toNum   = (v, fb) => { const n = parseInt(v, 10); return isNaN(n) ? fb : n; };
+        const toBool  = (v, fb) => (typeof v === 'boolean' ? v : (v === 'true' ? true : (v === 'false' ? false : fb)));
+
+        const newConfig = {
+            enabled: toBool(body.enabled, current.enabled),
+
+            messagePoints: {
+                enabled:         toBool(body.messagePoints?.enabled, current.messagePoints.enabled),
+                points:          toNum(body.messagePoints?.points, current.messagePoints.points),
+                cooldownSeconds: toNum(body.messagePoints?.cooldownSeconds, current.messagePoints.cooldownSeconds),
+                minLength:       toNum(body.messagePoints?.minLength, current.messagePoints.minLength),
+            },
+
+            reactionPoints: {
+                enabled:       toBool(body.reactionPoints?.enabled, current.reactionPoints.enabled),
+                givePoints:    toNum(body.reactionPoints?.givePoints, current.reactionPoints.givePoints),
+                receivePoints: toNum(body.reactionPoints?.receivePoints, current.reactionPoints.receivePoints),
+            },
+
+            voicePoints: {
+                enabled:         toBool(body.voicePoints?.enabled, current.voicePoints.enabled),
+                pointsPerMinute: toNum(body.voicePoints?.pointsPerMinute, current.voicePoints.pointsPerMinute),
+                ignoreAfk:       toBool(body.voicePoints?.ignoreAfk, current.voicePoints.ignoreAfk),
+                ignoreMuted:     toBool(body.voicePoints?.ignoreMuted, current.voicePoints.ignoreMuted),
+            },
+
+            mediaPoints: {
+                enabled:      toBool(body.mediaPoints?.enabled, current.mediaPoints.enabled),
+                imagePoints:  toNum(body.mediaPoints?.imagePoints, current.mediaPoints.imagePoints),
+                linkPoints:   toNum(body.mediaPoints?.linkPoints, current.mediaPoints.linkPoints),
+            },
+
+            channels: {
+                ignored: Array.isArray(body.channels?.ignored) ? body.channels.ignored.filter(Boolean) : current.channels.ignored,
+                allowed: Array.isArray(body.channels?.allowed) ? body.channels.allowed.filter(Boolean) : current.channels.allowed,
+            },
+
+            roles: {
+                ignored: Array.isArray(body.roles?.ignored) ? body.roles.ignored.filter(Boolean) : current.roles.ignored,
+                bonus: Array.isArray(body.roles?.bonus)
+                    ? body.roles.bonus.map(b => ({ roleId: String(b.roleId || ''), multiplier: parseFloat(b.multiplier) || 1 })).filter(b => b.roleId)
+                    : current.roles.bonus,
+            },
+
+            logsChannelId: body.logsChannelId || null,
+        };
+
+        guildDb.write(guildId, 'interaction_points', newConfig);
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('[points/interactions/save]', err);
         res.status(500).json({ error: 'Failed to save' });
     }
 });

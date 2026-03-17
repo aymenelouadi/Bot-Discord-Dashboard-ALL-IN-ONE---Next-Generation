@@ -9,7 +9,7 @@
   <%- include('partials/head_theme') %>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= guildInfo.name %> — <%= lang === 'ar' ? 'الأمان' : 'Security' %></title>
+  <title><%= guildInfo.name %> — <%= t.protection.security %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -353,22 +353,22 @@
   <% 
     const pc = protectionCfg || {};
     const actionLabels = {
-      '1': lang==='ar'?'طرد':'Kick',
-      '2': lang==='ar'?'إزالة الرتب':'Remove Roles',
-      '3': lang==='ar'?'حظر':'Ban',
-      '4': lang==='ar'?'كتم':'Mute',
-      '5': lang==='ar'?'سجن':'Jail'
+      '1': t.protection.kick,
+      '2': t.protection.removeRoles,
+      '3': t.protection.ban,
+      '4': t.protection.mute,
+      '5': t.protection.jail
     };
   %>
   <main class="main">
     <div class="page-header">
       <div>
-        <h2><%= lang === 'ar' ? 'الأمان' : 'Security' %></h2>
-        <p><%= lang === 'ar' ? 'إعدادات نظام الحماية لحماية السيرفر من الإجراءات الضارة' : 'Configure server protection against harmful actions' %></p>
+        <h2><%= t.protection.security %></h2>
+        <p><%= t.protection.configureServerProtectionAgainstHarmfulActions %></p>
       </div>
       <span id="global-status-badge" class="status-badge <%= pc.enable!==false?'on':'off' %>">
         <span class="status-dot <%= pc.enable!==false?'on':'off' %>"></span>
-        <%= pc.enable!==false?(lang==='ar'?'مفعّل':'Active'):(lang==='ar'?'معطّل':'Disabled') %>
+        <%= pc.enable!==false?(t.protection.active):(t.protection.disabled) %>
       </span>
     </div>
     <div class="divider"></div>
@@ -379,10 +379,10 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
       <div class="lock-banner-text">
-        <h4><%= lang==='ar'?'محمية — لا تملك صلاحية':'Protected — No Access' %></h4>
-        <p><%= lang==='ar'?'لا يمكن تعديل إعدادات الحماية. اطلب من المسؤول منحك صلاحية من صفحة الإعدادات.':'You cannot edit protection settings. Ask an admin to grant access from Settings.' %></p>
+        <h4><%= t.protection.protectedNoAccess %></h4>
+        <p><%= t.protection.youCannotEditProtectionSettingsAsk %></p>
       </div>
-      <a href="/dashboard/<%= guildId %>/setting" class="btn btn-sm btn-ghost lock-banner-btn nav-link"><%= lang==='ar'?'الإعدادات':'Settings' %></a>
+      <a href="/dashboard/<%= guildId %>/setting" class="btn btn-sm btn-ghost lock-banner-btn nav-link"><%= t.protection.settings %></a>
     </div>
     <% } %>
 
@@ -394,20 +394,20 @@
           <div class="card-header-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 18 18"><path d="M9 1L2 4.5V9c0 4.418 3.083 8.572 7 9.5 3.917-.928 7-5.082 7-9.5V4.5L9 1z" fill="currentColor" fill-opacity="0.4"/><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 7.5l2.5 2.5 3.5-3.5 1 1-4.5 4.5-3.5-3.5 1-1z" fill="currentColor"/></svg>
           </div>
-          <h3><%= lang==='ar'?'إعدادات عامة':'Global Settings' %></h3>
+          <h3><%= t.protection.globalSettings %></h3>
         </div>
         <div class="card-body">
           <div class="form-row">
             <div class="form-row-left">
-              <label class="form-label"><%= lang==='ar'?'تفعيل نظام الحماية':'Enable Protection System' %></label>
-              <p class="form-help"><%= lang==='ar'?'تشغيل أو إيقاف جميع وحدات الحماية دفعة واحدة':'Toggle all protection modules on or off at once' %></p>
+              <label class="form-label"><%= t.protection.enableProtectionSystem %></label>
+              <p class="form-help"><%= t.protection.toggleAllProtectionModulesOnOr %></p>
             </div>
             <%- include('partials/toggle_switch', { id: 'global-enable', dataKey: 'enable', checked: pc.enable!==false }) %>
           </div>
           <div class="form-row" style="align-items:flex-start;">
             <div class="form-row-left">
-              <label class="form-label"><%= lang==='ar'?'الرتب المعفاة (عامة)':'Global Whitelist Roles' %></label>
-              <p class="form-help"><%= lang==='ar'?'هذه الرتب معفاة من جميع وحدات الحماية':'These roles are exempt from all protection modules' %></p>
+              <label class="form-label"><%= t.protection.globalWhitelistRoles %></label>
+              <p class="form-help"><%= t.protection.theseRolesAreExemptFromAll %></p>
             </div>
             <div style="flex-shrink:0;max-width:320px;">
               <div class="role-multi" id="global-wl-chips">
@@ -425,7 +425,7 @@
                 <div class="role-picker-wrap" id="global-wl-picker-wrap">
                   <button class="role-add-btn" onclick="toggleRolePicker('global-wl-dd')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
-                    <%= lang==='ar'?'إضافة':'Add' %>
+                    <%= t.protection.add %>
                   </button>
                   <div class="role-picker-dd" id="global-wl-dd">
                     <% guildRoles.forEach(r => { %>
@@ -441,8 +441,8 @@
           </div>
           <div class="form-row" style="align-items:flex-start;">
             <div class="form-row-left">
-              <label class="form-label"><%= lang==='ar'?'الإجراءات المتاحة':'Available Actions' %></label>
-              <p class="form-help"><%= lang==='ar'?'الأرقام المستخدمة عند اختيار الإجراء في كل وحدة':'Numbers used when selecting an action per module' %></p>
+              <label class="form-label"><%= t.protection.availableActions %></label>
+              <p class="form-help"><%= t.protection.numbersUsedWhenSelectingAnAction %></p>
             </div>
             <div class="action-map">
               <% Object.entries(actionLabels).forEach(([num, label]) => { %>
@@ -493,16 +493,16 @@
             <% if (mod.hasLimit) { %>
             <div class="prot-row">
               <div class="prot-row-left">
-                <div class="prot-row-label"><%= lang==='ar'?'الحد الأقصى':'Trigger Limit' %></div>
-                <div class="prot-row-help"><%= lang==='ar'?'عدد المرات خلال 10 ثوانٍ قبل تفعيل العقوبة':'Number of actions per 10s before punishment' %></div>
+                <div class="prot-row-label"><%= t.protection.triggerLimit %></div>
+                <div class="prot-row-help"><%= t.protection.numberOfActionsPer10sBefore %></div>
               </div>
               <input type="number" class="prot-number" data-key="<%= mod.key %>:limit" value="<%= cfg.limit||5 %>" min="1" max="50" />
             </div>
             <% } %>
             <div class="prot-row">
               <div class="prot-row-left">
-                <div class="prot-row-label"><%= lang==='ar'?'الإجراء':'Action' %></div>
-                <div class="prot-row-help"><%= lang==='ar'?'العقوبة عند تجاوز الحد':'Punishment when limit is exceeded' %></div>
+                <div class="prot-row-label"><%= t.protection.action %></div>
+                <div class="prot-row-help"><%= t.protection.punishmentWhenLimitIsExceeded %></div>
               </div>
               <select class="prot-select" data-key="<%= mod.key %>:action">
                 <% Object.entries(actionLabels).forEach(([num, label]) => { %>
@@ -513,8 +513,8 @@
             <% if (mod.key !== 'anti_bots' && mod.key !== 'anti_webhooks') { %>
             <div class="prot-row" style="align-items:flex-start;flex-direction:column;gap:8px;">
               <div>
-                <div class="prot-row-label"><%= lang==='ar'?'الرتب المعفاة':'Whitelist Roles' %></div>
-                <div class="prot-row-help"><%= lang==='ar'?'معفاة من هذه الوحدة فقط':'Exempt from this module only' %></div>
+                <div class="prot-row-label"><%= t.protection.whitelistRoles %></div>
+                <div class="prot-row-help"><%= t.protection.exemptFromThisModuleOnly %></div>
               </div>
               <div class="role-multi" id="<%= mod.key %>-chips">
                 <% wlRoles.forEach(rid => {
@@ -531,7 +531,7 @@
                 <div class="role-picker-wrap">
                   <button class="role-add-btn" onclick="toggleRolePicker('<%= mod.key %>-dd')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
-                    <%= lang==='ar'?'إضافة':'Add' %>
+                    <%= t.protection.add %>
                   </button>
                   <div class="role-picker-dd" id="<%= mod.key %>-dd">
                     <% guildRoles.forEach(r => { %>
@@ -554,15 +554,15 @@
 
     <!-- Save Bar -->
     <div class="save-bar" id="save-bar">
-      <span class="save-bar-text"><%= lang==='ar'?'لديك تغييرات غير محفوظة':'You have unsaved changes' %></span>
+      <span class="save-bar-text"><%= t.protection.youHaveUnsavedChanges %></span>
       <div class="save-bar-actions">
         <button class="btn btn-ghost btn-sm" id="reset-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-          <%= lang==='ar'?'تراجع':'Reset' %>
+          <%= t.protection.reset %>
         </button>
         <button class="btn btn-primary btn-sm" id="save-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <%= lang==='ar'?'حفظ':'Save' %>
+          <%= t.protection.save %>
         </button>
       </div>
     </div>
@@ -618,8 +618,8 @@
     /* Global enable badge */
     document.getElementById('global-enable')?.addEventListener('change', function() {
       const b = document.getElementById('global-status-badge');
-      if (this.checked) { b.className='status-badge on'; b.innerHTML='<span class="status-dot on"></span><%= lang==="ar"?"مفعّل":"Active" %>'; }
-      else              { b.className='status-badge off'; b.innerHTML='<span class="status-dot off"></span><%= lang==="ar"?"معطّل":"Disabled" %>'; }
+      if (this.checked) { b.className='status-badge on'; b.innerHTML='<span class="status-dot on"></span><%= t.protection.active %>'; }
+      else              { b.className='status-badge off'; b.innerHTML='<span class="status-dot off"></span><%= t.protection.disabled %>'; }
     });
 
     /* Build payload */
@@ -642,18 +642,18 @@
     /* Save */
     document.getElementById('save-btn')?.addEventListener('click', async () => {
       const btn = document.getElementById('save-btn');
-      btn.disabled = true; btn.textContent = '<%= lang==="ar"?"جارٍ الحفظ...":"Saving..." %>';
+      btn.disabled = true; btn.textContent = '<%= t.protection.saving %>';
       try {
         const res = await fetch(`/dashboard/${GUILD_ID}/protection/save`, {
           method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(buildPayload())
         });
         const j = await res.json();
-        if (res.ok) { showToast('<%= lang==="ar"?"تم الحفظ بنجاح ✓":"Saved successfully ✓" %>', 'success'); captureSnapshot(); checkDirty(); }
-        else         showToast(j.error||'<%= lang==="ar"?"حدث خطأ":"Error occurred" %>', 'error');
-      } catch(e) { showToast('<%= lang==="ar"?"فشل الاتصال":"Connection failed" %>', 'error'); }
+        if (res.ok) { showToast('<%= t.protection.savedSuccessfully %>', 'success'); captureSnapshot(); checkDirty(); }
+        else         showToast(j.error||'<%= t.protection.errorOccurred %>', 'error');
+      } catch(e) { showToast('<%= t.protection.connectionFailed %>', 'error'); }
       finally {
         btn.disabled = false;
-        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><%= lang==="ar"?"حفظ":"Save" %>';
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><%= t.protection.save %>';
       }
     });
 

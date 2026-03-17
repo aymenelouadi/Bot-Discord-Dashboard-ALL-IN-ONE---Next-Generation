@@ -3,7 +3,7 @@
 <img src="media/login.png" alt="Bot Discord Dashboard Banner" width="800"/>
 
 # 🤖 Bot Discord Dashboard ALL-IN-ONE
-### Next Generation — v5.0.0
+### Next Generation — v5.1.1
 
 **A full-featured Discord bot with an integrated web dashboard built for modern Discord servers.**  
 Protection · Moderation · Tickets · Auto Roles · Levels · Dashboard · and more.
@@ -68,11 +68,16 @@ Protection · Moderation · Tickets · Auto Roles · Levels · Dashboard · and 
 | 🛡️ **Protection** | Anti-Ban, Anti-Kick, Anti-Bots, Anti-Webhooks, Anti-Channel Create/Delete, Anti-Role Add/Delete |
 | ⚖️ **Moderation** | Ban, Kick, Mute, Warn, Jail, Clear, Lock/Unlock, Slowmode, Rename |
 | 👥 **Roles** | Auto-Role (members / bots / invite), Temp Role, Multi-Role, Permission Control |
-| 🎟️ **Tickets** | Multi-panel, HTML transcripts, Feedback, Stats, Log channel |
+| 🎟️ **Tickets** | Multi-panel, HTML transcripts, Feedback, Stats, Ticket Points |
+| 🤖 **Auto Responder** | Keyword-triggered auto-replies with exact / contains / regex match modes |
+| 💡 **Suggestions** | Member suggestion submissions with approve/reject dashboard controls |
+| ⭐ **Staff Points** | Reward staff activity with a points system and leaderboard |
+| 💬 **Interaction Points** | Track member engagement (messages, voice) with role-reward thresholds |
+| 📊 **Activity Stats** | Hourly guild activity tracking (joins, leaves, messages, voice) with ApexCharts |
 | 📊 **Utility** | Server/User info, Avatar, Banners, Ping, AFK, Help |
 | 🌐 **Dashboard** | Discord OAuth2, Live editing of all settings, Beautiful UI |
 | 📝 **Logging** | Full audit log for every moderation action |
-| 🌍 **Multi-language** | English & Arabic — configurable per guild |
+| 🌍 **Multi-language** | 11 languages: English, Arabic, French, German, Spanish, Russian, Portuguese, Hindi, Bengali, Urdu, Chinese |
 
 ---
 

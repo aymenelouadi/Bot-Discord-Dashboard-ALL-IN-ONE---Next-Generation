@@ -206,9 +206,24 @@ client.on('guildCreate', async (guild) => {
     } catch (_) {}
 });
 
+client.on('guildMemberAdd', (member) => {
+    try { require('./dashboard/utils/activityTracker').increment(member.guild.id, 'joins'); } catch (_) {}
+});
+
+client.on('guildMemberRemove', (member) => {
+    try { require('./dashboard/utils/activityTracker').increment(member.guild.id, 'leaves'); } catch (_) {}
+});
+
+client.on('voiceStateUpdate', (oldState, newState) => {
+    if (!oldState.channelId && newState.channelId) {
+        try { require('./dashboard/utils/activityTracker').increment(newState.guild.id, 'voice'); } catch (_) {}
+    }
+});
+
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
     if (!message.guild) return;
+    try { require('./dashboard/utils/activityTracker').increment(message.guild.id, 'messages'); } catch (_) {}
 
     const afkData = getAFKUser(message.author.id);
     if (afkData) {

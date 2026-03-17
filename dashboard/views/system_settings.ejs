@@ -4,12 +4,12 @@
   https://discord.gg/UvEYbFd2rj
 %>
 <!DOCTYPE html>
-<html lang="<%= lang %>" dir="<%= lang === 'ar' ? 'rtl' : 'ltr' %>">
+<html lang="<%= lang %>" dir="<%= t.dir %>">
 <head>
   <%- include('partials/head_theme') %>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= lang === 'ar' ? 'إعدادات النظام' : 'System Settings' %> — CODE NEXUS</title>
+  <title><%= t.systemSettings.systemSettings %> — CODE NEXUS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,7 +38,7 @@
     body {
       background: var(--bg);
       color: var(--white);
-      font-family: '<%= lang === "ar" ? "Tajawal" : "Inter" %>','Tajawal','Inter',system-ui,sans-serif;
+      font-family: '<%= t.fontBody %>','Tajawal','Inter',system-ui,sans-serif;
       line-height: 1.6;
       overflow-x: hidden;
     }
@@ -338,10 +338,14 @@
     .crb-btn-cancel:hover  { background:var(--surface-2); color:var(--white); }
     /* ── Ships card ── */
     .ships-chips { display:flex; flex-wrap:wrap; gap:8px; min-height:36px; margin-bottom:12px; }
-    .ships-chips:empty::after { content:'No ships configured'; color:var(--muted); font-size:.78rem; }
-    .ships-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px 4px 12px; background:rgba(124,58,237,.12); border:1px solid rgba(124,58,237,.3); border-radius:99px; font-size:.75rem; font-weight:700; color:var(--purple-l); }
-    .ships-chip-id { font-family:monospace; }
-    .ships-chip-remove { display:flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; border:none; background:rgba(220,38,38,.2); color:#fca5a5; cursor:pointer; padding:0; transition:background .15s; flex-shrink:0; }
+    .ships-chips:empty::after { content:'No ships configured'; color:var(--muted); font-size:.78rem; align-self:center; }
+    .ships-chip { display:inline-flex; align-items:center; gap:8px; padding:4px 8px 4px 4px; background:rgba(124,58,237,.10); border:1px solid rgba(124,58,237,.3); border-radius:99px; transition:background .15s, border-color .15s; }
+    .ships-chip:hover { background:rgba(124,58,237,.18); border-color:rgba(124,58,237,.5); }
+    .ships-chip-av { width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; background:rgba(124,58,237,.3); border:1.5px solid rgba(124,58,237,.4); }
+    .ships-chip-info { display:flex; flex-direction:column; max-width:120px; }
+    .ships-chip-name { font-size:.76rem; font-weight:600; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3; }
+    .ships-chip-id { font-size:.62rem; color:var(--muted); font-family:monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2; }
+    .ships-chip-remove { display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; border:none; background:rgba(220,38,38,.2); color:#fca5a5; cursor:pointer; padding:0; transition:background .15s; flex-shrink:0; margin-left:2px; }
     .ships-chip-remove:hover { background:rgba(220,38,38,.5); }
     .ships-add-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .ships-add-inp { flex:1; min-width:140px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:10px; color:var(--white); font-size:.82rem; padding:8px 12px; outline:none; font-family:monospace; transition:border-color .18s; }
@@ -349,6 +353,27 @@
     .ships-add-inp::placeholder { color:var(--muted); }
     .ships-add-btn { display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px; border:1px solid rgba(124,58,237,.4); background:rgba(124,58,237,.12); color:var(--purple-l); font-size:.78rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all .18s; white-space:nowrap; flex-shrink:0; }
     .ships-add-btn:hover { background:rgba(124,58,237,.25); }
+    .ships-add-btn:disabled { opacity:.5; cursor:not-allowed; }
+    /* Ships confirm modal */
+    #ships-confirm-modal, #owners-confirm-modal { position:fixed; inset:0; z-index:999; background:rgba(0,0,0,.72); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
+    #ships-confirm-modal.open, #owners-confirm-modal.open { opacity:1; pointer-events:auto; }
+    .ships-modal-card { background:rgba(14,6,38,.97); border:1px solid rgba(124,58,237,.25); border-radius:18px; width:100%; max-width:340px; overflow:hidden; box-shadow:0 24px 80px rgba(0,0,0,.7); transform:scale(.95) translateY(10px); transition:transform .22s cubic-bezier(.22,1,.36,1); }
+    #ships-confirm-modal.open .ships-modal-card { transform:scale(1) translateY(0); }
+    .ships-modal-banner { height:72px; background:linear-gradient(135deg,rgba(124,58,237,.5),rgba(6,182,212,.3)); position:relative; overflow:visible; flex-shrink:0; }
+    .ships-modal-banner img.banner-img { width:100%; height:72px; object-fit:cover; display:block; }
+    .ships-modal-av-wrap { position:absolute; bottom:-28px; left:16px; width:60px; height:60px; z-index:2; }
+    .ships-modal-av { width:60px; height:60px; border-radius:50%; border:4px solid rgba(14,6,38,.97); object-fit:cover; display:block; }
+    .ships-modal-body { padding:36px 18px 14px; }
+    .ships-modal-dname { font-size:1rem; font-weight:800; color:var(--white); line-height:1.2; }
+    .ships-modal-uname { font-size:.74rem; color:var(--muted); margin-top:3px; }
+    .ships-modal-uid { font-size:.68rem; color:var(--muted); font-family:monospace; margin-top:8px; background:rgba(255,255,255,.04); border-radius:6px; padding:4px 8px; display:inline-block; }
+    .ships-modal-question { font-size:.83rem; color:rgba(203,194,255,.8); margin:14px 0 0; border-top:1px solid rgba(255,255,255,.07); padding-top:12px; }
+    .ships-modal-footer { display:flex; gap:10px; justify-content:flex-end; padding:12px 18px 16px; }
+    .ships-modal-cancel { padding:7px 18px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:transparent; color:var(--muted); font-size:.8rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .ships-modal-cancel:hover { color:var(--white); background:rgba(255,255,255,.07); }
+    .ships-modal-confirm { padding:7px 18px; border-radius:10px; border:none; background:var(--purple); color:var(--white); font-size:.8rem; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s; }
+    .ships-modal-confirm:hover { background:#8b5cf6; }
+    .ships-modal-confirm:disabled { opacity:.5; cursor:not-allowed; }
     /* ── Sessions card ── */
     .sess-list { display:flex; flex-direction:column; gap:8px; min-height:50px; }
     .sess-list:empty::after { content:'No active sessions'; color:var(--muted); font-size:.78rem; display:block; padding:12px 0; text-align:center; }
@@ -373,7 +398,6 @@
       .page-wrap { padding:72px 14px 40px !important; }
       .page-wrap.page-wrap-guilds { padding-top:0 !important; }
       .page-wrap > * { max-width:100%; }
-      .content-grid { grid-template-columns:1fr !important; }
       .content-card { padding:20px 16px !important; }
       .page-header { margin-bottom:28px; }
       .ships-add-btn { flex:1; justify-content:center; }
@@ -458,7 +482,7 @@
         <div class="prof-username">@<%= user.username %></div>
       </div>
       <div class="prof-block">
-        <div class="prof-block-label"><%= lang === 'ar' ? 'المعرف' : 'User ID' %></div>
+        <div class="prof-block-label"><%= t.systemSettings.userID %></div>
         <div class="prof-id-text" id="prof-copy-id" title="Click to copy"><%= user.id %></div>
       </div>
     </div>
@@ -466,15 +490,15 @@
     <div class="prof-footer">
       <a href="/settings" class="prof-btn" style="background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);color:var(--purple-l);">
         <i data-lucide="settings-2" style="width:16px;height:16px;stroke:currentColor;"></i>
-        <%= lang === 'ar' ? 'إعدادات النظام' : 'System Settings' %>
+        <%= t.systemSettings.systemSettings %>
       </a>
       <a href="https://discord.gg/jfFSmVM5kK" target="_blank" class="prof-btn help">
         <i data-lucide="help-circle" style="width:16px;height:16px;stroke:currentColor;"></i>
-        <%= lang === 'ar' ? 'المساعدة' : 'Help' %>
+        <%= t.systemSettings.help %>
       </a>
       <a href="/auth/logout" class="prof-btn logout" id="logout-link">
         <i data-lucide="log-out" style="width:16px;height:16px;stroke:currentColor;"></i>
-        <%= lang === 'ar' ? 'تسجيل الخروج' : 'Logout' %>
+        <%= t.systemSettings.logout %>
       </a>
     </div>
   </aside>
@@ -488,17 +512,17 @@
     <div class="topbar-right">
       <!-- Lang select — custom dropdown so flags render correctly on Windows -->
       <select id="lang-select" style="display:none;" aria-hidden="true">
-        <option value="ar" <%= lang === 'ar' ? 'selected' : '' %>>ar</option>
+        <option value="ar" <%= t.systemSettings.selectedAttr %>>ar</option>
         <option value="en" <%= lang === 'en' ? 'selected' : '' %>>en</option>
       </select>
       <div class="lcs-wrap" id="lcs-wrap">
         <button class="lcs-btn" id="lcs-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Language">
-          <span class="lcs-flag" id="lcs-flag"><span class="fi fi-<%= lang === 'ar' ? 'sa' : 'us' %>"></span></span>
-          <span class="lcs-label" id="lcs-label"><%= lang === 'ar' ? 'عربي' : 'English' %></span>
+          <span class="lcs-flag" id="lcs-flag"><span class="fi fi-<%= t.flag %>"></span></span>
+          <span class="lcs-label" id="lcs-label"><%= t.systemSettings.english %></span>
           <svg class="lcs-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <ul class="lcs-menu" id="lcs-menu" role="listbox">
-          <li class="lcs-item<%= lang === 'ar' ? ' lcs-active' : '' %>" role="option" data-value="ar" data-flag="sa" data-label="عربي" tabindex="0">
+          <li class="lcs-item<%= t.systemSettings.activeClass %>" role="option" data-value="ar" data-flag="sa" data-label="عربي" tabindex="0">
             <span class="fi fi-sa"></span><span class="lcs-item-label">عربي</span>
           </li>
           <li class="lcs-item<%= lang === 'en' ? ' lcs-active' : '' %>" role="option" data-value="en" data-flag="us" data-label="English" tabindex="0">
@@ -530,8 +554,8 @@
         <i data-lucide="shield" style="width:12px;height:12px;stroke:currentColor;"></i>
         SHIPS ACCESS
       </div>
-      <h1><%= lang === 'ar' ? 'إعدادات النظام' : 'System Settings' %></h1>
-      <p><%= lang === 'ar' ? 'لوحة تحكم النظام — متاحة لأصحاب الصلاحيات فقط' : 'System control panel — restricted to authorized users only' %></p>
+      <h1><%= t.systemSettings.systemSettings %></h1>
+      <p><%= t.systemSettings.systemControlPanelRestrictedToAuthorized %></p>
     </div>
 
     <div class="content-grid">
@@ -542,17 +566,17 @@
             <i data-lucide="layout-dashboard" style="width:22px;height:22px;stroke:currentColor;"></i>
           </div>
           <div>
-            <h3><%= lang === 'ar' ? 'إعدادات الداشبورد' : 'Dashboard Config' %></h3>
-            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= lang === 'ar' ? 'التحكم في سلوك الداشبورد والتحقق وصفحة المقدمة' : 'Control dashboard behaviour, verification and intro page' %></p>
+            <h3><%= t.systemSettings.dashboardConfig %></h3>
+            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= t.systemSettings.controlDashboardBehaviourVerificationAndIntro %></p>
           </div>
         </div>
 
-        <div class="config-divider"><%= lang === 'ar' ? 'عام' : 'General' %></div>
+        <div class="config-divider"><%= t.systemSettings.general %></div>
 
         <div class="toggle-row">
           <div class="toggle-label">
-            <span><%= lang === 'ar' ? 'صفحة المقدمة (Intro)' : 'Intro Page' %></span>
-            <small><%= lang === 'ar' ? 'إظهار صفحة الترحيب عند أول زيارة' : 'Show animated intro on first visit' %></small>
+            <span><%= t.systemSettings.introPage %></span>
+            <small><%= t.systemSettings.showAnimatedIntroOnFirstVisit %></small>
           </div>
           <label class="switch">
             <input type="checkbox" id="toggle-intro" <%= dashCfg.INTRO ? 'checked' : '' %>>
@@ -560,12 +584,12 @@
           </label>
         </div>
 
-        <div class="config-divider"><%= lang === 'ar' ? 'التحقق' : 'Verification' %></div>
+        <div class="config-divider"><%= t.systemSettings.verification %></div>
 
         <div class="toggle-row">
           <div class="toggle-label">
-            <span><%= lang === 'ar' ? 'تحقق الكود بعد تسجيل الدخول' : 'Code Verification on Login' %></span>
-            <small><%= lang === 'ar' ? 'يجب على المستخدم إدخال الكود بعد تسجيل الدخول' : 'Require users to enter a code after logging in' %></small>
+            <span><%= t.systemSettings.codeVerificationOnLogin %></span>
+            <small><%= t.systemSettings.requireUsersToEnterACode %></small>
           </div>
           <label class="switch">
             <input type="checkbox" id="toggle-code-access" <%= dashCfg.CODE_ACCESS ? 'checked' : '' %>>
@@ -574,9 +598,9 @@
         </div>
 
         <div class="code-row<%= dashCfg.CODE_ACCESS ? '' : ' hidden' %>" id="code-row">
-          <label><%= lang === 'ar' ? 'كود الدخول' : 'Access Code' %></label>
+          <label><%= t.systemSettings.accessCode %></label>
           <div class="code-input-wrap">
-            <input class="code-input" type="password" id="code-input" value="<%= dashCfg.CODE %>" placeholder="<%= lang === 'ar' ? 'أدخل الكود...' : 'Enter code...' %>" autocomplete="off" />
+            <input class="code-input" type="password" id="code-input" value="<%= dashCfg.CODE %>" placeholder="<%= t.systemSettings.enterCode %>" autocomplete="off" />
             <button class="code-toggle-vis" id="code-toggle-vis" type="button" aria-label="Show/hide code">
               <i data-lucide="eye" style="width:16px;height:16px;stroke:currentColor;"></i>
             </button>
@@ -586,7 +610,7 @@
         <div class="card-actions">
           <button class="save-btn primary" id="save-config-btn">
             <i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? 'حفظ' : 'Save' %>
+            <%= t.systemSettings.save %>
           </button>
         </div>
       </div>
@@ -598,17 +622,17 @@
             <i data-lucide="server" style="width:22px;height:22px;stroke:currentColor;"></i>
           </div>
           <div>
-            <h3><%= lang === 'ar' ? 'التحكم في السيرفرات' : 'Servers Control' %></h3>
-            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= lang === 'ar' ? 'تحديد أين يُسمح للبوت بالتواجد' : 'Control which servers the bot is allowed to join' %></p>
+            <h3><%= t.systemSettings.serversControl %></h3>
+            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= t.systemSettings.controlWhichServersTheBotIs %></p>
           </div>
         </div>
 
-        <div class="config-divider"><%= lang === 'ar' ? 'سياسة الانضمام' : 'Join Policy' %></div>
+        <div class="config-divider"><%= t.systemSettings.joinPolicy %></div>
 
         <div class="toggle-row">
           <div class="toggle-label">
-            <span><%= lang === 'ar' ? 'السماح بأي سيرفر' : 'Allow Any Server' %></span>
-            <small><%= lang === 'ar' ? 'البوت يمكن أن يكون في أي سيرفر دون قيود' : 'Bot can join any server without restrictions' %></small>
+            <span><%= t.systemSettings.allowAnyServer %></span>
+            <small><%= t.systemSettings.botCanJoinAnyServerWithout %></small>
           </div>
           <label class="switch">
             <input type="checkbox" id="toggle-add-on-many" <%= serversCfg.ADD_BOT_ON_MANY_SERVER ? 'checked' : '' %>>
@@ -619,8 +643,8 @@
         <div id="restricted-section">
           <div class="toggle-row leave-auto-row" id="leave-auto-row">
             <div class="toggle-label">
-              <span><%= lang === 'ar' ? 'مغادرة تلقائية' : 'Auto-Leave' %></span>
-              <small><%= lang === 'ar' ? 'البوت يغادر أي سيرفر غير موجود في القائمة المسموح بها' : 'Bot auto-leaves servers not in the allowed list' %></small>
+              <span><%= t.systemSettings.autoLeave %></span>
+              <small><%= t.systemSettings.botAutoLeavesServersNotIn %></small>
             </div>
             <label class="switch">
               <input type="checkbox" id="toggle-leave-auto" <%= serversCfg.LEAVE_AUTO ? 'checked' : '' %>>
@@ -629,21 +653,21 @@
           </div>
 
           <div class="code-row" style="margin-top:14px;">
-            <label><%= lang === 'ar' ? 'السيرفرات المسموح بها (IDs)' : 'Allowed Server IDs' %></label>
+            <label><%= t.systemSettings.allowedServerIDs %></label>
             <div class="tags-wrap" id="tags-wrap">
               <% serversCfg.SERVER_ALLOWED.forEach(id => { %>
                 <span class="tag-item" data-id="<%= id %>"><%= id %><button type="button" class="tag-rm" data-remove="<%= id %>" aria-label="Remove">&#x2715;</button></span>
               <% }) %>
-              <input class="tags-input" id="tags-input" placeholder="<%= lang === 'ar' ? 'الصق أو اكتب ID (18 رقم) ثم Enter...' : 'Type or paste an ID then press Enter...' %>" />
+              <input class="tags-input" id="tags-input" placeholder="<%= t.systemSettings.typeOrPasteAnIDThen %>" />
             </div>
-            <div class="tags-hint"><i data-lucide="zap" style="width:11px;height:11px;stroke:var(--gold-l);display:inline-block;vertical-align:middle;margin-inline-end:4px;"></i><%= lang === 'ar' ? 'اضغط Enter أو , لإضافة ID — اضغط × لحذفه' : 'Press Enter or , to add an ID — click &times; to remove' %></div>
+            <div class="tags-hint"><i data-lucide="zap" style="width:11px;height:11px;stroke:var(--gold-l);display:inline-block;vertical-align:middle;margin-inline-end:4px;"></i><%= t.systemSettings.pressEnterOrToAddAn %></div>
           </div>
         </div>
 
         <div class="card-actions">
           <button class="save-btn primary" id="save-servers-btn">
             <i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? 'حفظ' : 'Save' %>
+            <%= t.systemSettings.save %>
           </button>
         </div>
       </div>
@@ -655,27 +679,27 @@
             <i data-lucide="webhook" style="width:22px;height:22px;stroke:currentColor;"></i>
           </div>
           <div>
-            <h3><%= lang === 'ar' ? 'Webhook اللوغ' : 'Log Webhook' %></h3>
-            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= lang === 'ar' ? 'إرسال سجلات النشاط تلقائياً لـ Discord webhook' : 'Automatically send activity logs to a Discord webhook' %></p>
+            <h3><%= t.systemSettings.logWebhook %></h3>
+            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= t.systemSettings.automaticallySendActivityLogsToA %></p>
           </div>
         </div>
 
-        <div class="config-divider"><%= lang === 'ar' ? 'Webhook URL' : 'Webhook URL' %></div>
+        <div class="config-divider"><%= t.systemSettings.webhookURL %></div>
 
         <div class="wh-url-wrap">
           <span class="wh-status-dot<%= webhookCfg.URL ? ' active' : '' %>" id="wh-status-dot"></span>
           <input class="wh-url-inp" type="text" id="wh-url-inp"
             value="<%= webhookCfg.URL %>"
             placeholder="https://discord.com/api/webhooks/..." />
-          <button class="wh-clear-btn" id="wh-clear-btn" title="<%= lang === 'ar' ? 'إزالة الرابط' : 'Clear URL' %>"<%= webhookCfg.URL ? '' : ' hidden' %>>
+          <button class="wh-clear-btn" id="wh-clear-btn" title="<%= t.systemSettings.clearURL %>"<%= webhookCfg.URL ? '' : ' hidden' %>>
             <i data-lucide="trash-2" style="width:14px;height:14px;stroke:currentColor;"></i>
           </button>
         </div>
 
-        <div class="config-divider"><%= lang === 'ar' ? 'لون البطاقة (Embed Color)' : 'Embed Color' %></div>
+        <div class="config-divider"><%= t.systemSettings.embedColor %></div>
 
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <input type="color" class="wh-color-inp" id="wh-color-inp" value="<%= webhookCfg.COLOR %>" title="<%= lang === 'ar' ? 'اختر لوناً' : 'Pick a color' %>" />
+          <input type="color" class="wh-color-inp" id="wh-color-inp" value="<%= webhookCfg.COLOR %>" title="<%= t.systemSettings.pickAColor %>" />
           <div class="color-swatch-row" id="wh-swatch-row">
             <% [['#7c3aed','Purple'],['#06b6d4','Cyan'],['#22c55e','Green'],['#ef4444','Red'],['#f59e0b','Gold'],['#ec4899','Pink'],['#ffffff','White'],['#1e293b','Dark']].forEach(([c,n]) => { %>
               <div class="color-swatch<%= webhookCfg.COLOR === c ? ' selected' : '' %>" data-color="<%= c %>" title="<%= n %>"></div>
@@ -686,11 +710,11 @@
         <div class="card-actions" style="gap:8px;">
           <button class="wh-test-btn" id="wh-test-btn" <%= webhookCfg.URL ? '' : 'disabled' %>>
             <i data-lucide="send" style="width:13px;height:13px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? 'إرسال تجريبي' : 'Send Test' %>
+            <%= t.systemSettings.sendTest %>
           </button>
           <button class="save-btn primary" id="save-wh-btn">
             <i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? 'حفظ' : 'Save' %>
+            <%= t.systemSettings.save %>
           </button>
         </div>
       </div>
@@ -702,27 +726,41 @@
             <i data-lucide="shield" style="width:22px;height:22px;stroke:currentColor;"></i>
           </div>
           <div>
-            <h3><%= lang === 'ar' ? 'إدارة الـ Ships' : 'Ships Management' %></h3>
-            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= lang === 'ar' ? 'أضف أو أزل معرّفات المشرفين الذين يملكون صلاحية الوصول لصفحة الإعدادات' : 'Add or remove Discord IDs that have access to this settings page' %></p>
+            <h3><%= t.systemSettings.shipsManagement %></h3>
+            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= t.systemSettings.addOrRemoveDiscordIDsThat %></p>
           </div>
         </div>
-        <div class="config-divider"><%= lang === 'ar' ? 'قائمة الـ Ships الحالية' : 'Current Ships' %></div>
-        <div class="ships-chips" id="ships-chips">
-          <% (shipsCfg.SHIPS || []).forEach(sid => { %>
-            <div class="ships-chip" data-id="<%= sid %>">
-              <span class="ships-chip-id"><%= sid %></span>
-              <button class="ships-chip-remove" title="Remove" data-uid="<%= sid %>">
-                <i data-lucide="x" style="width:10px;height:10px;stroke:currentColor;"></i>
-              </button>
-            </div>
-          <% }) %>
-        </div>
-        <div class="config-divider"><%= lang === 'ar' ? 'إضافة Ship جديد' : 'Add New Ship' %></div>
+        <div class="config-divider"><%= t.systemSettings.currentShips %></div>
+        <div class="ships-chips" id="ships-chips"></div>
+        <div class="config-divider"><%= t.systemSettings.addNewShip %></div>
         <div class="ships-add-row">
           <input class="ships-add-inp" type="text" id="ships-add-inp" placeholder="Discord User ID (e.g. 756947441592303707)" />
           <button class="ships-add-btn" id="ships-add-btn">
             <i data-lucide="plus" style="width:14px;height:14px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? 'إضافة' : 'Add' %>
+            <%= t.systemSettings.add %>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card: Owners Management -->
+      <div class="content-card config-card">
+        <div class="config-card-header">
+          <div class="content-card-icon">
+            <i data-lucide="crown" style="width:22px;height:22px;stroke:currentColor;"></i>
+          </div>
+          <div>
+            <h3><%= t.systemSettings.ownersManagement %></h3>
+            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= t.systemSettings.addOrRemoveDiscordIDsListed %></p>
+          </div>
+        </div>
+        <div class="config-divider"><%= t.systemSettings.currentOwners %></div>
+        <div class="ships-chips" id="owners-chips"></div>
+        <div class="config-divider"><%= t.systemSettings.addNewOwner %></div>
+        <div class="ships-add-row">
+          <input class="ships-add-inp" type="text" id="owners-add-inp" placeholder="Discord User ID (e.g. 756947441592303707)" />
+          <button class="ships-add-btn" id="owners-add-btn">
+            <i data-lucide="plus" style="width:14px;height:14px;stroke:currentColor;"></i>
+            <%= t.systemSettings.add %>
           </button>
         </div>
       </div>
@@ -735,13 +773,13 @@
               <i data-lucide="users" style="width:22px;height:22px;stroke:currentColor;"></i>
             </div>
             <div>
-              <h3><%= lang === 'ar' ? 'الجلسات النشطة' : 'Active Sessions' %></h3>
-              <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= lang === 'ar' ? 'الـ Ships المتصلون حالياً بالداشبورد' : 'Ships currently connected to the dashboard' %></p>
+              <h3><%= t.systemSettings.activeSessions %></h3>
+              <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= t.systemSettings.shipsCurrentlyConnectedToTheDashboard %></p>
             </div>
           </div>
           <button class="save-btn" style="background:var(--surface);color:var(--muted);border:1px solid rgba(255,255,255,.1);" id="sess-refresh-btn">
             <i data-lucide="refresh-cw" style="width:13px;height:13px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? 'تحديث' : 'Refresh' %>
+            <%= t.systemSettings.refresh %>
           </button>
         </div>
         <div class="sess-list" id="sess-list"></div>
@@ -754,8 +792,8 @@
             <i data-lucide="activity" style="width:22px;height:22px;stroke:currentColor;"></i>
           </div>
           <div>
-            <h3><%= lang === 'ar' ? 'السجلات والأنشطة' : 'Logs & Activity' %></h3>
-            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= lang === 'ar' ? 'سجل دخول الداشبورد، إضافة البوت للسيرفرات، والأنشطة الأخرى' : 'Dashboard logins, bot server additions, and other activities' %></p>
+            <h3><%= t.systemSettings.logsActivity %></h3>
+            <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= t.systemSettings.dashboardLoginsBotServerAdditionsAnd %></p>
           </div>
         </div>
 
@@ -772,24 +810,24 @@
 
         <div class="log-toolbar">
           <div class="log-filter-group">
-            <button class="log-filter-btn active" data-type="all"><%= lang === 'ar' ? 'الكل' : 'All' %></button>
-            <button class="log-filter-btn" data-type="login"><i data-lucide="log-in" style="width:12px;height:12px;stroke:currentColor;"></i> <%= lang === 'ar' ? 'دخول' : 'Login' %></button>
-            <button class="log-filter-btn" data-type="guild_join"><i data-lucide="plus-circle" style="width:12px;height:12px;stroke:currentColor;"></i> <%= lang === 'ar' ? 'إضافة بوت' : 'Bot Added' %></button>
-            <button class="log-filter-btn" data-type="guild_leave"><i data-lucide="log-out" style="width:12px;height:12px;stroke:currentColor;"></i> <%= lang === 'ar' ? 'مغادرة' : 'Leave' %></button>
+            <button class="log-filter-btn active" data-type="all"><%= t.systemSettings.all %></button>
+            <button class="log-filter-btn" data-type="login"><i data-lucide="log-in" style="width:12px;height:12px;stroke:currentColor;"></i> <%= t.systemSettings.login %></button>
+            <button class="log-filter-btn" data-type="guild_join"><i data-lucide="plus-circle" style="width:12px;height:12px;stroke:currentColor;"></i> <%= t.systemSettings.botAdded %></button>
+            <button class="log-filter-btn" data-type="guild_leave"><i data-lucide="log-out" style="width:12px;height:12px;stroke:currentColor;"></i> <%= t.systemSettings.leave %></button>
           </div>
-          <button class="log-clear-btn" id="log-clear-btn" title="<%= lang === 'ar' ? 'طلب مسح السجلات' : 'Request log clear' %>">
+          <button class="log-clear-btn" id="log-clear-btn" title="<%= t.systemSettings.requestLogClear %>">
             <i data-lucide="trash-2" style="width:13px;height:13px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? 'مسح السجلات' : 'Clear Logs' %>
+            <%= t.systemSettings.clearLogs %>
           </button>
         </div>
 
-        <div class="log-list" id="log-list" data-empty="<%= lang === 'ar' ? 'لا توجد سجلات بعد' : 'No logs yet' %>"></div>
+        <div class="log-list" id="log-list" data-empty="<%= t.systemSettings.noLogsYet %>"></div>
 
         <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:.72rem;color:var(--muted);" id="log-count-label"></span>
           <button class="save-btn" style="background:var(--surface);color:var(--muted);border:1px solid rgba(255,255,255,.1);" id="log-refresh-btn">
             <i data-lucide="refresh-cw" style="width:13px;height:13px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? 'تحديث' : 'Refresh' %>
+            <%= t.systemSettings.refresh %>
           </button>
         </div>
       </div>
@@ -799,7 +837,7 @@
     <div class="page-footer">
       <a href="/dashboard" class="back-btn">
         <i data-lucide="arrow-left" style="width:16px;height:16px;stroke:currentColor;"></i>
-        <%= lang === 'ar' ? 'العودة للداشبورد' : 'Back to Dashboard' %>
+        <%= t.systemSettings.backToDashboard %>
       </a>
     </div>
   </div>
@@ -808,7 +846,7 @@
   <div class="geo-modal-backdrop" id="geo-modal-backdrop">
     <div class="geo-modal">
       <div class="geo-modal-hdr">
-        <h3><%= lang === 'ar' ? 'معلومات المسؤول والموقع' : 'User &amp; Location Info' %></h3>
+        <h3><%= t.systemSettings.userAmpLocationInfo %></h3>
         <button class="geo-close-btn" id="geo-close-btn"><i data-lucide="x" style="width:15px;height:15px;stroke:currentColor;"></i></button>
       </div>
       <div class="geo-user-row">
@@ -834,14 +872,48 @@
         <div class="content-card-icon" style="width:36px;height:36px;border-radius:10px;">
           <i data-lucide="server" style="width:18px;height:18px;stroke:currentColor;"></i>
         </div>
-        <h2><%= lang === 'ar' ? 'السيرفرات الحالية' : 'Current Bot Servers' %></h2>
+        <h2><%= t.systemSettings.currentBotServers %></h2>
         <span class="guilds-count" id="guilds-count">...</span>
       </div>
       <div class="guild-list" id="guild-list">
         <div class="guilds-loading">
           <i data-lucide="loader-2" style="width:18px;height:18px;stroke:currentColor;animation:spin 1s linear infinite;"></i>
-          <%= lang === 'ar' ? 'جارٍ التحميل...' : 'Loading servers...' %>
+          <%= t.systemSettings.loadingServers %>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Owners confirm modal -->
+  <div id="owners-confirm-modal">
+    <div class="ships-modal-card">
+      <div class="ships-modal-banner" id="owners-modal-banner"></div>
+      <div class="ships-modal-body">
+        <div class="ships-modal-dname" id="owners-modal-dname"></div>
+        <div class="ships-modal-uname" id="owners-modal-uname"></div>
+        <div class="ships-modal-uid" id="owners-modal-uid"></div>
+        <div class="ships-modal-question"><%= t.systemSettings.addThisUserToOwners %></div>
+      </div>
+      <div class="ships-modal-footer">
+        <button class="ships-modal-cancel" id="owners-modal-cancel"><%= t.systemSettings.cancel %></button>
+        <button class="ships-modal-confirm" id="owners-modal-confirm"><%= t.systemSettings.confirm %></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ships confirm modal -->
+  <div id="ships-confirm-modal">
+    <div class="ships-modal-card">
+      <div class="ships-modal-banner" id="ships-modal-banner"></div>
+      <div class="ships-modal-body">
+        <div class="ships-modal-dname" id="ships-modal-dname"></div>
+        <div class="ships-modal-uname" id="ships-modal-uname"></div>
+        <div class="ships-modal-uid" id="ships-modal-uid"></div>
+        <div class="ships-modal-question"><%= t.systemSettings.addThisUserToShipsAccess %></div>
+      </div>
+      <div class="ships-modal-footer">
+        <button class="ships-modal-cancel" id="ships-modal-cancel"><%= t.systemSettings.cancel %></button>
+        <button class="ships-modal-confirm" id="ships-modal-confirm"><%= t.systemSettings.confirm %></button>
       </div>
     </div>
   </div>
@@ -853,11 +925,11 @@
         <div id="modal-guild-icon-wrap"></div>
         <div>
           <div class="modal-title" id="modal-guild-name"></div>
-          <div class="modal-sub"><%= lang === 'ar' ? 'تأكيد مغادرة السيرفر' : 'Confirm leaving this server' %></div>
+          <div class="modal-sub"><%= t.systemSettings.confirmLeavingThisServer %></div>
         </div>
       </div>
       <div class="modal-body">
-        <p><%= lang === 'ar' ? 'اختر ماذا تريد أن يحدث بعد مغادرة البوت:' : 'Choose what happens after the bot leaves:' %></p>
+        <p><%= t.systemSettings.chooseWhatHappensAfterTheBot %></p>
         <div class="modal-options">
           <label class="modal-option selected" id="opt-keep">
             <input class="modal-radio" type="radio" name="leave-mode" value="keep" checked />
@@ -865,8 +937,8 @@
               <i data-lucide="database" style="width:16px;height:16px;stroke:currentColor;"></i>
             </div>
             <div class="modal-opt-text">
-              <strong><%= lang === 'ar' ? 'مغادرة فقط' : 'Leave Only' %></strong>
-              <small><%= lang === 'ar' ? 'البوت يغادر ويتم الاحتفاظ بالداتا كاملة' : 'Bot leaves but all server data is kept' %></small>
+              <strong><%= t.systemSettings.leaveOnly %></strong>
+              <small><%= t.systemSettings.botLeavesButAllServerData %></small>
             </div>
           </label>
           <label class="modal-option danger" id="opt-delete">
@@ -875,17 +947,17 @@
               <i data-lucide="trash-2" style="width:16px;height:16px;stroke:currentColor;"></i>
             </div>
             <div class="modal-opt-text">
-              <strong><%= lang === 'ar' ? 'مغادرة وحذف الداتا' : 'Leave & Delete Data' %></strong>
-              <small><%= lang === 'ar' ? 'البوت يغادر ويتم حذف جميع بيانات السيرفر نهائياً' : 'Bot leaves and all server data is permanently deleted' %></small>
+              <strong><%= t.systemSettings.leaveDeleteData %></strong>
+              <small><%= t.systemSettings.botLeavesAndAllServerData %></small>
             </div>
           </label>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-cancel" id="modal-cancel"><%= lang === 'ar' ? 'إلغاء' : 'Cancel' %></button>
+        <button class="btn-cancel" id="modal-cancel"><%= t.systemSettings.cancel %></button>
         <button class="btn-confirm-leave" id="modal-confirm">
           <i data-lucide="log-out" style="width:14px;height:14px;stroke:currentColor;"></i>
-          <%= lang === 'ar' ? 'تأكيد المغادرة' : 'Confirm Leave' %>
+          <%= t.systemSettings.confirmLeave %>
         </button>
       </div>
     </div>
@@ -897,6 +969,9 @@
   <!-- Lucide -->
   <script src="/js/lucide.min.js"></script>
   <%- include('partials/bg_stars_system') %>
+  <script type="application/json" id="ships-server-data"><%- JSON.stringify(shipsCfg.SHIPS || []) %></script>
+  <script type="application/json" id="owners-server-data"><%- JSON.stringify(ownersCfg.OWNERS || []) %></script>
+  <script type="application/json" id="sys-t-data"><%- JSON.stringify(t.systemSettings) %></script>
   <script>
 
     /* ── Lucide ── */
@@ -932,7 +1007,7 @@
     document.getElementById('save-config-btn').addEventListener('click', async () => {
       const btn = document.getElementById('save-config-btn');
       btn.disabled = true;
-      btn.innerHTML = '<i data-lucide="loader-2" style="width:15px;height:15px;stroke:currentColor;animation:spin 1s linear infinite;"></i> <%= lang === "ar" ? "جارٍ الحفظ..." : "Saving..." %>';
+      btn.innerHTML = '<i data-lucide="loader-2" style="width:15px;height:15px;stroke:currentColor;animation:spin 1s linear infinite;"></i> <%= t.systemSettings.saving %>';
       lucide.createIcons();
       try {
         const r = await fetch('/settings/dashboard-config', {
@@ -946,12 +1021,12 @@
         });
         const data = await r.json();
         if (!r.ok) throw new Error(data.error || 'Failed');
-        showSysToast('<%= lang === "ar" ? "تم الحفظ بنجاح ✓" : "Saved successfully ✓" %>', 'success');
+        showSysToast('<%= t.systemSettings.savedSuccessfully %>', 'success');
       } catch (e) {
         showSysToast(e.message, 'error');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i> <%= lang === "ar" ? "حفظ" : "Save" %>';
+        btn.innerHTML = '<i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i> <%= t.systemSettings.save %>';
         lucide.createIcons();
       }
     });
@@ -1005,7 +1080,7 @@
     document.getElementById('save-servers-btn').addEventListener('click', async () => {
       const btn = document.getElementById('save-servers-btn');
       btn.disabled = true;
-      btn.innerHTML = '<i data-lucide="loader-2" style="width:15px;height:15px;stroke:currentColor;animation:spin 1s linear infinite;"></i> <%= lang === "ar" ? "جارٍ الحفظ..." : "Saving..." %>';
+      btn.innerHTML = '<i data-lucide="loader-2" style="width:15px;height:15px;stroke:currentColor;animation:spin 1s linear infinite;"></i> <%= t.systemSettings.saving %>';
       lucide.createIcons();
       try {
         const r = await fetch('/settings/dashboard-config', {
@@ -1026,12 +1101,12 @@
           document.getElementById('toggle-leave-auto').checked = data.serversCfg.LEAVE_AUTO;
           syncServersUI();
         }
-        showSysToast('<%= lang === "ar" ? "تم الحفظ بنجاح ✓" : "Saved successfully ✓" %>', 'success');
+        showSysToast('<%= t.systemSettings.savedSuccessfully %>', 'success');
       } catch (e) {
         showSysToast(e.message, 'error');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i> <%= lang === "ar" ? "حفظ" : "Save" %>';
+        btn.innerHTML = '<i data-lucide="save" style="width:15px;height:15px;stroke:currentColor;"></i> <%= t.systemSettings.save %>';
         lucide.createIcons();
       }
     });
@@ -1043,7 +1118,7 @@
       const iconHtml = g.icon
         ? `<img class="guild-row-icon" src="${g.icon}" alt="${g.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="guild-row-icon-fallback" style="display:none">${g.name.charAt(0).toUpperCase()}</div>`
         : `<div class="guild-row-icon-fallback">${g.name.charAt(0).toUpperCase()}</div>`;
-      const allowedBadge = g.inAllowed ? ' <span class="badge-allowed"><%= lang === "ar" ? "✓ مسموح" : "✓ Allowed" %></span>' : '';
+      const allowedBadge = g.inAllowed ? ' <span class="badge-allowed"><%= t.systemSettings.allowed %></span>' : '';
       const div = document.createElement('div');
       div.className = 'guild-row';
       div.dataset.id = g.id;
@@ -1060,7 +1135,7 @@
         <div class="guild-row-actions">
           <button class="btn-leave" data-guild-id="${g.id}">
             <i data-lucide="log-out" style="width:13px;height:13px;stroke:currentColor;"></i>
-            <%= lang === "ar" ? "مغادرة" : "Leave" %>
+            <%= t.systemSettings.leave %>
           </button>
         </div>`;
       div.querySelector('.btn-leave').addEventListener('click', () => openLeaveModal(g));
@@ -1077,7 +1152,7 @@
         list.innerHTML = '';
         countEl.textContent = data.guilds.length;
         if (data.guilds.length === 0) {
-          list.innerHTML = '<div class="guilds-empty"><%= lang === "ar" ? "البوت غير متواجد في أي سيرفر" : "Bot is not in any server" %></div>';
+          list.innerHTML = '<div class="guilds-empty"><%= t.systemSettings.botIsNotInAnyServer %></div>';
           return;
         }
         data.guilds.forEach(g => list.appendChild(renderGuildRow(g)));
@@ -1122,7 +1197,7 @@
       const btn = document.getElementById('modal-confirm');
       const deleteData = document.querySelector('input[name="leave-mode"]:checked').value === 'delete';
       btn.disabled = true;
-      btn.innerHTML = '<i data-lucide="loader-2" style="width:14px;height:14px;stroke:currentColor;animation:spin 1s linear infinite;"></i> <%= lang === "ar" ? "جارٍ..." : "Leaving..." %>';
+      btn.innerHTML = '<i data-lucide="loader-2" style="width:14px;height:14px;stroke:currentColor;animation:spin 1s linear infinite;"></i> <%= t.systemSettings.leaving %>';
       lucide.createIcons();
       try {
         const r = await fetch('/settings/guild-leave', {
@@ -1138,14 +1213,14 @@
         document.getElementById('guilds-count').textContent = remaining;
         closeLeaveModal();
         showSysToast(
-          '<%= lang === "ar" ? "غادر البوت السيرفر" : "Bot left the server" %>' + (deleteData ? ' <%= lang === "ar" ? "وتم حذف الداتا" : "and data deleted" %>' : ''),
+          '<%= t.systemSettings.botLeftTheServer %>' + (deleteData ? ' <%= t.systemSettings.andDataDeleted %>' : ''),
           'success'
         );
       } catch (e) {
         showSysToast(e.message, 'error');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="log-out" style="width:14px;height:14px;stroke:currentColor;"></i> <%= lang === "ar" ? "تأكيد المغادرة" : "Confirm Leave" %>';
+        btn.innerHTML = '<i data-lucide="log-out" style="width:14px;height:14px;stroke:currentColor;"></i> <%= t.systemSettings.confirmLeave %>';
         lucide.createIcons();
       }
     });
@@ -1208,8 +1283,8 @@
         if (!r.ok) throw new Error(data.error || 'Failed');
         showSysToast(
           test
-            ? ('<%= lang === "ar" ? "تم إرسال رسالة تجريبية ✓" : "Test message sent ✓" %>')
-            : ('<%= lang === "ar" ? "تم حفظ Webhook ✓" : "Webhook saved ✓" %>'),
+            ? ('<%= t.systemSettings.testMessageSent %>')
+            : ('<%= t.systemSettings.webhookSaved %>'),
           'success'
         );
       } catch (e) { showSysToast(e.message, 'error'); }
@@ -1221,6 +1296,8 @@
 
     /* ── Logs card ── */
     const _logLang = '<%= lang %>';
+    const _sys_t = JSON.parse(document.getElementById('sys-t-data').textContent);
+    function _tf(tpl, vars) { return tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? ''); }
     let _logData = { entries: [], clearRequest: null, ships: [] };
     let _logFilter = 'all';
     const _meId = '<%= user.id %>';
@@ -1228,13 +1305,13 @@
     function _timeAgo(iso) {
       const diff = Date.now() - new Date(iso).getTime();
       const s = Math.floor(diff / 1000);
-      if (s < 60)  return _logLang === 'ar' ? `منذ ${s}ث`  : `${s}s ago`;
+      if (s < 60)  return _tf(_sys_t.agoSeconds, {n: s});
       const m = Math.floor(s / 60);
-      if (m < 60)  return _logLang === 'ar' ? `منذ ${m}د`  : `${m}m ago`;
+      if (m < 60)  return _tf(_sys_t.agoMinutes, {n: m});
       const h = Math.floor(m / 60);
-      if (h < 24)  return _logLang === 'ar' ? `منذ ${h}س`  : `${h}h ago`;
+      if (h < 24)  return _tf(_sys_t.agoHours, {n: h});
       const d = Math.floor(h / 24);
-      return _logLang === 'ar' ? `منذ ${d} يوم` : `${d}d ago`;
+      return _tf(_sys_t.agoDays, {n: d});
     }
 
     function _renderLogEntry(e) {
@@ -1248,14 +1325,14 @@
         iconHtml  = `<div class="log-entry-icon log-icon-login">${av}</div>`;
         const _name = e.displayName || e.username || e.userId;
         title     = `<span class="log-entry-title-name">${_name}</span><span class="log-entry-title-id">${e.userId || ''}</span>`;
-        sub       = _logLang === 'ar' ? `سجّل دخوله إلى الداشبورد` : `Logged in to the dashboard`;
+        sub       = _sys_t.loggedInToDashboard;
       } else if (e.type === 'guild_join') {
         const gIco = e.guildIcon
           ? `<img src="${e.guildIcon}" alt="" onerror="this.parentElement.className='log-entry-icon log-icon-join';this.remove();" />`
           : `<i data-lucide="server" style="width:16px;height:16px;stroke:currentColor;"></i>`;
         iconHtml  = `<div class="log-entry-icon log-icon-join">${gIco}</div>`;
         title     = `<span class="log-entry-title-name">${e.guildName || e.guildId}</span><span class="log-entry-title-id">${e.guildId || ''}</span>`;
-        sub       = _logLang === 'ar' ? `تمت إضافة البوت لهذا السيرفر` : `Bot was added to this server`;
+        sub       = _sys_t.botWasAdded;
       } else if (e.type === 'guild_leave') {
         const glIco = e.guildIcon
           ? `<img src="${e.guildIcon}" alt="" onerror="this.parentElement.className='log-entry-icon log-icon-leave';this.remove();" />`
@@ -1263,14 +1340,14 @@
         iconHtml  = `<div class="log-entry-icon log-icon-leave">${glIco}</div>`;
         title     = `<span class="log-entry-title-name">${e.guildName || e.guildId}</span><span class="log-entry-title-id">${e.guildId || ''}</span>`;
         const who  = e.byUsername ? (e.byUsername) : '';
-        const del  = e.deleteData ? (_logLang === 'ar' ? ' · حُذفت الداتا' : ' · data deleted') : '';
-        sub       = (_logLang === 'ar' ? `البوت غادر السيرفر` : `Bot left server`) + (who ? ` (${who})` : '') + del;
+        const del  = e.deleteData ? (_sys_t.dataDeletedSuffix) : '';
+        sub       = (_sys_t.botLeftServer) + (who ? ` (${who})` : '') + del;
       } else {
         iconHtml  = `<div class="log-entry-icon log-icon-other"><i data-lucide="zap" style="width:16px;height:16px;stroke:currentColor;"></i></div>`;
         title     = e.type || 'event';
         sub       = JSON.stringify(e).substring(0, 80);
       }
-      div.innerHTML = `${iconHtml}<div class="log-entry-body"><div class="log-entry-title">${title}</div><div class="log-entry-sub">${sub}</div></div><div class="log-entry-time">${_timeAgo(e.timestamp)}</div>${e.type === 'login' ? `<button class="log-dots-btn" title="${_logLang === 'ar' ? 'معلومات' : 'Info'}"><i data-lucide="more-vertical" style="width:14px;height:14px;stroke:currentColor;"></i></button>` : ''}`;
+      div.innerHTML = `${iconHtml}<div class="log-entry-body"><div class="log-entry-title">${title}</div><div class="log-entry-sub">${sub}</div></div><div class="log-entry-time">${_timeAgo(e.timestamp)}</div>${e.type === 'login' ? `<button class="log-dots-btn" title="${_sys_t.infoBtn}"><i data-lucide="more-vertical" style="width:14px;height:14px;stroke:currentColor;"></i></button>` : ''}`;
       if (e.type === 'login') {
         const dotsBtn = div.querySelector('.log-dots-btn');
         if (dotsBtn) dotsBtn.addEventListener('click', ev => { ev.stopPropagation(); openGeoModal(e); });
@@ -1287,7 +1364,7 @@
       lucide.createIcons();
       const total = _logData.entries.length;
       const shown = filtered.length;
-      label.textContent = _logLang === 'ar' ? `${shown} من ${total} سجل` : `${shown} of ${total} entries`;
+      label.textContent = _tf(_sys_t.logEntries, {shown, total});
     }
 
     function _renderClearBanner() {
@@ -1299,13 +1376,9 @@
       const cr = _logData.clearRequest;
       if (!cr) { banner.classList.remove('show'); return; }
       banner.classList.add('show');
-      titleEl.textContent = _logLang === 'ar'
-        ? `طلب مسح السجلات من ${cr.requestedByName}`
-        : `Log clear requested by ${cr.requestedByName}`;
+      titleEl.textContent = _tf(_sys_t.logClearReqTitle, {name: cr.requestedByName});
       const allNeeded = [cr.requestedBy, ...cr.needed];
-      bodyEl.textContent = _logLang === 'ar'
-        ? `يتطلب موافقة جميع الـ Ships (${allNeeded.length}). لو رفض طرف واحد، تُلغى العملية.`
-        : `Requires approval from all Ships (${allNeeded.length}). If anyone rejects, the request is cancelled.`;
+      bodyEl.textContent = _tf(_sys_t.logClearReqBody, {n: allNeeded.length});
       // Votes chips
       votesEl.innerHTML = allNeeded.map(id => {
         const name = (id === cr.requestedBy ? cr.requestedByName : id);
@@ -1318,16 +1391,16 @@
       const myVoted = cr.approvals.includes(_meId) || cr.rejections.includes(_meId);
       if (!myVoted) {
         const appBtn = document.createElement('button'); appBtn.className = 'crb-btn-approve';
-        appBtn.textContent = _logLang === 'ar' ? '✓ موافقة' : '✓ Approve';
+        appBtn.textContent = _sys_t.approveBtn;
         appBtn.onclick = () => _voteLogClear(true);
         const rejBtn = document.createElement('button'); rejBtn.className = 'crb-btn-reject';
-        rejBtn.textContent = _logLang === 'ar' ? '✗ رفض' : '✗ Reject';
+        rejBtn.textContent = _sys_t.rejectBtn;
         rejBtn.onclick = () => _voteLogClear(false);
         actionsEl.appendChild(appBtn); actionsEl.appendChild(rejBtn);
       }
       if (cr.requestedBy === _meId) {
         const canBtn = document.createElement('button'); canBtn.className = 'crb-btn-cancel';
-        canBtn.textContent = _logLang === 'ar' ? 'إلغاء الطلب' : 'Cancel Request';
+        canBtn.textContent = _sys_t.cancelRequestBtn;
         canBtn.onclick = _cancelLogClear;
         actionsEl.appendChild(canBtn);
       }
@@ -1369,7 +1442,7 @@
         }
         _logData.clearRequest = data.clearRequest;
         _renderClearBanner();
-        showSysToast(_logLang === 'ar' ? 'تم إرسال طلب المسح — بانتظار موافقة الفريق' : 'Clear request sent — awaiting team approval', 'success');
+        showSysToast(_sys_t.clearReqSent, 'success');
       } catch (e) { showSysToast(e.message, 'error'); btn.disabled = false; }
     });
 
@@ -1385,14 +1458,14 @@
           _logData.entries = []; _logData.clearRequest = null;
           _renderLogs(); _renderClearBanner();
           document.getElementById('log-clear-btn').disabled = false;
-          showSysToast(_logLang === 'ar' ? '✓ تم مسح السجلات' : '✓ Logs cleared', 'success');
+          showSysToast(_sys_t.logsClearedToast, 'success');
         } else if (data.rejected) {
           _logData.clearRequest = null; _renderClearBanner();
           document.getElementById('log-clear-btn').disabled = false;
-          showSysToast(_logLang === 'ar' ? 'تم رفض طلب المسح' : 'Clear request was rejected', 'error');
+          showSysToast(_sys_t.clearReqRejected, 'error');
         } else {
           _logData.clearRequest = data.pending; _renderClearBanner();
-          showSysToast(_logLang === 'ar' ? 'تمت موافقتك — بانتظار الباقين' : 'Your vote recorded — awaiting others', 'success');
+          showSysToast(_sys_t.voteRecorded, 'success');
         }
       } catch (e) { showSysToast(e.message,'error'); }
     }
@@ -1404,12 +1477,22 @@
         if (!r.ok) { showSysToast(data.error || 'Failed', 'error'); return; }
         _logData.clearRequest = null; _renderClearBanner();
         document.getElementById('log-clear-btn').disabled = false;
-        showSysToast(_logLang === 'ar' ? 'تم إلغاء طلب المسح' : 'Clear request cancelled', 'success');
+        showSysToast(_sys_t.clearReqCancelled, 'success');
       } catch (e) { showSysToast(e.message,'error'); }
     }
 
     /* ── Ships management ── */
     const _shipsLang = '<%= lang %>';
+    const _shipsCache = {}; // id → user info from /api/user/:id
+
+    function _buildChipInner(sid) {
+      const info = _shipsCache[sid];
+      const av = info ? info.avatar : 'https://cdn.discordapp.com/embed/avatars/0.png';
+      const name = info ? info.displayName : sid;
+      return `<img class="ships-chip-av" src="${av}" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">`
+           + `<div class="ships-chip-info"><span class="ships-chip-name">${name}</span><span class="ships-chip-id">${sid}</span></div>`
+           + `<button class="ships-chip-remove" data-uid="${sid}" title="Remove"><i data-lucide="x" style="width:10px;height:10px;stroke:currentColor;"></i></button>`;
+    }
 
     function _renderShipsChips(ships) {
       const wrap = document.getElementById('ships-chips');
@@ -1418,7 +1501,7 @@
         const chip = document.createElement('div');
         chip.className = 'ships-chip';
         chip.dataset.id = sid;
-        chip.innerHTML = `<span class="ships-chip-id">${sid}</span><button class="ships-chip-remove" data-uid="${sid}" title="Remove"><i data-lucide="x" style="width:10px;height:10px;stroke:currentColor;"></i></button>`;
+        chip.innerHTML = _buildChipInner(sid);
         wrap.appendChild(chip);
       });
       lucide.createIcons();
@@ -1427,39 +1510,220 @@
       });
     }
 
+    async function _hydrateShips(ids) {
+      await Promise.all((ids || []).map(async sid => {
+        if (_shipsCache[sid]) return;
+        try {
+          const r = await fetch(`/api/user/${sid}`);
+          if (r.ok) _shipsCache[sid] = await r.json();
+        } catch (_) {}
+      }));
+      _renderShipsChips(ids);
+    }
+
+    // Initial hydration
+    const _initialShips = JSON.parse(document.getElementById('ships-server-data').textContent || '[]');
+    _hydrateShips(_initialShips);
+
     async function removeShip(uid) {
-      if (!confirm(_shipsLang === 'ar' ? `إزالة ${uid} من Ships؟` : `Remove ${uid} from Ships?`)) return;
+      const label = _shipsCache[uid]?.displayName || uid;
+      if (!confirm(_tf(_sys_t.removeShipConfirm, {label}))) return;
       try {
         const r = await fetch(`/settings/ships/${uid}`, { method: 'DELETE' });
         const d = await r.json();
         if (!r.ok) { showSysToast(d.error || 'Failed', 'error'); return; }
-        _renderShipsChips(d.ships);
-        showSysToast(_shipsLang === 'ar' ? 'تم الإزالة ✓' : 'Removed ✓', 'success');
+        await _hydrateShips(d.ships);
+        showSysToast(_sys_t.removedToast, 'success');
       } catch (e) { showSysToast(e.message, 'error'); }
     }
 
-    document.getElementById('ships-add-btn').addEventListener('click', async () => {
-      const inp = document.getElementById('ships-add-inp');
-      const uid = inp.value.trim();
-      if (!uid || !/^\d{10,20}$/.test(uid)) {
-        showSysToast(_shipsLang === 'ar' ? 'يرجى إدخال Discord ID صحيح' : 'Enter a valid Discord User ID', 'error'); return;
+    /* ── Ships confirm modal ── */
+    let _pendingShipUid = null;
+    const _shipsModal = document.getElementById('ships-confirm-modal');
+
+    function _openShipsModal(info) {
+      _pendingShipUid = info.id;
+      const banner = document.getElementById('ships-modal-banner');
+      const avWrap = `<div class="ships-modal-av-wrap"><img class="ships-modal-av" src="${info.avatar}" alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"></div>`;
+      if (info.banner) {
+        banner.innerHTML = `<img class="banner-img" src="${info.banner}" alt="banner">${avWrap}`;
+      } else {
+        banner.style.background = info.bannerColor || 'linear-gradient(135deg,rgba(124,58,237,.5),rgba(6,182,212,.3))';
+        banner.innerHTML = avWrap;
       }
+      document.getElementById('ships-modal-dname').textContent = info.displayName;
+      document.getElementById('ships-modal-uname').textContent = '@' + info.username;
+      document.getElementById('ships-modal-uid').textContent = info.id;
+      document.getElementById('ships-modal-confirm').disabled = false;
+      _shipsModal.classList.add('open');
+    }
+
+    function _closeShipsModal() { _shipsModal.classList.remove('open'); _pendingShipUid = null; }
+
+    document.getElementById('ships-modal-cancel').addEventListener('click', _closeShipsModal);
+    _shipsModal.addEventListener('click', e => { if (e.target === _shipsModal) _closeShipsModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') _closeShipsModal(); });
+
+    document.getElementById('ships-modal-confirm').addEventListener('click', async () => {
+      if (!_pendingShipUid) return;
+      const uid = _pendingShipUid;
+      const confirmBtn = document.getElementById('ships-modal-confirm');
+      confirmBtn.disabled = true;
       try {
         const r = await fetch('/settings/ships', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: uid }),
         });
         const d = await r.json();
-        if (!r.ok) { showSysToast(d.error || 'Failed', 'error'); return; }
-        _renderShipsChips(d.ships);
-        inp.value = '';
-        showSysToast(_shipsLang === 'ar' ? 'تمت الإضافة ✓' : 'Added ✓', 'success');
+        if (!r.ok) { showSysToast(d.error || 'Failed', 'error'); confirmBtn.disabled = false; return; }
+        _closeShipsModal();
+        document.getElementById('ships-add-inp').value = '';
+        await _hydrateShips(d.ships);
+        showSysToast(_sys_t.addedToast, 'success');
+      } catch (e) { showSysToast(e.message, 'error'); confirmBtn.disabled = false; }
+    });
+
+    document.getElementById('ships-add-btn').addEventListener('click', async () => {
+      const inp = document.getElementById('ships-add-inp');
+      const uid = inp.value.trim();
+      if (!uid || !/^\d{10,20}$/.test(uid)) {
+        showSysToast(_sys_t.enterValidIdError, 'error'); return;
+      }
+      const addBtn = document.getElementById('ships-add-btn');
+      addBtn.disabled = true;
+      try {
+        const r = await fetch(`/api/user/${uid}`);
+        if (!r.ok) {
+          const e = await r.json();
+          showSysToast(e.error || (_sys_t.userNotFoundError), 'error');
+          addBtn.disabled = false; return;
+        }
+        const info = await r.json();
+        _shipsCache[uid] = info;
+        _openShipsModal(info);
       } catch (e) { showSysToast(e.message, 'error'); }
+      addBtn.disabled = false;
     });
     document.getElementById('ships-add-inp').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('ships-add-btn').click(); });
-    document.querySelectorAll('#ships-chips .ships-chip-remove').forEach(btn => {
-      btn.addEventListener('click', () => removeShip(btn.dataset.uid));
+
+    /* ── Owners management ── */
+    const _ownersCache = {};
+
+    function _renderOwnersChips(owners) {
+      const wrap = document.getElementById('owners-chips');
+      wrap.innerHTML = '';
+      (owners || []).forEach(oid => {
+        const info = _ownersCache[oid];
+        const av = info ? info.avatar : 'https://cdn.discordapp.com/embed/avatars/0.png';
+        const name = info ? info.displayName : oid;
+        const chip = document.createElement('div');
+        chip.className = 'ships-chip';
+        chip.dataset.id = oid;
+        chip.innerHTML = `<img class="ships-chip-av" src="${av}" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">`
+          + `<div class="ships-chip-info"><span class="ships-chip-name">${name}</span><span class="ships-chip-id">${oid}</span></div>`
+          + `<button class="ships-chip-remove" data-uid="${oid}" title="Remove"><i data-lucide="x" style="width:10px;height:10px;stroke:currentColor;"></i></button>`;
+        wrap.appendChild(chip);
+      });
+      lucide.createIcons();
+      wrap.querySelectorAll('.ships-chip-remove').forEach(btn => {
+        btn.addEventListener('click', () => removeOwner(btn.dataset.uid));
+      });
+    }
+
+    async function _hydrateOwners(ids) {
+      await Promise.all((ids || []).map(async oid => {
+        if (_ownersCache[oid]) return;
+        try {
+          const r = await fetch(`/api/user/${oid}`);
+          if (r.ok) _ownersCache[oid] = await r.json();
+        } catch (_) {}
+      }));
+      _renderOwnersChips(ids);
+    }
+
+    const _initialOwners = JSON.parse(document.getElementById('owners-server-data').textContent || '[]');
+    _hydrateOwners(_initialOwners);
+
+    async function removeOwner(uid) {
+      const label = _ownersCache[uid]?.displayName || uid;
+      if (!confirm(_tf(_sys_t.removeOwnerConfirm, {label}))) return;
+      try {
+        const r = await fetch(`/settings/owners/${uid}`, { method: 'DELETE' });
+        const d = await r.json();
+        if (!r.ok) { showSysToast(d.error || 'Failed', 'error'); return; }
+        await _hydrateOwners(d.owners);
+        showSysToast(_sys_t.removedToast, 'success');
+      } catch (e) { showSysToast(e.message, 'error'); }
+    }
+
+    /* ── Owners confirm modal ── */
+    let _pendingOwnerUid = null;
+    const _ownersModal = document.getElementById('owners-confirm-modal');
+
+    function _openOwnersModal(info) {
+      _pendingOwnerUid = info.id;
+      const banner = document.getElementById('owners-modal-banner');
+      const avWrap = `<div class="ships-modal-av-wrap"><img class="ships-modal-av" src="${info.avatar}" alt="avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'"></div>`;
+      if (info.banner) {
+        banner.innerHTML = `<img class="banner-img" src="${info.banner}" alt="banner">${avWrap}`;
+      } else {
+        banner.style.background = info.bannerColor || 'linear-gradient(135deg,rgba(212,163,0,.4),rgba(234,88,12,.3))';
+        banner.innerHTML = avWrap;
+      }
+      document.getElementById('owners-modal-dname').textContent = info.displayName;
+      document.getElementById('owners-modal-uname').textContent = '@' + info.username;
+      document.getElementById('owners-modal-uid').textContent = info.id;
+      document.getElementById('owners-modal-confirm').disabled = false;
+      _ownersModal.classList.add('open');
+    }
+
+    function _closeOwnersModal() { _ownersModal.classList.remove('open'); _pendingOwnerUid = null; }
+
+    document.getElementById('owners-modal-cancel').addEventListener('click', _closeOwnersModal);
+    _ownersModal.addEventListener('click', e => { if (e.target === _ownersModal) _closeOwnersModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { _closeOwnersModal(); } });
+
+    document.getElementById('owners-modal-confirm').addEventListener('click', async () => {
+      if (!_pendingOwnerUid) return;
+      const uid = _pendingOwnerUid;
+      const confirmBtn = document.getElementById('owners-modal-confirm');
+      confirmBtn.disabled = true;
+      try {
+        const r = await fetch('/settings/owners', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: uid }),
+        });
+        const d = await r.json();
+        if (!r.ok) { showSysToast(d.error || 'Failed', 'error'); confirmBtn.disabled = false; return; }
+        _closeOwnersModal();
+        document.getElementById('owners-add-inp').value = '';
+        await _hydrateOwners(d.owners);
+        showSysToast(_sys_t.addedToast, 'success');
+      } catch (e) { showSysToast(e.message, 'error'); confirmBtn.disabled = false; }
     });
+
+    document.getElementById('owners-add-btn').addEventListener('click', async () => {
+      const inp = document.getElementById('owners-add-inp');
+      const uid = inp.value.trim();
+      if (!uid || !/^\d{10,20}$/.test(uid)) {
+        showSysToast(_sys_t.enterValidIdError, 'error'); return;
+      }
+      const addBtn = document.getElementById('owners-add-btn');
+      addBtn.disabled = true;
+      try {
+        const r = await fetch(`/api/user/${uid}`);
+        if (!r.ok) {
+          const e = await r.json();
+          showSysToast(e.error || (_sys_t.userNotFoundError), 'error');
+          addBtn.disabled = false; return;
+        }
+        const info = await r.json();
+        _ownersCache[uid] = info;
+        _openOwnersModal(info);
+      } catch (e) { showSysToast(e.message, 'error'); }
+      addBtn.disabled = false;
+    });
+    document.getElementById('owners-add-inp').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('owners-add-btn').click(); });
 
     /* ── Active Sessions ── */
     async function _loadSessions() {
@@ -1471,7 +1735,7 @@
         const sessions = await r.json();
         list.innerHTML = '';
         if (!sessions.length) {
-          list.innerHTML = `<div style="color:var(--muted);font-size:.78rem;padding:14px 0;text-align:center;">${_shipsLang === 'ar' ? 'لا توجد جلسات نشطة' : 'No active sessions'}</div>`;
+          list.innerHTML = `<div style="color:var(--muted);font-size:.78rem;padding:14px 0;text-align:center;">${_sys_t.noActiveSessions}</div>`;
           return;
         }
         sessions.forEach(s => {
@@ -1480,7 +1744,7 @@
           const av = s.avatar
             ? `<img src="https://cdn.discordapp.com/avatars/${s.userId}/${s.avatar}.png?size=80" alt="" onerror="this.style.display='none'" />`
             : `<i data-lucide="user" style="width:18px;height:18px;stroke:currentColor;"></i>`;
-          const selfBadge = s.isSelf ? `<span class="sess-self-badge">${_shipsLang === 'ar' ? 'أنت' : 'You'}</span>` : '';
+          const selfBadge = s.isSelf ? `<span class="sess-self-badge">${_sys_t.youBadge}</span>` : '';
           const loginStr  = s.loginAt ? _timeAgo(s.loginAt) : '';
           row.innerHTML = `
             <div class="sess-avatar">${av}</div>
@@ -1491,21 +1755,21 @@
                 ${loginStr ? `<span>🕒 ${loginStr}</span>` : ''}
               </div>
             </div>
-            <button class="sess-kill-btn" data-sid="${s.sid}" ${s.isSelf ? 'disabled title="Cannot kill own session"' : `title="${_shipsLang === 'ar' ? 'إنهاء الجلسة' : 'End session'}"`}>
+            <button class="sess-kill-btn" data-sid="${s.sid}" ${s.isSelf ? 'disabled title="Cannot kill own session"' : `title="${_sys_t.endSessionTitle}"`}>
               <i data-lucide="log-out" style="width:13px;height:13px;stroke:currentColor;"></i>
-              ${_shipsLang === 'ar' ? 'إنهاء' : 'End'}
+              ${_sys_t.endBtn}
             </button>`;
           list.appendChild(row);
         });
         lucide.createIcons();
         list.querySelectorAll('.sess-kill-btn:not(:disabled)').forEach(btn => {
           btn.addEventListener('click', async () => {
-            if (!confirm(_shipsLang === 'ar' ? 'إنهاء هذه الجلسة؟' : 'End this session?')) return;
+            if (!confirm(_sys_t.endThisSession)) return;
             btn.disabled = true;
             const r = await fetch(`/settings/active-sessions/${btn.dataset.sid}`, { method: 'DELETE' });
             const d = await r.json();
             if (!r.ok) { showSysToast(d.error || 'Failed', 'error'); btn.disabled = false; return; }
-            showSysToast(_shipsLang === 'ar' ? 'تم إنهاء الجلسة ✓' : 'Session ended ✓', 'success');
+            showSysToast(_sys_t.sessionEndedToast, 'success');
             _loadSessions();
           });
         });
@@ -1531,21 +1795,21 @@
       if (entry.ip && entry.ip !== 'unknown' && entry.ip !== 'test') {
         fetch(`/settings/geo?ip=${encodeURIComponent(entry.ip)}`).then(r => r.json()).then(geo => {
           const fields   = document.getElementById('geo-fields');
-          const ipField  = `<div class="geo-field full"><div class="geo-field-label">${_shipsLang === 'ar' ? 'عنوان IP' : 'IP Address'}</div><div class="geo-field-value mono">${entry.ip}</div></div>`;
+          const ipField  = `<div class="geo-field full"><div class="geo-field-label">${_sys_t.geoIpAddress}</div><div class="geo-field-value mono">${entry.ip}</div></div>`;
           if (!geo) {
-            fields.innerHTML = ipField + `<div class="geo-field full"><div class="geo-field-label">${_shipsLang === 'ar' ? 'الموقع' : 'Location'}</div><div class="geo-field-value" style="color:var(--muted);">${_shipsLang === 'ar' ? 'غير متاح (IP محلي أو خاص)' : 'Not available (local/private IP)'}</div></div>`;
+            fields.innerHTML = ipField + `<div class="geo-field full"><div class="geo-field-label">${_sys_t.geoLocation}</div><div class="geo-field-value" style="color:var(--muted);">${_sys_t.geoNotAvailable}</div></div>`;
           } else {
             fields.innerHTML = ipField +
-              `<div class="geo-field"><div class="geo-field-label">${_shipsLang === 'ar' ? 'الدولة' : 'Country'}</div><div class="geo-field-value">${geo.country || '—'}</div></div>` +
-              `<div class="geo-field"><div class="geo-field-label">${_shipsLang === 'ar' ? 'المنطقة' : 'Region'}</div><div class="geo-field-value">${geo.region ? geo.region + (geo.city ? ` / ${geo.city}` : '') : '—'}</div></div>` +
-              `<div class="geo-field"><div class="geo-field-label">${_shipsLang === 'ar' ? 'المنطقة الزمنية' : 'Timezone'}</div><div class="geo-field-value">${geo.timezone || '—'}</div></div>` +
-              `<div class="geo-field"><div class="geo-field-label">${_shipsLang === 'ar' ? 'مزود الخدمة' : 'ISP/Org'}</div><div class="geo-field-value">${geo.org || '—'}</div></div>` +
-              (geo.ll ? `<div class="geo-field full"><div class="geo-field-label">${_shipsLang === 'ar' ? 'الإحداثيات' : 'Coordinates'}</div><div class="geo-field-value mono">${geo.ll[0]}, ${geo.ll[1]}</div></div>` : '');
+              `<div class="geo-field"><div class="geo-field-label">${_sys_t.geoCountry}</div><div class="geo-field-value">${geo.country || '—'}</div></div>` +
+              `<div class="geo-field"><div class="geo-field-label">${_sys_t.geoRegion}</div><div class="geo-field-value">${geo.region ? geo.region + (geo.city ? ` / ${geo.city}` : '') : '—'}</div></div>` +
+              `<div class="geo-field"><div class="geo-field-label">${_sys_t.geoTimezone}</div><div class="geo-field-value">${geo.timezone || '—'}</div></div>` +
+              `<div class="geo-field"><div class="geo-field-label">${_sys_t.geoIsp}</div><div class="geo-field-value">${geo.org || '—'}</div></div>` +
+              (geo.ll ? `<div class="geo-field full"><div class="geo-field-label">${_sys_t.geoCoordinates}</div><div class="geo-field-value mono">${geo.ll[0]}, ${geo.ll[1]}</div></div>` : '');
           }
           lucide.createIcons();
         }).catch(() => {});
       } else {
-        document.getElementById('geo-fields').innerHTML = `<div class="geo-field full"><div class="geo-field-label">IP</div><div class="geo-field-value mono">${entry.ip || '—'}</div></div><div class="geo-field full" style="color:var(--muted);font-size:.78rem;">${_shipsLang === 'ar' ? 'لا يوجد IP محفوظ للبحث الجغرافي' : 'No IP recorded for geo lookup'}</div>`;
+        document.getElementById('geo-fields').innerHTML = `<div class="geo-field full"><div class="geo-field-label">IP</div><div class="geo-field-value mono">${entry.ip || '—'}</div></div><div class="geo-field full" style="color:var(--muted);font-size:.78rem;">${_sys_t.noIpRecorded}</div>`;
         lucide.createIcons();
       }
     }
@@ -1578,7 +1842,7 @@
       copyId.addEventListener('click', () => {
         navigator.clipboard.writeText(copyId.textContent.trim()).then(() => {
           const orig = copyId.textContent;
-          copyId.textContent = '<%= lang === "ar" ? "✓ تم النسخ" : "✓ Copied!" %>';
+          copyId.textContent = '<%= t.systemSettings.copied %>';
           copyId.style.color = 'var(--cyan-l)';
           setTimeout(() => { copyId.textContent = orig; copyId.style.color = ''; }, 1500);
         });

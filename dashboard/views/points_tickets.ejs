@@ -1,0 +1,1044 @@
+﻿<%#
+  This project was programmed by the Code Nexus team.
+  If you encounter any problems, open an Issue or log into the Discord server:
+  https://discord.gg/UvEYbFd2rj
+%>
+<!DOCTYPE html>
+<html lang="<%= t.lang %>" dir="<%= t.dir %>">
+<head>
+  <%- include('partials/head_theme') %>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= guildInfo.name %> &mdash; Ticket Points</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Tajawal:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#040010;--surface:rgba(255,255,255,.04);--surface-2:rgba(255,255,255,.07);
+      --card:rgba(10,3,30,.78);--purple:#7c3aed;--purple-l:#a78bfa;
+      --cyan:#06b6d4;--cyan-l:#67e8f9;--gold:#d97706;--gold-l:#fcd34d;
+      --green:#22c55e;--border:rgba(124,58,237,.2);--border-h:rgba(124,58,237,.5);
+      --muted:rgba(203,194,255,.5);--white:#f8fafc;--nav-w:64px;--mgmt-w:220px;
+    }
+    html,body{min-height:100%;}
+    body{background:var(--bg);color:var(--white);font-family:'<%= t.fontBody %>','Tajawal','Inter',system-ui,sans-serif;line-height:1.6;overflow-x:hidden;}
+    #c{position:fixed;inset:0;z-index:0;pointer-events:none;}
+    .glow{position:fixed;border-radius:50%;pointer-events:none;z-index:1;filter:blur(120px);animation:glow-drift 22s ease-in-out infinite alternate;}
+    .glow-a{width:min(600px,80vw);height:min(600px,80vw);top:-20%;right:-16%;background:radial-gradient(circle,rgba(124,58,237,.28) 0%,transparent 65%);}
+    .glow-b{width:min(500px,70vw);height:min(500px,70vw);bottom:-18%;left:-12%;background:radial-gradient(circle,rgba(6,182,212,.18) 0%,transparent 65%);animation-delay:-11s;}
+    @keyframes glow-drift{from{transform:translate(0,0) scale(1);}to{transform:translate(20px,15px) scale(1.06);}}
+    /* Topbar */
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(4,0,16,.8);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);gap:12px;}
+    .topbar-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+    .guild-icon-top{width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid rgba(124,58,237,.35);box-shadow:0 2px 12px rgba(124,58,237,.25);}
+    .guild-icon-top-fallback{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,.35),rgba(6,182,212,.2));border:1px solid rgba(124,58,237,.35);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:.85rem;font-weight:800;color:var(--purple-l);flex-shrink:0;}
+    .guild-meta{min-width:0;}
+    .guild-meta-name{font-size:.88rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+    .guild-meta-id{font-size:.6rem;color:var(--muted);font-family:'Orbitron',monospace;letter-spacing:.05em;white-space:nowrap;}
+    .topbar-sep{width:1px;height:28px;background:rgba(255,255,255,.08);flex-shrink:0;}
+    .topbar-brand{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+    .topbar-brand img{width:26px;height:26px;border-radius:7px;box-shadow:0 2px 10px rgba(124,58,237,.3);}
+    .topbar-brand span{font-family:'Orbitron',monospace;font-size:.78rem;font-weight:800;letter-spacing:.1em;background:linear-gradient(135deg,var(--white),var(--purple-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+    .user-chip{display:flex;align-items:center;gap:7px;padding:4px 10px 4px 5px;border-radius:99px;background:var(--surface);border:1px solid rgba(255,255,255,.08);cursor:pointer;}
+    .user-chip-av{width:26px;height:26px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;}
+    .user-chip-av-fallback{width:26px;height:26px;border-radius:50%;background:rgba(124,58,237,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .user-chip span{font-size:.78rem;font-weight:500;}
+    .lang-select{background:var(--surface);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--white);font-size:.8rem;font-weight:600;padding:6px 30px 6px 10px;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;background-size:12px;transition:border-color .18s,background-color .18s;min-width:100px;}
+    .lang-select:hover{border-color:rgba(124,58,237,.5);background-color:rgba(124,58,237,.08);}
+    .lang-select option{background:#0a0022;color:var(--white);}
+    .menu-toggle{display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:var(--surface);border:1px solid rgba(255,255,255,.08);color:var(--white);cursor:pointer;transition:background .18s;flex-shrink:0;}
+    .menu-toggle:hover{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4);}
+    .nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:88;backdrop-filter:blur(2px);}
+    .nav-overlay.open{display:block;}
+    /* Nav Sidebar */
+    .nav-sidebar{position:fixed;top:60px;bottom:0;left:0;width:var(--nav-w);z-index:90;background:rgba(4,0,16,.92);border-right:1px solid rgba(255,255,255,.06);backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;padding:10px 0 16px;gap:4px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;transition:width .28s cubic-bezier(.22,1,.36,1);}
+    .nav-sidebar::-webkit-scrollbar{display:none;}
+    .nav-sidebar:hover{width:220px;align-items:stretch;overflow-x:unset;}
+    [dir="rtl"] .nav-sidebar{left:auto;right:0;border-right:none;border-left:1px solid rgba(255,255,255,.06);}
+    .nav-back{display:flex;align-items:center;gap:0;width:40px;min-height:40px;color:var(--purple-l);text-decoration:none;transition:width 350ms cubic-bezier(0.4,0,0.2,1),gap 350ms cubic-bezier(0.4,0,0.2,1),padding 350ms cubic-bezier(0.4,0,0.2,1);flex-shrink:0;overflow:visible;padding:0;justify-content:flex-start;border-radius:0;background:none;border:none;}
+    .nav-back .nav-icon{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--purple);border-radius:.6rem;padding:7px;box-sizing:border-box;transition:background 350ms cubic-bezier(0.4,0,0.2,1);}
+    .nav-back:hover .nav-icon{background:#8b5cf6;}
+    .nav-back .nav-label{font-size:.78rem;font-weight:600;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity 350ms cubic-bezier(0.4,0,0.2,1),visibility 350ms cubic-bezier(0.4,0,0.2,1);pointer-events:none;color:var(--white);}
+    .nav-sidebar:hover .nav-back{width:100%;gap:10px;padding:0 12px 0 8px;}
+    [dir="rtl"] .nav-sidebar:hover .nav-back{padding:0 8px 0 12px;}
+    .nav-sidebar:hover .nav-back .nav-label{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-divider{width:32px;height:1px;background:rgba(255,255,255,.08);margin:4px 0;flex-shrink:0;transition:width .28s;}
+    .nav-sidebar:hover .nav-divider{width:calc(100% - 24px);}
+    .nav-item{display:flex;align-items:center;gap:0;width:40px;min-height:40px;border-radius:0;background:none;text-decoration:none;flex-shrink:0;position:relative;overflow:visible;transition:gap 350ms cubic-bezier(0.4,0,0.2,1),width 350ms cubic-bezier(0.4,0,0.2,1),padding 350ms cubic-bezier(0.4,0,0.2,1);padding:0;justify-content:flex-start;}
+    .nav-item-icon{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;position:relative;}
+    .nav-item-icon img{width:40px;height:40px;object-fit:cover;display:block;border-radius:50%;}
+    .nav-item-fallback{width:40px;height:40px;background:linear-gradient(135deg,rgba(124,58,237,.5),rgba(6,182,212,.3));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:.8rem;font-weight:800;color:var(--white);border-radius:50%;}
+    .nav-status{position:absolute;bottom:2px;right:2px;width:10px;height:10px;border-radius:50%;border:2px solid rgba(4,0,16,.92);flex-shrink:0;transition:opacity .2s;}
+    .nav-status.on{background:#23a55a;box-shadow:0 0 5px rgba(35,165,90,.7);}
+    .nav-status.off{background:#ef4444;box-shadow:0 0 5px rgba(239,68,68,.6);}
+    .nav-item-label{display:flex;align-items:center;gap:8px;min-width:0;flex:1;opacity:0;visibility:hidden;transition:opacity 350ms cubic-bezier(0.4,0,0.2,1),visibility 350ms cubic-bezier(0.4,0,0.2,1);pointer-events:none;}
+    .nav-item-name{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--white);}
+    .nav-item-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-left:auto;}
+    .nav-item-dot.on{background:#23a55a;box-shadow:0 0 4px rgba(35,165,90,.7);}
+    .nav-item-dot.off{background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);}
+    .nav-sidebar:hover .nav-item{width:100%;gap:10px;padding:0 12px 0 8px;justify-content:flex-start;border-radius:10px;}
+    [dir="rtl"] .nav-sidebar:hover .nav-item{padding:0 8px 0 12px;}
+    .nav-sidebar:hover .nav-item-label{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-sidebar:hover .nav-status{opacity:0;}
+    .nav-item.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:22px;border-radius:0 3px 3px 0;background:var(--purple-l);flex-shrink:0;}
+    [dir="rtl"] .nav-item.active::before{left:auto;right:-8px;border-radius:3px 0 0 3px;}
+    /* Mgmt Sidebar */
+    .mgmt-sidebar{position:fixed;top:60px;bottom:0;left:var(--nav-w);width:var(--mgmt-w);z-index:92;background:rgba(6,2,20,.97);border-right:1px solid rgba(255,255,255,.06);backdrop-filter:blur(20px);display:flex;flex-direction:column;overflow:hidden;transition:transform 350ms cubic-bezier(0.4,0,0.2,1);}
+    [dir="rtl"] .mgmt-sidebar{left:auto;right:var(--nav-w);border-right:none;border-left:1px solid rgba(255,255,255,.06);}
+    .mgmt-header{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.05);}
+    .mgmt-header-inner{display:flex;align-items:center;gap:8px;min-width:0;}
+    .mgmt-header-icon{display:flex;align-items:center;justify-content:center;background:rgba(136,144,161,.12);border-radius:11px;width:35px;height:35px;flex-shrink:0;color:var(--muted);}
+    .mgmt-header-title{font-size:.78rem;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .mgmt-sort-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;padding:0;flex-shrink:0;transition:background .15s,color .15s;}
+    .mgmt-sort-btn:hover{background:rgba(255,255,255,.06);color:var(--white);}
+    .mgmt-body{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,.25) transparent;padding-bottom:8px;}
+    .mgmt-body::-webkit-scrollbar{width:3px;}
+    .mgmt-body::-webkit-scrollbar-track{background:transparent;}
+    .mgmt-body::-webkit-scrollbar-thumb{background:rgba(124,58,237,.3);border-radius:3px;}
+    .mgmt-nav{padding:8px 10px 0;}
+    .mgmt-section{margin-bottom:2px;}
+    .mgmt-section-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:none;border:none;border-radius:10px;cursor:pointer;color:var(--white);font-family:inherit;font-size:.76rem;font-weight:700;letter-spacing:.02em;transition:background .15s;}
+    .mgmt-section-btn:hover{background:rgba(255,255,255,.04);}
+    .mgmt-sec-chevron{color:var(--muted);flex-shrink:0;transform:rotate(180deg);transition:transform 300ms cubic-bezier(0.4,0,0.2,1);}
+    .mgmt-section-btn.open .mgmt-sec-chevron{transform:rotate(0deg);}
+    .mgmt-sec-body{overflow:hidden;max-height:0;transition:max-height 350ms cubic-bezier(0.4,0,0.2,1);}
+    .mgmt-sec-body.open{max-height:800px;}
+    .mgmt-item{display:flex;align-items:center;gap:0;padding:5px 8px 5px 0;border-radius:8px;text-decoration:none;color:var(--muted);font-size:.78rem;font-weight:600;position:relative;cursor:pointer;transition:background .15s,color .15s;width:100%;border:none;background:none;font-family:inherit;}
+    .mgmt-item:hover:not(.disabled){background:rgba(255,255,255,.04);color:var(--white);}
+    .mgmt-item.active{color:var(--white);}
+    .mgmt-item.disabled{cursor:default;opacity:.6;}
+    .mgmt-item-indicator{width:3px;height:0;border-radius:0 3px 3px 0;background:var(--purple);box-shadow:0 0 10px rgba(104,31,209,.6);margin-right:8px;flex-shrink:0;transition:height 300ms cubic-bezier(0.4,0,0.2,1);}
+    .mgmt-item.active .mgmt-item-indicator{height:1.6rem;}
+    [dir="rtl"] .mgmt-item-indicator{border-radius:3px 0 0 3px;margin-right:0;margin-left:8px;}
+    .mgmt-item-icon{display:flex;align-items:center;justify-content:center;width:28px;height:28px;flex-shrink:0;border-radius:8px;margin-right:8px;color:inherit;}
+    [dir="rtl"] .mgmt-item-icon{margin-right:0;margin-left:8px;}
+    .mgmt-item-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .mgmt-badge{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid rgba(255,255,255,.1);color:var(--muted);background:rgba(255,255,255,.05);flex-shrink:0;letter-spacing:.03em;margin-left:4px;}
+    [dir="rtl"] .mgmt-badge{margin-left:0;margin-right:4px;}
+    .mgmt-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--purple);border-radius:16px 16px 0 0;flex-shrink:0;position:sticky;bottom:0;}
+    .mgmt-footer-user{display:flex;align-items:center;gap:8px;min-width:0;}
+    .mgmt-footer-av{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.25);}
+    .mgmt-footer-av-fallback{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;color:var(--white);flex-shrink:0;}
+    .mgmt-footer-name{font-size:.78rem;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+    .mgmt-footer-dots{background:none;border:none;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:6px;flex-shrink:0;transition:background .15s;}
+    .mgmt-footer-dots:hover{background:rgba(255,255,255,.18);}
+    /* Main */
+    .main{position:relative;z-index:10;min-height:calc(100vh - 60px);margin-top:60px;margin-left:calc(var(--nav-w) + var(--mgmt-w));padding:36px 32px 60px;max-width:calc(1100px + var(--nav-w) + var(--mgmt-w));}
+    [dir="rtl"] .main{margin-left:0;margin-right:calc(var(--nav-w) + var(--mgmt-w));}
+    /* Page transitions */
+    @keyframes pIn{from{opacity:1}to{opacity:0}}
+    @keyframes pOut{from{opacity:0}to{opacity:1}}
+    #ov{position:fixed;inset:0;z-index:9999;background:#040010;animation:pIn .45s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none;}
+    #ov.leave{animation:pOut .35s cubic-bezier(.4,0,.2,1) forwards;pointer-events:all;}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    /* Toast */
+    .toast{position:fixed;bottom:90px;right:24px;z-index:999;padding:12px 20px;border-radius:12px;display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);transition:all .3s;transform:translateY(20px);opacity:0;pointer-events:none;}
+    .toast.show{transform:translateY(0);opacity:1;pointer-events:auto;}
+    .toast.success{background:rgba(22,163,74,.9);border:1px solid rgba(34,197,94,.4);color:#fff;}
+    .toast.error{background:rgba(185,28,28,.9);border:1px solid rgba(239,68,68,.4);color:#fff;}
+    [dir="rtl"] .toast{right:auto;left:24px;}
+    /* Page header */
+    .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:28px;}
+    .page-header-left{display:flex;align-items:center;gap:14px;}
+    .page-header-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(6,182,212,.15));border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--purple-l);}
+    .page-header-left h2{font-size:1.35rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px;}
+    .page-header-left p{font-size:.82rem;color:var(--muted);}
+    .divider{height:1px;background:linear-gradient(90deg,var(--border),transparent);margin-bottom:28px;}
+    /* Card */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;backdrop-filter:blur(20px);}
+    /* Coming soon */
+    .coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:60px 20px;text-align:center;}
+    .coming-soon-icon{width:64px;height:64px;border-radius:20px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);display:flex;align-items:center;justify-content:center;color:var(--purple-l);}
+    .coming-soon h2{font-size:1.1rem;font-weight:700;}
+    .coming-soon p{font-size:.84rem;color:var(--muted);max-width:380px;line-height:1.6;}
+    /* Responsive */
+    @media (max-width: 900px) {
+      .menu-toggle{display:flex;}
+      .mgmt-sidebar{transform:translateX(-110%);}
+      [dir="rtl"] .mgmt-sidebar{transform:translateX(110%);}
+      .mgmt-sidebar.open{transform:translateX(0);}
+      .main{margin-left:var(--nav-w);padding:24px 16px 100px;}
+      [dir="rtl"] .main{margin-left:0;margin-right:var(--nav-w);}
+      .topbar{padding:0 12px;gap:8px;}
+      .topbar-brand{display:none;}
+      .guild-meta-id{display:none!important;}
+      .guild-meta-name{max-width:90px;}
+      .user-chip span{display:none;}
+      .user-chip{padding:4px 7px;}
+      .topbar-sep{display:none;}
+      .lang-select{display:none;}
+    }
+    @media (max-width: 600px) {
+      :root{--nav-w:0px;}
+      .nav-sidebar{transform:translateX(-100%);width:220px!important;align-items:stretch;overflow-x:unset;z-index:95;transition:transform 350ms cubic-bezier(0.4,0,0.2,1);}
+      [dir="rtl"] .nav-sidebar{transform:translateX(100%);}
+      .nav-sidebar.open{transform:translateX(0)!important;box-shadow:4px 0 24px rgba(0,0,0,.5);}
+      .nav-sidebar.open .nav-back{width:100%;gap:10px;padding:0 12px 0 8px;}
+      .nav-sidebar.open .nav-back .nav-label{opacity:1;visibility:visible;pointer-events:auto;}
+      .nav-sidebar.open .nav-item{width:100%;gap:10px;padding:0 12px 0 8px;justify-content:flex-start;border-radius:10px;}
+      .nav-sidebar.open .nav-item-label{opacity:1;visibility:visible;pointer-events:auto;}
+      .nav-sidebar.open .nav-status{opacity:0;}
+      .nav-sidebar.open .nav-divider{width:calc(100% - 24px);}
+      .main{margin-left:0!important;margin-right:0!important;padding:20px 12px 100px;}
+    }
+    /* ── Switch ── */
+    .sw-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .sw-input { display: none; }
+    .sw-track { width: 46px; height: 26px; border-radius: 99px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.12); position: relative; flex-shrink: 0; transition: background .22s, border-color .22s; cursor: pointer; }
+    .sw-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,.55); transition: transform .22s cubic-bezier(.34,1.56,.64,1), background .22s; }
+    .sw-input:checked ~ .sw-track { background: var(--purple); border-color: var(--purple); }
+    .sw-input:checked ~ .sw-track .sw-thumb { transform: translateX(20px); background: #fff; }
+    .sw-label { font-size: .88rem; font-weight: 600; color: var(--white); }
+
+    /* ── System enable banner ── */
+    .sys-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.22); border-radius: 16px; margin-bottom: 22px; }
+    .sys-banner-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .sys-banner-icon { width: 42px; height: 42px; border-radius: 12px; background: rgba(124,58,237,.18); border: 1px solid rgba(124,58,237,.3); display: flex; align-items: center; justify-content:center; flex-shrink:0; color:var(--purple-l); }
+    .sys-banner-title { font-size: 1rem; font-weight: 700; }
+    .sys-banner-sub   { font-size: .8rem; color: var(--muted); margin-top:2px; }
+
+    /* ── Section card ── */
+    .sec-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 16px; transition: border-color .2s; }
+    .sec-card:hover { border-color: var(--border-h); }
+    .sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; cursor: pointer; }
+    .sec-head-left { display: flex; align-items: center; gap: 12px; min-width:0; }
+    .sec-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .sec-icon.purple { background: rgba(124,58,237,.15); color: var(--purple-l); }
+    .sec-icon.cyan   { background: rgba(6,182,212,.12);  color: var(--cyan-l); }
+    .sec-icon.gold   { background: rgba(217,119,6,.12);  color: var(--gold-l); }
+    .sec-icon.green  { background: rgba(34,197,94,.1);   color: var(--green); }
+    .sec-icon.red    { background: rgba(239,68,68,.1);   color: #fca5a5; }
+    .sec-title { font-size: .9rem; font-weight: 700; }
+    .sec-sub   { font-size: .76rem; color: var(--muted); margin-top: 1px; }
+    .sec-chevron { color: var(--muted); flex-shrink:0; transition: transform .25s; }
+    .sec-card.open .sec-chevron { transform: rotate(180deg); }
+    .sec-body { display: none; padding: 0 20px 20px; border-top: 1px solid rgba(255,255,255,.05); padding-top: 18px; }
+    .sec-card.open .sec-body { display: block; }
+
+    /* ── Form fields ── */
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .field-grid.solo { grid-template-columns: 1fr; }
+    .field-grid.thirds { grid-template-columns: 1fr 1fr 1fr; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field-label { font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .field-input, .field-select {
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px; color: var(--white); font-family: inherit; font-size: .88rem;
+      padding: 10px 13px; outline: none; transition: border-color .18s, background .18s; width: 100%;
+    }
+    .field-input:focus, .field-select:focus { border-color: rgba(124,58,237,.55); background: rgba(124,58,237,.07); }
+    .field-select { -webkit-appearance: none; appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 11px center; background-size: 12px; padding-right: 32px;
+    }
+    .field-select option { background: #0a0022; color: var(--white); }
+
+    /* ── Toggle row inside section ── */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row-label { font-size: .86rem; font-weight: 600; }
+    .toggle-row-sub { font-size: .76rem; color: var(--muted); margin-top: 1px; }
+
+    /* ── Star rating grid ── */
+    .star-grid { display: flex; flex-direction: column; gap: 8px; }
+    .star-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; }
+    .star-count { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+    .stars-visual { display: inline-flex; align-items: center; gap: 1px; flex-shrink: 0; }
+    .stars-visual svg { width: 13px; height: 13px; fill: #f59e0b; stroke: #f59e0b; }
+    .star-num { font-size: .78rem; color: var(--muted); }
+    .star-pts-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    .star-pts-input { width: 90px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; color: var(--white); font-family: inherit; font-size: .88rem; padding: 7px 10px; outline: none; transition: border-color .18s; text-align: center; }
+    .star-pts-input:focus { border-color: rgba(217,119,6,.55); }
+    .pts-unit { font-size: .75rem; color: var(--muted); }
+
+    /* ── Command row ── */
+    .cmd-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+    .cmd-row:last-child { margin-bottom: 0; }
+    .cmd-name { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; min-width: 120px; }
+    .cmd-name-sel { flex: 1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; color: var(--white); font-family: inherit; font-size: .84rem; padding: 7px 30px 7px 10px; outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 9px center; background-size: 12px;
+    }
+    .cmd-name-sel option { background: #0a0022; }
+    .cmd-pts-input { width: 80px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; color: var(--white); font-family: inherit; font-size: .88rem; padding: 7px 10px; outline: none; transition: border-color .18s; }
+    .cmd-pts-input:focus { border-color: rgba(124,58,237,.55); }
+    .btn-del-cmd { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; border-radius: 8px; cursor: pointer; padding: 7px 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
+    .btn-del-cmd:hover { background: rgba(239,68,68,.2); }
+    .btn-add-cmd { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; margin-top: 10px; background: rgba(6,182,212,.08); border: 1px solid rgba(6,182,212,.25); color: var(--cyan-l); border-radius: 10px; font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background .15s; }
+    .btn-add-cmd:hover { background: rgba(6,182,212,.15); }
+
+    /* ── Channel picker ── */
+    .picker-wrap { position: relative; }
+    .picker-input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 8px 10px; min-height: 44px; cursor: text; transition: border-color .18s; }
+    .picker-input-row:focus-within { border-color: rgba(124,58,237,.55); }
+    .picker-search { background: none; border: none; outline: none; color: var(--white); font-family: inherit; font-size: .84rem; min-width: 80px; flex: 1; padding: 2px 4px; }
+    .picker-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 10px; border-radius: 99px; font-size: .75rem; font-weight: 600; background: rgba(6,182,212,.15); border: 1px solid rgba(6,182,212,.35); color: var(--cyan-l); white-space: nowrap; }
+    .picker-chip-del { background: none; border: none; color: inherit; opacity: .6; cursor: pointer; padding: 0 1px; display: flex; align-items: center; }
+    .picker-chip-del:hover { opacity: 1; }
+    .picker-dropdown { position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 50; background: rgba(8,2,22,.97); border: 1px solid rgba(124,58,237,.3); border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,.6); max-height: 220px; overflow-y: auto; display: none; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; }
+    .picker-dropdown.open { display: block; }
+    .picker-opt { padding: 9px 14px; font-size: .84rem; cursor: pointer; color: var(--white); transition: background .13s; display: flex; align-items: center; gap: 8px; }
+    .picker-opt:hover { background: rgba(124,58,237,.15); }
+    .picker-empty { padding: 14px; font-size: .82rem; color: var(--muted); text-align: center; }
+
+    /* ── Rewards list ── */
+    .reward-row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+    .reward-row:last-child { margin-bottom: 0; }
+    .reward-pts-input { width: 80px; flex-shrink: 0; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; color: var(--white); font-family: inherit; font-size: .84rem; padding: 7px 10px; outline: none; transition: border-color .18s; }
+    .reward-pts-input:focus { border-color: rgba(124,58,237,.55); }
+    .reward-sep { color: var(--muted); font-size: .8rem; font-weight: 600; flex-shrink: 0; }
+    .reward-role-sel { flex: 1; min-width: 120px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; color: var(--white); font-family: inherit; font-size: .84rem; padding: 7px 30px 7px 10px; outline: none; cursor: pointer; -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 9px center; background-size: 12px;
+    }
+    .reward-role-sel option { background: #0a0022; }
+    .reward-label-input { flex: 1; min-width: 100px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; color: var(--white); font-family: inherit; font-size: .84rem; padding: 7px 10px; outline: none; transition: border-color .18s; }
+    .reward-label-input::placeholder { color: rgba(255,255,255,.25); }
+    .reward-label-input:focus { border-color: rgba(34,197,94,.45); }
+    .btn-del-reward { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; border-radius: 8px; cursor: pointer; padding: 7px 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
+    .btn-del-reward:hover { background: rgba(239,68,68,.2); }
+    .btn-add-reward { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; margin-top: 10px; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25); color: var(--green); border-radius: 10px; font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background .15s; }
+    .btn-add-reward:hover { background: rgba(34,197,94,.18); }
+
+    /* ── Save bar ── */
+    .save-bar { position: fixed; bottom: 0; left: calc(var(--nav-w) + var(--mgmt-w)); right: 0; z-index: 80; background: rgba(4,0,16,.92); border-top: 1px solid rgba(124,58,237,.25); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 32px; transition: transform .28s cubic-bezier(.22,1,.36,1); transform: translateY(110%); }
+    [dir="rtl"] .save-bar { left: 0; right: calc(var(--nav-w) + var(--mgmt-w)); }
+    .save-bar.visible { transform: translateY(0); }
+    .save-bar-text { font-size: .88rem; font-weight: 600; color: var(--muted); }
+    .save-bar-actions { display: flex; gap: 10px; }
+    .btn-discard { padding: 9px 18px; border-radius: 10px; background: var(--surface); border: 1px solid rgba(255,255,255,.1); color: var(--muted); font-size: .84rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .18s, color .18s; }
+    .btn-discard:hover { background: var(--surface-2); color: var(--white); }
+    .btn-save-main { padding: 9px 22px; border-radius: 10px; background: var(--purple); border: none; color: #fff; font-size: .84rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .18s; display: flex; align-items: center; gap: 7px; }
+    .btn-save-main:hover { background: #8b5cf6; }
+    .btn-save-main.loading { opacity: .7; pointer-events: none; }
+
+    /* ── Divider in section ── */
+    .sec-divider { height: 1px; background: rgba(255,255,255,.06); margin: 14px 0; }
+
+    /* ── Tip ── */
+    .tip { font-size: .78rem; color: var(--muted); background: rgba(124,58,237,.06); border: 1px solid rgba(124,58,237,.15); border-radius: 9px; padding: 8px 12px; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 8px; }
+    .tip svg { flex-shrink: 0; margin-top: 1px; color: var(--purple-l); }
+
+    @media (max-width: 768px) {
+      .field-grid { grid-template-columns: 1fr; }
+      .star-row { flex-wrap: wrap; gap: 8px; }
+      .star-count { flex: 1 1 100%; }
+      .star-pts-wrap { margin-left: auto; }
+      .cmd-row { flex-wrap: wrap; }
+      .cmd-name { flex: 1 1 56%; }
+      .reward-row { flex-wrap: wrap; }
+      .reward-role-sel, .reward-label-input { flex: 1 1 calc(50% - 20px); min-width: 0; }
+      .save-bar { left: 0 !important; right: 0 !important; flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
+      .save-bar-text { width: 100%; font-size: .82rem; }
+      .save-bar-actions { width: 100%; justify-content: flex-end; }
+    }
+    .profile-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s;}
+    .profile-backdrop.open{opacity:1;pointer-events:auto;}
+    .profile-sidebar{position:fixed;top:0;right:0;bottom:0;z-index:201;width:300px;max-width:92vw;background:rgba(8,2,22,.97);border-left:1px solid rgba(124,58,237,.18);box-shadow:-12px 0 60px rgba(0,0,0,.7);display:flex;flex-direction:column;transform:translateX(110%);transition:transform .32s cubic-bezier(.22,1,.36,1);overflow:hidden;}
+    [dir="rtl"] .profile-sidebar{right:auto;left:0;border-left:none;border-right:1px solid rgba(124,58,237,.18);box-shadow:12px 0 60px rgba(0,0,0,.7);transform:translateX(-110%);}
+    .profile-sidebar.open{transform:translateX(0);}
+    .prof-banner{width:100%;height:100px;flex-shrink:0;position:relative;background:linear-gradient(135deg,#2d0b6b 0%,#0a0020 60%,#06b6d4 100%);}
+    .prof-banner-solid{width:100%;height:100%;}
+    .prof-banner-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 50%,rgba(8,2,22,.95) 100%);}
+    .prof-close{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:background .18s,color .18s;z-index:5;}
+    [dir="rtl"] .prof-close{right:auto;left:10px;}
+    .prof-close:hover{background:rgba(220,38,38,.25);color:#fca5a5;}
+    .prof-avatar-row{display:flex;align-items:flex-end;padding:0 0 10px 0;}
+    .prof-avatar-wrap{position:relative;margin:-38px 0 0 20px;width:80px;height:80px;flex-shrink:0;}
+    [dir="rtl"] .prof-avatar-wrap{margin:-38px 20px 0 0;}
+    .prof-avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;display:block;border:3px solid rgba(8,2,22,.97);box-shadow:0 0 0 2px rgba(124,58,237,.5);}
+    .prof-avatar-fallback{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,rgba(124,58,237,.4),rgba(6,182,212,.2));border:3px solid rgba(8,2,22,.97);box-shadow:0 0 0 2px rgba(124,58,237,.5);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:800;color:var(--purple-l);}
+    .prof-online-dot{position:absolute;bottom:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#23a55a;border:3px solid rgba(8,2,22,.97);box-shadow:0 0 6px rgba(35,165,90,.7);z-index:4;}
+    .prof-body{flex:1;overflow-y:auto;padding:12px 20px 24px;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,.3) transparent;}
+    .prof-names{margin-bottom:14px;}
+    .prof-display-name{font-size:1.15rem;font-weight:700;color:var(--white);letter-spacing:-.01em;line-height:1.2;}
+    .prof-username{font-size:.75rem;color:var(--muted);margin-top:2px;}
+    .prof-block{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+    .prof-block-label{font-size:.6rem;font-weight:700;letter-spacing:.12em;color:rgba(203,194,255,.5);text-transform:uppercase;margin-bottom:8px;font-family:'Orbitron',monospace;}
+    .prof-id-text{font-size:.75rem;font-family:'Orbitron',monospace;color:var(--muted);letter-spacing:.06em;cursor:pointer;transition:color .15s;}
+    .prof-id-text:hover{color:var(--purple-l);}
+    .prof-badges{display:flex;flex-wrap:wrap;gap:8px;}
+    .prof-badge{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);position:relative;cursor:default;transition:transform .15s,background .15s,box-shadow .15s;}
+    .prof-badge:hover{transform:translateY(-2px) scale(1.08);background:rgba(255,255,255,.09);box-shadow:0 4px 14px rgba(0,0,0,.4);}
+    .prof-badge img{width:20px;height:20px;object-fit:contain;}
+    .prof-badge-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(10,3,30,.97);border:1px solid rgba(124,58,237,.3);border-radius:7px;padding:5px 10px;font-size:.65rem;white-space:nowrap;color:var(--white);opacity:0;pointer-events:none;transition:opacity .15s;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+    .prof-badge:hover .prof-badge-tip{opacity:1;}
+    .prof-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:8px;}
+    .prof-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:.82rem;font-weight:600;text-decoration:none;cursor:pointer;border:1px solid transparent;transition:background .18s,border-color .18s,transform .12s;font-family:inherit;}
+    .prof-btn:active{transform:scale(.97);}
+    .prof-btn.help{background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.3);color:var(--cyan-l);}
+    .prof-btn.help:hover{background:rgba(6,182,212,.14);border-color:rgba(6,182,212,.5);}
+    .prof-btn.logout{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.25);color:#fca5a5;}
+    .prof-btn.logout:hover{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.45);}
+  </style>
+</head>
+<body>
+  <div id="ov"></div>
+  <canvas id="c"></canvas>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+
+  <%- include('partials/layout', { activePage: 'points/tickets' }) %>
+
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-header-icon">
+          <i data-lucide="trophy" style="width:26px;height:26px;stroke:currentColor;fill:none;"></i>
+        </div>
+        <div>
+          <h2><%= lang === 'ar' ? 'نقاط الإدارة' : 'Staff Points' %></h2>
+          <p><%= lang === 'ar' ? 'منح نقاط للإدارة على التذاكر والتقييمات والأوامر' : 'Award points to staff for tickets, ratings & moderation commands' %></p>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <%# ── System enable banner ──────────────────────────────────── %>
+    <div class="sys-banner">
+      <div class="sys-banner-info">
+        <div class="sys-banner-icon">
+          <i data-lucide="zap" style="width:20px;height:20px;stroke:currentColor;fill:none;"></i>
+        </div>
+        <div>
+          <div class="sys-banner-title"><%= lang === 'ar' ? 'نظام نقاط الإدارة' : 'Staff Points System' %></div>
+          <div class="sys-banner-sub"><%= lang === 'ar' ? 'تفعيل أو إيقاف النظام بالكامل' : 'Enable or disable the entire system' %></div>
+        </div>
+      </div>
+      <label class="sw-wrap">
+        <input type="checkbox" class="sw-input cfg-field" id="sys-enabled" data-path="enabled" <%= staffPointsConfig.enabled ? 'checked' : '' %>>
+        <div class="sw-track"><div class="sw-thumb"></div></div>
+      </label>
+    </div>
+
+    <%# ── Section 1: Ticket Points ───────────────────────────────── %>
+    <div class="sec-card open" id="sec-ticket">
+      <div class="sec-head" onclick="toggleSec('sec-ticket')">
+        <div class="sec-head-left">
+          <div class="sec-icon purple"><i data-lucide="ticket" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'نقاط التذاكر' : 'Ticket Points' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'نقاط عند الاستلام أو الإغلاق' : 'Points on claim or close' %></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <label class="sw-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sw-input cfg-field" data-path="ticketPoints.enabled" <%= staffPointsConfig.ticketPoints.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+          <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="tip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <%= lang === 'ar' ? 'تُمنح النقاط لعضو الإدارة الذي يستلم أو يغلق التذكرة.' : 'Points are awarded to the staff member who claims or closes the ticket.' %>
+        </div>
+        <%# Claim row %>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label"><%= lang === 'ar' ? '🎫 استلام التذكرة' : '🎫 Ticket Claim' %></div>
+            <div class="toggle-row-sub"><%= lang === 'ar' ? 'نقاط عند ضغط الإدارة على زر الاستلام' : 'Points when staff clicks claim' %></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input type="number" class="cmd-pts-input cfg-field" data-path="ticketPoints.claim.points" value="<%= staffPointsConfig.ticketPoints.claim.points %>" min="0" max="9999" style="width:80px;">
+              <span style="font-size:.78rem;color:var(--muted);"><%= lang === 'ar' ? 'نقطة' : 'pts' %></span>
+            </div>
+            <label class="sw-wrap">
+              <input type="checkbox" class="sw-input cfg-field" data-path="ticketPoints.claim.enabled" <%= staffPointsConfig.ticketPoints.claim.enabled ? 'checked' : '' %>>
+              <div class="sw-track"><div class="sw-thumb"></div></div>
+            </label>
+          </div>
+        </div>
+        <%# Close row %>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label"><%= lang === 'ar' ? '🔒 إغلاق التذكرة' : '🔒 Ticket Close' %></div>
+            <div class="toggle-row-sub"><%= lang === 'ar' ? 'نقاط عند إغلاق التذكرة' : 'Points when ticket is closed' %></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <input type="number" class="cmd-pts-input cfg-field" data-path="ticketPoints.close.points" value="<%= staffPointsConfig.ticketPoints.close.points %>" min="0" max="9999" style="width:80px;">
+              <span style="font-size:.78rem;color:var(--muted);"><%= lang === 'ar' ? 'نقطة' : 'pts' %></span>
+            </div>
+            <label class="sw-wrap">
+              <input type="checkbox" class="sw-input cfg-field" data-path="ticketPoints.close.enabled" <%= staffPointsConfig.ticketPoints.close.enabled ? 'checked' : '' %>>
+              <div class="sw-track"><div class="sw-thumb"></div></div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Section 2: Rating Points ───────────────────────────────── %>
+    <div class="sec-card" id="sec-rating">
+      <div class="sec-head" onclick="toggleSec('sec-rating')">
+        <div class="sec-head-left">
+          <div class="sec-icon gold"><i data-lucide="star" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'نقاط التقييم' : 'Rating Points' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'نقاط بناءً على تقييم المستخدم للتذكرة' : 'Points based on ticket star rating' %></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <label class="sw-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sw-input cfg-field" data-path="ratingPoints.enabled" <%= staffPointsConfig.ratingPoints.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+          <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="tip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <%= lang === 'ar' ? 'حدد عدد النقاط لكل تقييم من 1 إلى 5 نجوم. القيم السالبة تُطرح من نقاط الإداري.' : 'Set the points for each star rating (1–5). Negative values deduct points.' %>
+        </div>
+        <% const _starDefaults = { 5: 10, 4: 5, 3: 0, 2: -2, 1: -5 };
+           const _savedStars  = staffPointsConfig.ratingPoints.stars || {}; %>
+        <div class="star-grid">
+          <% [5,4,3,2,1].forEach(function(n) {
+            const _pts = (_savedStars[n] !== undefined) ? _savedStars[n] : (_savedStars[String(n)] !== undefined ? _savedStars[String(n)] : _starDefaults[n]);
+            const _label = lang === 'ar' ? ( n === 1 ? 'نجمة' : 'نجوم' ) : (n === 1 ? 'star' : 'stars'); %>
+          <div class="star-row">
+            <span class="star-count">
+              <span class="stars-visual"><% for(var _s=0;_s<n;_s++){ %><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><% } %></span>
+              <span class="star-num">(<%= n %> <%= _label %>)</span>
+            </span>
+            <div class="star-pts-wrap">
+              <input type="number" class="star-pts-input cfg-field" data-path="ratingPoints.stars.<%= n %>" value="<%= _pts %>" min="-9999" max="9999">
+              <span class="pts-unit"><%= lang === 'ar' ? 'نقطة' : 'pts' %></span>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Section 3: Command Points ──────────────────────────────── %>
+    <div class="sec-card" id="sec-cmd">
+      <div class="sec-head" onclick="toggleSec('sec-cmd')">
+        <div class="sec-head-left">
+          <div class="sec-icon cyan"><i data-lucide="shield-check" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'نقاط الأوامر الإدارية' : 'Command Points' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'نقاط عند تنفيذ أوامر (باند، كيك، ميوت...)' : 'Points for moderation commands (ban, kick, mute...)' %></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <label class="sw-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sw-input cfg-field" data-path="commandPoints.enabled" <%= staffPointsConfig.commandPoints.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+          <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="tip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <%= lang === 'ar' ? 'أضف أي أمر من أوامر البوت وحدد عدد النقاط الممنوحة لكل تنفيذ.' : 'Add any bot command and set how many points are awarded per use.' %>
+        </div>
+        <div id="cmd-list">
+          <% const _savedCmds = Array.isArray(staffPointsConfig.commandPoints.commands) ? staffPointsConfig.commandPoints.commands : []; %>
+          <% _savedCmds.forEach(function(cmd, idx) { %>
+          <div class="cmd-row" data-cid="<%= cmd.id || idx %>">
+            <div class="cmd-name">
+              <i data-lucide="terminal" style="width:15px;height:15px;stroke:currentColor;fill:none;color:var(--cyan-l);flex-shrink:0;"></i>
+              <select class="cmd-name-sel">
+                <option value=""><%= lang === 'ar' ? 'اختر أمراً...' : 'Pick command...' %></option>
+                <% guildCommands.forEach(function(c) { %>
+                <option value="<%= c %>" <%= cmd.name === c ? 'selected' : '' %>><%= c %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              <input type="number" class="cmd-pts-input" value="<%= cmd.points || 1 %>" min="-9999" max="9999" placeholder="1">
+              <span class="pts-unit"><%= lang === 'ar' ? 'نقطة' : 'pts' %></span>
+            </div>
+            <button class="btn-del-cmd" type="button" onclick="delCmd(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+          <% }); %>
+        </div>
+        <button class="btn-add-cmd" type="button" onclick="addCmd()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <%= lang === 'ar' ? 'إضافة أمر' : 'Add Command' %>
+        </button>
+      </div>
+    </div>
+
+    <%# ── Section 4: General Settings ───────────────────────────── %>
+    <div class="sec-card" id="sec-general">
+      <div class="sec-head" onclick="toggleSec('sec-general')">
+        <div class="sec-head-left">
+          <div class="sec-icon green"><i data-lucide="settings-2" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'الإعدادات العامة' : 'General Settings' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'قناة الـ Logs وحماية من الغش' : 'Logs channel & anti-abuse' %></div>
+          </div>
+        </div>
+        <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+      </div>
+      <div class="sec-body">
+        <%# Logs channel picker %>
+        <div class="field" style="margin-bottom:18px;">
+          <label class="field-label"><%= lang === 'ar' ? '📋 قناة سجل النقاط' : '📋 Points Log Channel' %></label>
+          <div class="picker-wrap" id="logs-picker">
+            <div class="picker-input-row" id="logs-input-row">
+              <% if (staffPointsConfig.logsChannelId) {
+                const foundCh = guildChannels.find(c => c.id === staffPointsConfig.logsChannelId);
+              %>
+              <span class="picker-chip" data-id="<%= staffPointsConfig.logsChannelId %>">
+                #<%= foundCh ? foundCh.name : staffPointsConfig.logsChannelId %>
+                <button class="picker-chip-del" type="button">✕</button>
+              </span>
+              <% } %>
+              <input class="picker-search" id="logs-search" type="text" placeholder="<%= lang === 'ar' ? 'ابحث عن قناة...' : 'Search channel...' %>" autocomplete="off">
+            </div>
+            <input type="hidden" id="logs-channel-val" class="cfg-field" data-path="logsChannelId" value="<%= staffPointsConfig.logsChannelId || '' %>">
+            <div class="picker-dropdown" id="logs-dropdown">
+              <% if (guildChannels.length === 0) { %>
+              <div class="picker-empty"><%= lang === 'ar' ? 'لا توجد قنوات' : 'No channels found' %></div>
+              <% } else { guildChannels.forEach(ch => { %>
+              <div class="picker-opt" data-id="<%= ch.id %>" data-name="#<%= ch.name %>">#<%= ch.name %></div>
+              <% }); } %>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-divider"></div>
+
+        <%# Anti-abuse %>
+        <div style="margin-bottom:8px;">
+          <div style="font-size:.85rem;font-weight:700;margin-bottom:2px;"><%= lang === 'ar' ? '🛡️ الحماية من الغش' : '🛡️ Anti-Abuse' %></div>
+          <div style="font-size:.76rem;color:var(--muted);margin-bottom:12px;"><%= lang === 'ar' ? 'منع التلاعب بنقاط الإدارة' : 'Prevent manipulation of staff points' %></div>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label"><%= lang === 'ar' ? 'تفعيل الحماية' : 'Enable Anti-Abuse' %></div>
+            <div class="toggle-row-sub"><%= lang === 'ar' ? 'تفعيل/إيقاف جميع حمايات الغش' : 'Master toggle for all abuse protections' %></div>
+          </div>
+          <label class="sw-wrap">
+            <input type="checkbox" class="sw-input cfg-field" data-path="antiAbuse.enabled" <%= staffPointsConfig.antiAbuse.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label"><%= lang === 'ar' ? 'منع الاستلام الذاتي' : 'No Self-Claim' %></div>
+            <div class="toggle-row-sub"><%= lang === 'ar' ? 'لا نقاط إذا كان الإداري هو مفتح التذكرة' : 'No points if staff claims their own ticket' %></div>
+          </div>
+          <label class="sw-wrap">
+            <input type="checkbox" class="sw-input cfg-field" data-path="antiAbuse.noSelfClaim" <%= staffPointsConfig.antiAbuse.noSelfClaim ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label"><%= lang === 'ar' ? 'منع التقييم الذاتي' : 'No Self-Rate' %></div>
+            <div class="toggle-row-sub"><%= lang === 'ar' ? 'لا نقاط إذا قيّم الإداري تذكرته بنفسه' : 'No points if staff rates their own ticket' %></div>
+          </div>
+          <label class="sw-wrap">
+            <input type="checkbox" class="sw-input cfg-field" data-path="antiAbuse.noSelfRate" <%= staffPointsConfig.antiAbuse.noSelfRate ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-row-label"><%= lang === 'ar' ? 'منع تكرار النقاط' : 'No Duplicate Points' %></div>
+            <div class="toggle-row-sub"><%= lang === 'ar' ? 'نقطة واحدة لكل تذكرة/أمر (منع التكرار)' : 'One-time points per ticket/action (no repeats)' %></div>
+          </div>
+          <label class="sw-wrap">
+            <input type="checkbox" class="sw-input cfg-field" data-path="antiAbuse.noDuplicatePoints" <%= staffPointsConfig.antiAbuse.noDuplicatePoints ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Section 5: Rewards ──────────────────────────────────────── %>
+    <div class="sec-card" id="sec-rewards">
+      <div class="sec-head" onclick="toggleSec('sec-rewards')">
+        <div class="sec-head-left">
+          <div class="sec-icon red"><i data-lucide="gift" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i></div>
+          <div>
+            <div class="sec-title"><%= lang === 'ar' ? 'نظام المكافآت' : 'Rewards System' %></div>
+            <div class="sec-sub"><%= lang === 'ar' ? 'منح رتب عند الوصول لعدد معين من النقاط' : 'Grant roles when staff reach a point threshold' %></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <label class="sw-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="sw-input cfg-field" data-path="rewards.enabled" <%= staffPointsConfig.rewards.enabled ? 'checked' : '' %>>
+            <div class="sw-track"><div class="sw-thumb"></div></div>
+          </label>
+          <i data-lucide="chevron-down" class="sec-chevron" style="width:18px;height:18px;stroke:currentColor;fill:none;"></i>
+        </div>
+      </div>
+      <div class="sec-body">
+        <div class="tip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <%= lang === 'ar' ? 'عند وصول الإداري لعدد النقاط المحدد، تمنح الرتبة تلقائياً.' : 'When staff reach the set point threshold, the role is auto-granted.' %>
+        </div>
+        <div id="rewards-list">
+          <% (staffPointsConfig.rewards.list || []).forEach(function(reward, idx) { %>
+          <div class="reward-row" data-rid="<%= reward.id || idx %>">
+            <input type="number" class="reward-pts-input" placeholder="100" value="<%= reward.points %>" min="1" max="99999">
+            <span class="reward-sep"><%= lang === 'ar' ? 'نقطة →' : 'pts →' %></span>
+            <select class="reward-role-sel">
+              <option value=""><%= lang === 'ar' ? 'رتبة (اختياري)' : 'Role (optional)' %></option>
+              <% guildRoles.forEach(function(r) { %>
+              <option value="<%= r.id %>" <%= reward.roleId === r.id ? 'selected' : '' %>>@<%= r.name %></option>
+              <% }); %>
+            </select>
+            <input type="text" class="reward-label-input" placeholder="<%= lang === 'ar' ? 'وصف المكافأة (اختياري)' : 'Reward label (optional)' %>" value="<%= reward.label || '' %>" maxlength="80">
+            <button class="btn-del-reward" type="button" onclick="delReward(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+          <% }); %>
+        </div>
+        <button class="btn-add-reward" type="button" onclick="addReward()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <%= lang === 'ar' ? 'إضافة مكافأة' : 'Add Reward' %>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <%# ── Save bar ──────────────────────────────────────────────────── %>
+  <div class="save-bar" id="save-bar">
+    <span class="save-bar-text"><%= lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %></span>
+    <div class="save-bar-actions">
+      <button class="btn-discard" onclick="discardChanges()"><%= lang === 'ar' ? 'إلغاء' : 'Discard' %></button>
+      <button class="btn-save-main" id="btn-save" onclick="saveConfig()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+        <%= lang === 'ar' ? 'حفظ' : 'Save' %>
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <%- include('partials/bg_stars') %>
+  <script type="application/json" id="_channels"><%- JSON.stringify(guildChannels) %></script>
+  <script type="application/json" id="_roles"><%- JSON.stringify(guildRoles) %></script>
+  <script type="application/json" id="_cmds"><%- JSON.stringify(guildCommands) %></script>
+  <script>
+    const IS_AR = '<%= lang %>' === 'ar';
+    const GUILD_ID = '<%= guildId %>';
+
+    /* ── Server data ─────────────────────────────── */
+    const GUILD_CHANNELS = JSON.parse(document.getElementById('_channels').textContent);
+    const GUILD_ROLES     = JSON.parse(document.getElementById('_roles').textContent);
+    const GUILD_COMMANDS  = JSON.parse(document.getElementById('_cmds').textContent);
+
+    /* ── Language select ─────────────────────────── */
+    document.getElementById('lang-select').addEventListener('change', function () {
+      const u = new URL(window.location.href);
+      u.searchParams.set('lang', this.value);
+      window.location.href = u.toString();
+    });
+
+    /* ── Mobile nav ──────────────────────────────── */
+    const menuToggle  = document.getElementById('menu-toggle');
+    const mgmtSidebar = document.getElementById('mgmt-sidebar');
+    const navSidebar  = document.querySelector('.nav-sidebar');
+    const navOverlay  = document.getElementById('nav-overlay');
+    const sortBtn     = document.getElementById('mgmt-sort-btn');
+    function openMgmt()  { mgmtSidebar.classList.add('open'); navOverlay.classList.add('open'); document.body.style.overflow='hidden'; }
+    function closeMgmt() { mgmtSidebar.classList.remove('open'); navOverlay.classList.remove('open'); document.body.style.overflow=''; }
+    function openNav()   { if (navSidebar) { navSidebar.classList.add('open'); navOverlay.classList.add('open'); document.body.style.overflow='hidden'; } }
+    function closeNav()  { if (navSidebar) { navSidebar.classList.remove('open'); navOverlay.classList.remove('open'); document.body.style.overflow=''; } }
+    if (menuToggle) menuToggle.addEventListener('click', function(e) { e.stopPropagation(); mgmtSidebar.classList.contains('open') ? closeMgmt() : openMgmt(); });
+    if (navOverlay) navOverlay.addEventListener('click', function() { closeMgmt(); closeNav(); });
+    if (sortBtn)    sortBtn.addEventListener('click', function(e) { e.stopPropagation(); if (navSidebar && navSidebar.classList.contains('open')) { closeNav(); } else { closeMgmt(); openNav(); } });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeMgmt(); closeNav(); } });
+
+    /* ── Mgmt section collapse ───────────────────── */
+    document.querySelectorAll('.mgmt-section-btn').forEach(function(btn) {
+      btn.addEventListener('click', function () {
+        const body = this.nextElementSibling;
+        const isOpen = body.classList.contains('open');
+        body.classList.toggle('open', !isOpen);
+        this.classList.toggle('open', !isOpen);
+      });
+    });
+
+    /* ── Page transitions ────────────────────────── */
+    function fadeOut(href) {
+      const ov = document.getElementById('ov');
+      ov.classList.add('leave');
+      setTimeout(function() { window.location.href = href; }, 360);
+    }
+    document.querySelectorAll('a.nav-link').forEach(function(a) {
+      a.addEventListener('click', function (e) {
+        if (this.target === '_blank') return;
+        e.preventDefault(); fadeOut(this.href);
+      });
+    });
+
+    /* ── Toast ───────────────────────────────────── */
+    function showToast(msg, type) {
+      type = type || 'success';
+      const el = document.getElementById('toast');
+      const icon = type === 'success'
+        ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+      el.className = 'toast ' + type;
+      el.innerHTML = icon + ' ' + msg;
+      el.classList.add('show');
+      setTimeout(function(){ el.classList.remove('show'); }, 3500);
+    }
+
+    /* ── Profile sidebar ─────────────────────────── */
+    const profSidebar  = document.getElementById('prof-sidebar');
+    const profBackdrop = document.getElementById('prof-backdrop');
+    const openBtn      = document.getElementById('open-profile');
+    const closeBtn     = document.getElementById('close-profile');
+    const copyId       = document.getElementById('prof-copy-id');
+    const bannerSolid  = document.querySelector('.prof-banner-solid');
+    if (bannerSolid && bannerSolid.dataset.bg) bannerSolid.style.background = bannerSolid.dataset.bg;
+    function openProfile()  { if (!profSidebar) return; profSidebar.classList.add('open'); profBackdrop.classList.add('open'); profSidebar.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+    function closeProfile() { if (!profSidebar) return; profSidebar.classList.remove('open'); profBackdrop.classList.remove('open'); profSidebar.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+    if (openBtn)  openBtn.addEventListener('click', openProfile);
+    document.querySelectorAll('.open-profile-btn').forEach(function(b){ b.addEventListener('click', openProfile); });
+    if (closeBtn) closeBtn.addEventListener('click', closeProfile);
+    if (profBackdrop) profBackdrop.addEventListener('click', closeProfile);
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeProfile(); });
+    if (copyId) {
+      copyId.addEventListener('click', function() {
+        navigator.clipboard.writeText(copyId.textContent.trim()).then(function() {
+          const orig = copyId.textContent;
+          copyId.textContent = 'Copied!'; copyId.style.color = 'var(--cyan-l)';
+          setTimeout(function(){ copyId.textContent = orig; copyId.style.color = ''; }, 1500);
+        });
+      });
+    }
+
+    /* ── Section accordion ───────────────────────── */
+    function toggleSec(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('open');
+    }
+
+    /* ── Change tracking ─────────────────────────── */
+    let dirty = false;
+    function markDirty() {
+      dirty = true;
+      document.getElementById('save-bar').classList.add('visible');
+    }
+    function clearDirty() {
+      dirty = false;
+      document.getElementById('save-bar').classList.remove('visible');
+    }
+    document.querySelectorAll('.cfg-field').forEach(function(el) {
+      el.addEventListener('change', markDirty);
+      el.addEventListener('input', markDirty);
+    });
+
+    /* ── Logs channel picker ─────────────────────── */
+    (function initLogsPicker() {
+      const picker   = document.getElementById('logs-picker');
+      const search   = document.getElementById('logs-search');
+      const dropdown = document.getElementById('logs-dropdown');
+      const hiddenVal= document.getElementById('logs-channel-val');
+      const inputRow = document.getElementById('logs-input-row');
+
+      function renderDropdown(query) {
+        const q = (query || '').toLowerCase();
+        const filtered = GUILD_CHANNELS.filter(function(c){ return c.name.toLowerCase().includes(q); });
+        dropdown.innerHTML = filtered.length
+          ? filtered.map(function(c){ return '<div class="picker-opt" data-id="'+c.id+'" data-name="#'+c.name+'">#'+c.name+'</div>'; }).join('')
+          : '<div class="picker-empty">' + (IS_AR ? 'لا توجد نتائج' : 'No results') + '</div>';
+        dropdown.querySelectorAll('.picker-opt').forEach(function(opt){
+          opt.addEventListener('click', function(){ selectChannel(opt.dataset.id, opt.dataset.name); });
+        });
+      }
+
+      function selectChannel(id, name) {
+        hiddenVal.value = id;
+        inputRow.querySelectorAll('.picker-chip').forEach(function(c){ c.remove(); });
+        const chip = document.createElement('span');
+        chip.className = 'picker-chip';
+        chip.dataset.id = id;
+        chip.innerHTML = name + ' <button class="picker-chip-del" type="button">✕</button>';
+        chip.querySelector('.picker-chip-del').addEventListener('click', function(e){
+          e.stopPropagation(); chip.remove(); hiddenVal.value = ''; search.value = ''; markDirty();
+        });
+        inputRow.insertBefore(chip, search);
+        search.value = '';
+        dropdown.classList.remove('open');
+        markDirty();
+      }
+
+      inputRow.querySelectorAll('.picker-chip .picker-chip-del').forEach(function(btn){
+        btn.addEventListener('click', function(e){ e.stopPropagation(); btn.closest('.picker-chip').remove(); hiddenVal.value = ''; markDirty(); });
+      });
+
+      search.addEventListener('focus', function(){ renderDropdown(search.value); dropdown.classList.add('open'); });
+      search.addEventListener('input', function(){ renderDropdown(search.value); });
+      document.addEventListener('click', function(e){ if (!picker.contains(e.target)) dropdown.classList.remove('open'); });
+    })();
+
+    /* ── Commands list ─────────────────────────────── */
+    function addCmd() {
+      const list = document.getElementById('cmd-list');
+      const id   = Date.now();
+      const row  = document.createElement('div');
+      row.className = 'cmd-row'; row.dataset.cid = id;
+      const termSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="color:var(--cyan-l);flex-shrink:0;"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>';
+      const cmdOpts = GUILD_COMMANDS.map(function(c){ return '<option value="'+c+'">'+c.replace(/</g,'&lt;')+'</option>'; }).join('');
+      row.innerHTML =
+        '<div class="cmd-name">' +
+          termSvg +
+          '<select class="cmd-name-sel"><option value="">'+(IS_AR?'اختر أمراً...':'Pick command...')+'</option>'+cmdOpts+'</select>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">' +
+          '<input type="number" class="cmd-pts-input" value="1" min="-9999" max="9999" placeholder="1">' +
+          '<span class="pts-unit">'+(IS_AR?'نقطة':'pts')+'</span>' +
+        '</div>' +
+        '<button class="btn-del-cmd" type="button" onclick="delCmd(this)">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>' +
+        '</button>';
+      list.appendChild(row);
+      row.querySelector('.cmd-name-sel').addEventListener('change', markDirty);
+      row.querySelector('.cmd-pts-input').addEventListener('input', markDirty);
+      markDirty();
+    }
+    function delCmd(btn) { btn.closest('.cmd-row').remove(); markDirty(); }
+    document.querySelectorAll('#cmd-list .cmd-name-sel, #cmd-list .cmd-pts-input').forEach(function(el){
+      el.addEventListener('change', markDirty); el.addEventListener('input', markDirty);
+    });
+
+    /* ── Rewards list ─────────────────────────────── */
+    function addReward() {
+      const list = document.getElementById('rewards-list');
+      const id   = Date.now();
+      const row  = document.createElement('div');
+      row.className = 'reward-row'; row.dataset.rid = id;
+      const roleOpts = GUILD_ROLES.map(function(r){ return '<option value="'+r.id+'">@'+r.name.replace(/</g,'&lt;')+'</option>'; }).join('');
+      row.innerHTML =
+        '<input type="number" class="reward-pts-input" placeholder="100" min="1" max="99999">' +
+        '<span class="reward-sep">'+(IS_AR?'نقطة →':'pts →')+'</span>' +
+        '<select class="reward-role-sel">' +
+          '<option value="">'+(IS_AR?'رتبة (اختياري)':'Role (optional)')+'</option>' +
+          roleOpts +
+        '</select>' +
+        '<input type="text" class="reward-label-input" placeholder="'+(IS_AR?'وصف المكافأة (اختياري)':'Reward label (optional)')+'" maxlength="80">' +
+        '<button class="btn-del-reward" type="button" onclick="delReward(this)">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>' +
+        '</button>';
+      list.appendChild(row);
+      row.querySelector('.reward-pts-input').addEventListener('input', markDirty);
+      row.querySelector('.reward-role-sel').addEventListener('change', markDirty);
+      row.querySelector('.reward-label-input').addEventListener('input', markDirty);
+      markDirty();
+    }
+    function delReward(btn) { btn.closest('.reward-row').remove(); markDirty(); }
+    document.querySelectorAll('.reward-row .reward-pts-input, .reward-row .reward-role-sel, .reward-row .reward-label-input').forEach(function(el){
+      el.addEventListener('change', markDirty); el.addEventListener('input', markDirty);
+    });
+
+    /* ── Build config object from DOM ────────────── */
+    function buildConfig() {
+      function field(path) {
+        const el = document.querySelector('.cfg-field[data-path="' + path + '"]');
+        if (!el) return undefined;
+        if (el.type === 'checkbox') return el.checked;
+        return el.value;
+      }
+      function numField(path, def) {
+        const v = parseInt(field(path), 10);
+        return isNaN(v) ? def : v;
+      }
+      const rewards = [];
+      document.querySelectorAll('#rewards-list .reward-row').forEach(function(row){
+        const pts = parseInt(row.querySelector('.reward-pts-input').value, 10);
+        if (isNaN(pts) || pts <= 0) return;
+        rewards.push({
+          id:     row.dataset.rid,
+          points: pts,
+          roleId: row.querySelector('.reward-role-sel').value,
+          label:  (row.querySelector('.reward-label-input')?.value || '').slice(0, 80),
+        });
+      });
+      const commands = [];
+      document.querySelectorAll('#cmd-list .cmd-row').forEach(function(row){
+        const name = row.querySelector('.cmd-name-sel').value;
+        if (!name) return;
+        commands.push({ id: row.dataset.cid, name: name, points: parseInt(row.querySelector('.cmd-pts-input').value, 10) || 1 });
+      });
+      return {
+        enabled: field('enabled'),
+        ticketPoints: {
+          enabled: field('ticketPoints.enabled'),
+          claim: { enabled: field('ticketPoints.claim.enabled'), points: numField('ticketPoints.claim.points', 5) },
+          close: { enabled: field('ticketPoints.close.enabled'), points: numField('ticketPoints.close.points', 3) },
+        },
+        ratingPoints: {
+          enabled: field('ratingPoints.enabled'),
+          stars: {
+            5: numField('ratingPoints.stars.5', 10),
+            4: numField('ratingPoints.stars.4', 5),
+            3: numField('ratingPoints.stars.3', 0),
+            2: numField('ratingPoints.stars.2', -2),
+            1: numField('ratingPoints.stars.1', -5),
+          },
+        },
+        commandPoints: { enabled: field('commandPoints.enabled'), commands: commands },
+        logsChannelId: document.getElementById('logs-channel-val').value || null,
+        antiAbuse: {
+          enabled:           field('antiAbuse.enabled'),
+          noSelfClaim:       field('antiAbuse.noSelfClaim'),
+          noSelfRate:        field('antiAbuse.noSelfRate'),
+          noDuplicatePoints: field('antiAbuse.noDuplicatePoints'),
+          cooldownMinutes:   60,
+        },
+        rewards: { enabled: field('rewards.enabled'), list: rewards },
+      };
+    }
+
+    /* ── Save ────────────────────────────────────── */
+    async function saveConfig() {
+      const btn = document.getElementById('btn-save');
+      btn.classList.add('loading');
+      btn.textContent = IS_AR ? 'جاري الحفظ...' : 'Saving...';
+      try {
+        const cfg  = buildConfig();
+        const resp = await fetch('/dashboard/' + GUILD_ID + '/points/tickets/save', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(cfg),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+          clearDirty();
+          showToast(IS_AR ? '✅ تم الحفظ بنجاح' : '✅ Saved successfully', 'success');
+        } else {
+          showToast(IS_AR ? '❌ فشل الحفظ' : '❌ Failed to save', 'error');
+        }
+      } catch (_) {
+        showToast(IS_AR ? '❌ خطأ في الاتصال' : '❌ Connection error', 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg> ' + (IS_AR ? 'حفظ' : 'Save');
+      }
+    }
+
+    function discardChanges() { window.location.reload(); }
+
+    window.addEventListener('beforeunload', function(e){ if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+  </script>
+  <script src="/js/lucide.min.js"></script>
+  <script>lucide.createIcons();</script>
+  <%- include('partials/promo_card') %>
+  <%- include('partials/footer') %>
+</body>
+</html>
+

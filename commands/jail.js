@@ -134,9 +134,8 @@ module.exports = {
         }
 
         /* ── load settings ── */
-        const settingsUtil = require('../utils/settings.js');
-        const settings = settingsUtil.get();
-        const jailCfg  = settings.actions?.jail || {};
+        const guildCmdsUtil = require('../utils/guildCmds.js');
+        const jailCfg       = guildCmdsUtil.resolve(guild.id, 'jail');
 
         const jailRoleId = jailCfg.addRole;
         if (!jailRoleId) {

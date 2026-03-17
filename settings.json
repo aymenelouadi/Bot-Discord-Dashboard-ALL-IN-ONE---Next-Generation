@@ -697,10 +697,10 @@
         "ENABLED": true,
         "INTRO": true,
         "SHIPS": [
-            "756947441592303707"
+            "YOUR_DISCORD_USER_ID"
         ],
         "OWNERS": [
-            "756947441592303707"
+            "YOUR_DISCORD_USER_ID"
         ],
         "SERVERS": {
             "ADD_BOT_ON_MANY_SERVER": false,

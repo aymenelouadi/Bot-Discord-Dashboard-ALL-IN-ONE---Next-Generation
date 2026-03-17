@@ -9,7 +9,7 @@
   <%- include('partials/head_theme') %>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= lang === 'ar' ? 'الأوامر الإدارية' : 'Moderation' %> — <%= guildInfo.name %></title>
+  <title><%= t.moderation.moderation %> — <%= guildInfo.name %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -365,6 +365,9 @@
     .alias-chip button:hover { color: #f87171; }
     .alias-real-input { background: none; border: none; outline: none; color: var(--white); font-size: .82rem; font-family: inherit; min-width: 80px; flex: 1; }
     .alias-real-input::placeholder { color: rgba(255,255,255,.25); }
+    .alias-add-btn { display: none; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(124,58,237,.35); border: 1px solid rgba(124,58,237,.5); color: #fff; font-size: 1.1rem; line-height: 1; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+    .alias-add-btn:hover { background: rgba(124,58,237,.6); }
+    @media (hover: none) and (pointer: coarse) { .alias-add-btn { display: flex; } }
 
     /* Variables box */
     .edit-vars-box { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 8px; padding: 10px 14px; margin-top: 6px; }
@@ -609,10 +612,10 @@
     <!-- ── Module header ── -->
     <div class="util-module-header">
       <div>
-        <h2><%= lang === 'ar' ? 'الأوامر الإدارية' : 'Moderation' %></h2>
-        <p><%= lang === 'ar' ? 'تحتوي على أوامر إدارية متنوعة مثل الحظر والكتم والتحذير وإدارة الأدوار.' : 'Contains various moderation commands like ban, mute, warn, and role management.' %></p>
+        <h2><%= t.moderation.moderation %></h2>
+        <p><%= t.moderation.containsVariousModerationCommandsLikeBan %></p>
       </div>
-      <label class="sw-wrap" title="<%= lang === 'ar' ? 'تفعيل / إيقاف' : 'Enable / Disable' %>">
+      <label class="sw-wrap" title="<%= t.moderation.enableDisable %>">
         <input type="checkbox" class="sw-input" data-field="moduleEnabled" checked>
         <span class="sw-track"><span class="sw-thumb"></span></span>
       </label>
@@ -622,14 +625,14 @@
 
     <!-- ── Tabs ── -->
     <div class="util-tabs">
-      <button class="util-tab active"><%= lang === 'ar' ? 'الأوامر' : 'Commands' %></button>
+      <button class="util-tab active"><%= t.moderation.commands %></button>
     </div>
 
     <!-- ── Commands Card ── -->
     <div class="card" style="padding:0; overflow:hidden;">
       <div style="padding:18px 20px 14px; display:flex; align-items:center; gap:10px;">
         <i data-lucide="terminal" style="width:17px;height:17px;color:#a78bfa;flex-shrink:0;stroke:currentColor;fill:none;"></i>
-        <h3 style="font-size:1rem;font-weight:700;"><%= lang === 'ar' ? 'الأوامر' : 'Commands' %></h3>
+        <h3 style="font-size:1rem;font-weight:700;"><%= t.moderation.commands %></h3>
       </div>
       <div class="divider" style="margin:0;"></div>
 
@@ -689,10 +692,10 @@
               <div class="cmd-desc"><%= (cmdMeta[cmd.key] || {})[lang] || '' %></div>
             </div>
             <div class="cmd-actions">
-              <button class="cmd-edit-btn" data-target="edit-<%= cmd.key %>" onclick="toggleEditPanel(this)" title="<%= lang === 'ar' ? 'تعديل' : 'Edit' %>">
+              <button class="cmd-edit-btn" data-target="edit-<%= cmd.key %>" onclick="toggleEditPanel(this)" title="<%= t.moderation.edit %>">
                 <i data-lucide="pencil" style="width:15px;height:15px;stroke:currentColor;fill:none;pointer-events:none;"></i>
               </button>
-              <label class="sw-wrap" title="<%= lang === 'ar' ? 'تفعيل / إيقاف' : 'Enable / Disable' %>">
+              <label class="sw-wrap" title="<%= t.moderation.enableDisable %>">
                 <input type="checkbox" class="sw-input cmd-main-toggle" data-cmd-key="<%= cmd.key %>" <%= cmd.enabled ? 'checked' : '' %>>
                 <span class="sw-track"><span class="sw-thumb"></span></span>
               </label>
@@ -703,32 +706,33 @@
           <div class="cmd-edit-panel" id="edit-<%= cmd.key %>">
             <div class="edit-panel-title">
               <i data-lucide="settings-2" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i>
-              <%= lang === 'ar' ? 'الصلاحيات والمستعارات' : 'Permissions & Aliases' %>
+              <%= t.moderation.permissionsAliases %>
             </div>
             <div class="edit-grid">
 
               <!-- Aliases (full width) -->
               <div class="edit-field" style="grid-column:1/-1;">
-                <span class="edit-label"><%= lang === 'ar' ? 'المستعارات' : 'Aliases' %></span>
+                <span class="edit-label"><%= t.moderation.aliases %></span>
                 <div class="alias-input-wrap" onclick="this.querySelector('.alias-real-input').focus()">
                   <% (cmd.aliases || []).forEach(function(alias) { %>
                     <span class="alias-chip"><%= alias %><button type="button" onclick="removeAlias(this)" tabindex="-1">×</button></span>
                   <% }); %>
                   <input class="alias-real-input" type="text"
-                    placeholder="<%= lang === 'ar' ? 'أضف مستعاراً ثم اضغط Enter...' : 'Type then press Enter to add...' %>"
+                    placeholder="<%= t.moderation.typeThenPressEnterToAdd %>"
                     onkeydown="handleAliasKey(event,this)">
+                  <button type="button" class="alias-add-btn" onclick="addAliasFromBtn(this)" tabindex="-1">+</button>
                 </div>
                 <div class="edit-vars-box">
-                  <span class="edit-vars-title"><%= lang === 'ar' ? 'المتغيرات' : 'Variables' %></span>
+                  <span class="edit-vars-title"><%= t.moderation.variables %></span>
                   <div class="edit-var-row">
                     <span class="edit-var-code"><%= typeof botPrefix !== 'undefined' ? botPrefix : '!' %></span>
                     <span class="edit-var-sep">–</span>
                     <span class="edit-var-desc">
-                      <%= lang === 'ar' ? 'بادئة البوت' : "Bot's prefix" %>
+                      <%= t.moderation.bot %>
                       &nbsp;·&nbsp;
                       <a href="/dashboard/<%= guildId %>/setting" class="nav-link" style="color:#a78bfa;font-size:.78rem;text-decoration:none;opacity:.85;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
                         <i data-lucide="external-link" style="width:11px;height:11px;stroke:currentColor;fill:none;display:inline;vertical-align:middle;"></i>
-                        <%= lang === 'ar' ? 'تغيير' : 'Change' %>
+                        <%= t.moderation.change %>
                       </a>
                     </span>
                   </div>
@@ -737,10 +741,10 @@
 
               <!-- Ignored Channels -->
               <div class="edit-field">
-                <span class="edit-label"><%= lang === 'ar' ? 'القنوات المتجاهلة' : 'Ignored Channels' %></span>
+                <span class="edit-label"><%= t.moderation.ignoredChannels %></span>
                 <div class="csel-wrap" data-field="ignoredChannels">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر...' : 'Select...' %></span>
+                    <span class="csel-placeholder"><%= t.moderation.select %></span>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
@@ -750,17 +754,17 @@
                         <span>#<%= ch.name %></span>
                       </div>
                     <% }); %>
-                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang==='ar'?'لا توجد قنوات':'No channels' %></div><% } %>
+                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= t.moderation.noChannels %></div><% } %>
                   </div>
                 </div>
               </div>
 
               <!-- Ignored Roles -->
               <div class="edit-field">
-                <span class="edit-label"><%= lang === 'ar' ? 'الرتب المتجاهلة' : 'Ignored Roles' %></span>
+                <span class="edit-label"><%= t.moderation.ignoredRoles %></span>
                 <div class="csel-wrap" data-field="ignoredRoles">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر...' : 'Select...' %></span>
+                    <span class="csel-placeholder"><%= t.moderation.select %></span>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
@@ -770,17 +774,17 @@
                         <span><%= r.name %></span>
                       </div>
                     <% }); %>
-                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang==='ar'?'لا توجد رتب':'No roles' %></div><% } %>
+                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= t.moderation.noRoles %></div><% } %>
                   </div>
                 </div>
               </div>
 
               <!-- Enabled Channels -->
               <div class="edit-field">
-                <span class="edit-label"><%= lang === 'ar' ? 'القنوات المفعلة' : 'Enabled Channels' %></span>
+                <span class="edit-label"><%= t.moderation.enabledChannels %></span>
                 <div class="csel-wrap" data-field="enabledChannels">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر...' : 'Select...' %></span>
+                    <span class="csel-placeholder"><%= t.moderation.select %></span>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
@@ -790,17 +794,17 @@
                         <span>#<%= ch.name %></span>
                       </div>
                     <% }); %>
-                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang==='ar'?'لا توجد قنوات':'No channels' %></div><% } %>
+                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= t.moderation.noChannels %></div><% } %>
                   </div>
                 </div>
               </div>
 
               <!-- Allowed Roles -->
               <div class="edit-field">
-                <span class="edit-label"><%= lang === 'ar' ? 'الرتب المسموحة' : 'Allowed Roles' %></span>
+                <span class="edit-label"><%= t.moderation.allowedRoles %></span>
                 <div class="csel-wrap" data-field="allowedRoles">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر...' : 'Select...' %></span>
+                    <span class="csel-placeholder"><%= t.moderation.select %></span>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
@@ -810,14 +814,14 @@
                         <span><%= r.name %></span>
                       </div>
                     <% }); %>
-                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang==='ar'?'لا توجد رتب':'No roles' %></div><% } %>
+                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= t.moderation.noRoles %></div><% } %>
                   </div>
                 </div>
               </div>
 
               <!-- Allowed Users (full width) -->
               <div class="edit-field" style="grid-column:1/-1;">
-                <span class="edit-label"><%= lang === 'ar' ? 'المستخدمون المسموحون' : 'Allowed Users' %></span>
+                <span class="edit-label"><%= t.moderation.allowedUsers %></span>
                 <div class="user-id-wrap">
                   <div class="user-id-chips" id="uchips-<%= cmd.key %>">
                     <% (cmd.allowedUsers || []).forEach(function(u) { %>
@@ -834,11 +838,11 @@
                   </div>
                   <div class="user-id-add-row">
                     <input class="user-id-input" type="text" id="uid-input-<%= cmd.key %>"
-                      placeholder="<%= lang === 'ar' ? 'أدخل ايدي المستخدم...' : 'Enter user ID...' %>">
+                      placeholder="<%= t.moderation.enterUserID %>">
                     <button class="user-id-add-btn" type="button"
                       onclick="openUserConfirm('<%= cmd.key %>')">
                       <i data-lucide="user-plus" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
-                      <%= lang === 'ar' ? 'إضافة' : 'Add' %>
+                      <%= t.moderation.add %>
                     </button>
                   </div>
                 </div>
@@ -849,10 +853,10 @@
                 <div class="edit-toggle-row" style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.15);border-radius:10px;padding:10px 14px;">
                   <div>
                     <span class="edit-toggle-label" style="color:var(--white);font-weight:700;">
-                      <%= lang === 'ar' ? 'يتطلب صلاحية المسؤول' : 'Require Administrator' %>
+                      <%= t.moderation.requireAdministrator %>
                     </span>
                     <p style="font-size:.72rem;color:var(--muted);margin-top:2px;">
-                      <%= lang === 'ar' ? 'يسمح بتنفيذ الأمر لأي شخص لديه صلاحية المسؤول (Administrator) في السيرفر' : 'Grants any member with Administrator permission access to this command' %>
+                      <%= t.moderation.grantsAnyMemberWithAdministratorPermission %>
                     </p>
                   </div>
                   <label class="sw-wrap">
@@ -865,7 +869,7 @@
               <!-- Auto Delete Author's Message -->
               <div class="edit-field">
                 <div class="edit-toggle-row">
-                  <span class="edit-toggle-label"><%= lang === 'ar' ? 'حذف رسالة المستخدم تلقائياً' : "Auto Delete Author's Message" %></span>
+                  <span class="edit-toggle-label"><%= t.moderation.autoDeleteAuthor %></span>
                   <label class="sw-wrap">
                     <input type="checkbox" class="sw-input" data-field="autoDeleteAuthor">
                     <span class="sw-track"><span class="sw-thumb"></span></span>
@@ -876,13 +880,77 @@
               <!-- Auto Delete Bot Reply -->
               <div class="edit-field">
                 <div class="edit-toggle-row">
-                  <span class="edit-toggle-label"><%= lang === 'ar' ? 'حذف رد البوت عند حذف الرسالة' : "Auto Delete Bot's Reply on Deletion" %></span>
+                  <span class="edit-toggle-label"><%= t.moderation.autoDeleteBot %></span>
                   <label class="sw-wrap">
                     <input type="checkbox" class="sw-input" data-field="autoDeleteReply">
                     <span class="sw-track"><span class="sw-thumb"></span></span>
                   </label>
                 </div>
               </div>
+
+              <% if (cmd.key === 'jail') { %>
+              <!-- ── Jail-specific settings ── -->
+              <div class="edit-field" style="grid-column:1/-1;">
+                <div style="margin:4px 0 6px 0;padding:10px 0 6px 0;border-top:1px solid rgba(255,255,255,.07);">
+                  <span style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#a78bfa;font-weight:600;">
+                    <%= lang === 'ar' ? 'إعدادات السجن' : 'Jail Settings' %>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Jail Role (single-select) -->
+              <div class="edit-field">
+                <span class="edit-label"><%= lang === 'ar' ? 'رتبة السجن' : 'Jail Role' %></span>
+                <div class="csel-wrap" data-field="addRole">
+                  <div class="csel-display" onclick="toggleCsel(this)">
+                    <% var _jr = cmd.addRole ? guildRoles.find(function(r){ return r.id === cmd.addRole; }) : null; %>
+                    <% if (_jr) { %>
+                      <span class="csel-chip" data-id="<%= _jr.id %>"><%= _jr.name %></span>
+                    <% } else { %>
+                      <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر رتبة' : 'Select a role' %></span>
+                    <% } %>
+                    <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
+                  </div>
+                  <div class="csel-dropdown">
+                    <% guildRoles.forEach(function(r) { %>
+                      <div class="csel-option <%= (cmd.addRole === r.id) ? 'selected' : '' %>" onclick="toggleCselSingle(this,'<%= r.id %>','<%= r.name %>')">
+                        <div class="csel-option-check"></div>
+                        <span><%= r.name %></span>
+                      </div>
+                    <% }); %>
+                    <% if (!guildRoles.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang === 'ar' ? 'لا توجد رتب' : 'No roles found' %></div><% } %>
+                  </div>
+                </div>
+                <p style="margin:4px 0 0 0;font-size:.73rem;color:var(--muted);"><%= lang === 'ar' ? 'الرتبة التي تُمنح للعضو عند سجنه' : 'Role assigned to the member when jailed' %></p>
+              </div>
+
+              <!-- Jail Visible Channels (multi-select) -->
+              <div class="edit-field">
+                <span class="edit-label"><%= lang === 'ar' ? 'غرف السجن (مرئية للسجين)' : 'Jail Visible Channels' %></span>
+                <div class="csel-wrap" data-field="showRoom">
+                  <div class="csel-display" onclick="toggleCsel(this)">
+                    <% var _showRoomIds = cmd.showRoom || []; %>
+                    <% _showRoomIds.forEach(function(chId) { var _ch = guildChannels.find(function(c){ return c.id === chId; }); if (_ch) { %>
+                      <span class="csel-chip" data-id="<%= _ch.id %>">#<%= _ch.name %></span>
+                    <% } }); %>
+                    <% if (!_showRoomIds.length) { %>
+                      <span class="csel-placeholder"><%= lang === 'ar' ? 'اختر غرفة أو أكثر' : 'Select channels' %></span>
+                    <% } %>
+                    <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
+                  </div>
+                  <div class="csel-dropdown">
+                    <% guildChannels.forEach(function(ch) { %>
+                      <div class="csel-option <%= (_showRoomIds.indexOf(ch.id) !== -1) ? 'selected' : '' %>" onclick="toggleCselOption(this,'<%= ch.id %>','#<%= ch.name %>')">
+                        <div class="csel-option-check"></div>
+                        <span>#<%= ch.name %></span>
+                      </div>
+                    <% }); %>
+                    <% if (!guildChannels.length) { %><div style="padding:8px 10px;font-size:.8rem;color:var(--muted);"><%= lang === 'ar' ? 'لا توجد غرف' : 'No channels found' %></div><% } %>
+                  </div>
+                </div>
+                <p style="margin:4px 0 0 0;font-size:.73rem;color:var(--muted);"><%= lang === 'ar' ? 'عند تحديد غرفة واحدة على الأقل، تُخفى جميع الغرف الأخرى عن السجين تلقائياً' : 'When at least one channel is selected, all other channels are hidden from jailed members automatically.' %></p>
+              </div>
+              <% } %>
 
             </div><!-- /edit-grid -->
           </div><!-- /cmd-edit-panel -->
@@ -891,7 +959,7 @@
 
         <% if (!acts.length) { %>
         <div style="padding:48px 20px; text-align:center; color:var(--muted); font-size:.88rem;">
-          <%= lang === 'ar' ? 'لا توجد أوامر إدارية.' : 'No admin commands found.' %>
+          <%= t.moderation.noAdminCommandsFound %>
         </div>
         <% } %>
       </div><!-- /cmd-list -->
@@ -899,15 +967,15 @@
 
     <!-- Save Bar -->
     <div class="save-bar" id="save-bar">
-      <span class="save-bar-text" id="save-bar-text"><%= lang === 'ar' ? 'لديك تغييرات غير محفوظة' : 'You have unsaved changes' %></span>
+      <span class="save-bar-text" id="save-bar-text"><%= t.moderation.youHaveUnsavedChanges %></span>
       <div class="save-bar-actions">
         <button class="btn btn-ghost" id="reset-btn" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-          <%= lang === 'ar' ? 'تراجع' : 'Reset' %>
+          <%= t.moderation.reset %>
         </button>
         <button class="btn btn-primary" id="save-btn" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <%= lang === 'ar' ? 'حفظ التغييرات' : 'Save Changes' %>
+          <%= t.moderation.saveChanges %>
         </button>
       </div>
     </div>
@@ -1013,6 +1081,19 @@
     }
 
     /* ── Alias chip input ── */
+    function addAliasFromBtn(btn) {
+      const input = btn.closest('.alias-input-wrap').querySelector('.alias-real-input');
+      const val = input.value.trim();
+      if (!val) { input.focus(); return; }
+      const wrap = input.closest('.alias-input-wrap');
+      const chip = document.createElement('span');
+      chip.className = 'alias-chip';
+      chip.innerHTML = val + '<button type="button" onclick="removeAlias(this)" tabindex="-1">×</button>';
+      wrap.insertBefore(chip, input);
+      input.value = '';
+      input.focus();
+      markDirty();
+    }
     function handleAliasKey(e, input) {
       if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
         e.preventDefault();
@@ -1055,6 +1136,26 @@
       }
       markDirty();
     }
+    /* Single-select variant (used for jail role – only one role allowed) */
+    function toggleCselSingle(opt, id, name) {
+      const dropdown = opt.closest('.csel-dropdown');
+      const display  = dropdown.previousElementSibling;
+      const wasSelected = opt.classList.contains('selected');
+      // Deselect all options and remove all chips
+      dropdown.querySelectorAll('.csel-option.selected').forEach(o => o.classList.remove('selected'));
+      display.querySelectorAll('.csel-chip').forEach(c => c.remove());
+      const placeholder = display.querySelector('.csel-placeholder');
+      if (!wasSelected) {
+        opt.classList.add('selected');
+        if (placeholder) placeholder.style.display = 'none';
+        const chip = document.createElement('span');
+        chip.className = 'csel-chip'; chip.dataset.id = id; chip.textContent = name;
+        display.insertBefore(chip, display.querySelector('.csel-arrow'));
+      } else {
+        if (placeholder) placeholder.style.display = '';
+      }
+      markDirty();
+    }
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.csel-wrap')) {
         document.querySelectorAll('.csel-dropdown.open').forEach(d => { d.classList.remove('open'); d.previousElementSibling.classList.remove('open'); });
@@ -1091,7 +1192,7 @@
     saveBtn?.addEventListener('click', async () => {
       saveBtn.disabled = true;
       const origHTML = saveBtn.innerHTML;
-      saveBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>&nbsp;<%= lang === "ar" ? "جاري الحفظ..." : "Saving..." %>';
+      saveBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>&nbsp;<%= t.moderation.saving %>';
       try {
         const cmdsPayload = {};
         document.querySelectorAll('.cmd-row').forEach(row => {
@@ -1119,6 +1220,11 @@
             autoDeleteAuthor: panel.querySelector('.sw-input[data-field="autoDeleteAuthor"]')?.checked || false,
             autoDeleteReply: panel.querySelector('.sw-input[data-field="autoDeleteReply"]')?.checked || false,
           };
+          if (key === 'jail') {
+            const addRoleChips = panel.querySelectorAll('.csel-wrap[data-field="addRole"] .csel-chip');
+            cmdsPayload[key].addRole  = addRoleChips.length ? addRoleChips[0].dataset.id : '';
+            cmdsPayload[key].showRoom = getSelected('showRoom');
+          }
         });
         const res = await fetch('/dashboard/<%= guildId %>/moderation/save', {
           method: 'POST',
@@ -1128,9 +1234,9 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Error');
         saveBar.classList.remove('visible');
-        showToast('<%= lang === "ar" ? "تم الحفظ بنجاح ✓" : "Saved successfully ✓" %>');
+        showToast('<%= t.moderation.savedSuccessfully %>');
       } catch (err) {
-        showToast(err.message || '<%= lang === "ar" ? "حدث خطأ" : "An error occurred" %>', 'error');
+        showToast(err.message || '<%= t.moderation.anErrorOccurred %>', 'error');
       } finally {
         saveBtn.disabled = false;
         saveBtn.innerHTML = origHTML;
@@ -1196,10 +1302,10 @@
               <div class="ucm-id">${_ucmPendingData.id}</div>
             </div>
             <div class="ucm-sep"></div>
-            <div class="ucm-confirm-label"><%= lang==='ar' ? '\u0647\u0644 \u062a\u0631\u064a\u062f \u0625\u0636\u0627\u0641\u0629 \u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u061f' : 'Add this user to allowed list?' %></div>
+            <div class="ucm-confirm-label"><%= t.moderation.addThisUserToAllowedList %></div>
             <div class="ucm-actions">
-              <button class="btn btn-ghost" onclick="cancelUserConfirm()"><%= lang==='ar'?'\u0625\u0644\u063a\u0627\u0621':'Cancel' %></button>
-              <button class="btn btn-primary" onclick="confirmUserAdd()"><%= lang==='ar'?'\u062a\u0623\u0643\u064a\u062f':'Confirm' %></button>
+              <button class="btn btn-ghost" onclick="cancelUserConfirm()"><%= t.moderation.cancel %></button>
+              <button class="btn btn-primary" onclick="confirmUserAdd()"><%= t.moderation.confirm %></button>
             </div>
           </div>
         </div>`;

@@ -4,7 +4,7 @@
  * https://discord.gg/UvEYbFd2rj
  */
 
-const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SectionBuilder, TextDisplayBuilder, ThumbnailBuilder, UnfurledMediaBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SectionBuilder, TextDisplayBuilder, ThumbnailBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const logSystem = require('../systems/log.js');
@@ -110,9 +110,7 @@ module.exports = {
                         )
                     )
                     .setThumbnailAccessory(
-                        new ThumbnailBuilder().setMedia(
-                            new UnfurledMediaBuilder().setURL(guildIcon)
-                        )
+                        new ThumbnailBuilder().setMedia({ url: guildIcon })
                     );
 
                 const bodyText = [
