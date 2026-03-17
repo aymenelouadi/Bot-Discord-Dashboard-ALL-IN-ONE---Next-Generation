@@ -16,12 +16,25 @@ Protection · Moderation · Tickets · Auto Roles · Levels · Dashboard · and 
 [![Ko-Fi](https://img.shields.io/badge/Support%20us-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/code_nexus)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?style=for-the-badge&logo=paypal)](https://www.paypal.com/paypalme/rewebby)
 
+[![Live Demo](https://img.shields.io/badge/🌐%20Live%20Demo-v5.codnex.xyz-7c3aed?style=for-the-badge)](https://v5.codnex.xyz/)
+
 </div>
+
+---
+
+## 🌐 Live Demo
+
+Try the dashboard live before setting up your own instance:
+
+**[https://v5.codnex.xyz/](https://v5.codnex.xyz/)**
+
+> The demo runs the latest v5.1.1 build with `ANYWARE` mode enabled — log in with any Discord account to explore the dashboard.
 
 ---
 
 ## 📋 Table of Contents
 
+- [Live Demo](#-live-demo)
 - [Features](#-features)
 - [Requirements](#-requirements)
 - [Quick Start — Local (VS Code)](#-quick-start--local-vs-code)
