@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -201,5 +201,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-> This project was programmed by the Code Nexus team.  
-> Discord: https://discord.gg/UvEYbFd2rj
+> This project was programmed by the Next Generation team.  
+> Discord: https://discord.gg/BhJStSa89s

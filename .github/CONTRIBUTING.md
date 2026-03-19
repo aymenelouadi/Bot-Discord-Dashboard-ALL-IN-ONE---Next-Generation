@@ -1,4 +1,4 @@
-# Contributing to Bot Discord Dashboard ALL-IN-ONE
+﻿# Contributing to Bot Discord Dashboard ALL-IN-ONE
 
 First off — thank you for taking the time to contribute! 🎉
 
@@ -92,5 +92,5 @@ PRs will be reviewed by a maintainer within **3–5 business days**.
 
 ---
 
-> This project was programmed by the Code Nexus team.  
-> Discord: https://discord.gg/UvEYbFd2rj
+> This project was programmed by the Next Generation team.  
+> Discord: https://discord.gg/BhJStSa89s

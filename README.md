@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 <img src="media/login.png" alt="Bot Discord Dashboard Banner" width="800"/>
 
@@ -8,7 +8,7 @@
 **A full-featured Discord bot with an integrated web dashboard built for modern Discord servers.**  
 Protection · Moderation · Tickets · Auto Roles · Levels · Dashboard · and more.
 
-[![Discord](https://img.shields.io/badge/Support-Discord-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/UvEYbFd2rj)
+[![Discord](https://img.shields.io/badge/Support-Discord-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/BhJStSa89s)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=node.js)](https://nodejs.org)
 [![discord.js](https://img.shields.io/badge/discord.js-v14-5865F2?style=for-the-badge)](https://discord.js.org)
@@ -329,7 +329,7 @@ docker compose up -d
 
 Got a question or a bug? Join our Discord and open a ticket:
 
-[![Discord Support](https://img.shields.io/badge/Join-Discord-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/UvEYbFd2rj)
+[![Discord Support](https://img.shields.io/badge/Join-Discord-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/BhJStSa89s)
 
 ---
 
@@ -354,7 +354,7 @@ This project is licensed under the **MIT License** — see [LICENSE](LICENSE) fo
 
 <div align="center">
 
-Made with ❤️ by the **Code Nexus Team**  
-[Discord](https://discord.gg/UvEYbFd2rj) · [Ko-fi](https://ko-fi.com/code_nexus) · [PayPal](https://www.paypal.com/paypalme/rewebby)
+Made with ❤️ by the **Next Generation Team**  
+[Discord](https://discord.gg/BhJStSa89s) · [Ko-fi](https://ko-fi.com/code_nexus) · [PayPal](https://www.paypal.com/paypalme/rewebby)
 
 </div>

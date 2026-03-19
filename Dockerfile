@@ -1,13 +1,13 @@
-# ─────────────────────────────────────────────────────────────────────
+﻿# ─────────────────────────────────────────────────────────────────────
 # Bot Discord Dashboard ALL-IN-ONE — Dockerfile
-# This project was programmed by the Code Nexus team.
-# https://discord.gg/UvEYbFd2rj
+# This project was programmed by the Next Generation team.
+# https://discord.gg/BhJStSa89s
 # ─────────────────────────────────────────────────────────────────────
 
 FROM node:20-alpine
 
 # Metadata
-LABEL maintainer="Code Nexus Team <https://discord.gg/UvEYbFd2rj>"
+LABEL maintainer="Next Generation Team <https://discord.gg/BhJStSa89s>"
 LABEL version="5.1.1"
 LABEL description="Discord Bot Dashboard ALL-IN-ONE — Next Generation"
 

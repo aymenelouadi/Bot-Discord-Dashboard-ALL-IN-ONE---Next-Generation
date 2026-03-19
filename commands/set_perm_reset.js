@@ -1,7 +1,7 @@
-/*
- * This project was programmed by the Code Nexus team.
+﻿/*
+ * This project was programmed by the Next Generation team.
  * If you encounter any problems, open an Issue or log into the Discord server:
- * https://discord.gg/UvEYbFd2rj
+ * https://discord.gg/BhJStSa89s
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
@@ -79,7 +79,7 @@ module.exports = {
 
 
 /*
- * This project was programmed by the Code Nexus team.
+ * This project was programmed by the Next Generation team.
  * If you encounter any problems, open an Issue or log into the Discord server:
- * https://discord.gg/UvEYbFd2rj
+ * https://discord.gg/BhJStSa89s
  */

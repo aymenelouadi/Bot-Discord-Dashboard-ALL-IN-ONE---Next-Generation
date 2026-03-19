@@ -1,4 +1,4 @@
-# Contributor Covenant Code of Conduct
+﻿# Contributor Covenant Code of Conduct
 
 ## Our Pledge
 
@@ -34,7 +34,7 @@ This Code of Conduct applies within all community spaces, and also applies when 
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behaviour may be reported to the community leaders via our Discord server: **https://discord.gg/UvEYbFd2rj**
+Instances of abusive, harassing, or otherwise unacceptable behaviour may be reported to the community leaders via our Discord server: **https://discord.gg/BhJStSa89s**
 
 All complaints will be reviewed and investigated promptly and fairly.
 
@@ -44,5 +44,5 @@ This Code of Conduct is adapted from the [Contributor Covenant](https://www.cont
 
 ---
 
-> This project was programmed by the Code Nexus team.  
-> Discord: https://discord.gg/UvEYbFd2rj
+> This project was programmed by the Next Generation team.  
+> Discord: https://discord.gg/BhJStSa89s

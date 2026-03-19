@@ -1,4 +1,4 @@
-# Security Policy
+﻿# Security Policy
 
 ## Supported Versions
 
@@ -13,7 +13,7 @@ We take security seriously. If you discover a vulnerability in this project, ple
 
 Instead, report it privately through one of these channels:
 
-1. **Discord Server:** Join [https://discord.gg/UvEYbFd2rj](https://discord.gg/UvEYbFd2rj) and open a private ticket.
+1. **Discord Server:** Join [https://discord.gg/BhJStSa89s](https://discord.gg/BhJStSa89s) and open a private ticket.
 2. **GitHub Private Reporting:** Use GitHub's [Security Advisory](../../security/advisories/new) feature (if enabled).
 
 ### What to include
@@ -35,5 +35,5 @@ We will credit all responsible disclosures in the release notes unless you reque
 
 ---
 
-> This project was programmed by the Code Nexus team.  
-> Discord: https://discord.gg/UvEYbFd2rj
+> This project was programmed by the Next Generation team.  
+> Discord: https://discord.gg/BhJStSa89s

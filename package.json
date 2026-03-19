@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "next-generation",
   "version": "5.1.1",
   "description": "discord-bot-all-in-one-next-generation",
@@ -8,8 +8,8 @@
     "dev": "node index.js",
     "dashboard": "node dashboard/server.js"
   },
-  "author": "Shaad You | Code Nexus",
-  "license": "MIT",
+  "author": "Shaad You | Next Generation",
+  "license": "Apache-2.0",
   "dependencies": {
     "apexcharts": "^5.10.1",
     "compression": "^1.8.1",
