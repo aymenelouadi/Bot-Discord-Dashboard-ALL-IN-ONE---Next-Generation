@@ -25,6 +25,19 @@ const mongoose = require('mongoose');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
+// ── Optional --db-path=<path> argument ───────────────────────────────────────
+// Allows pointing migration at a custom dashboard/database location, useful
+// when migrating data from a server (e.g. Pterodactyl) that has files in a
+// different location than where this script is run locally.
+//
+// Usage:
+//   node migrate.js                                  # auto-detect
+//   node migrate.js --db-path=/home/container/dashboard/database
+const _dbPathArg = process.argv.find(a => a.startsWith('--db-path='));
+const GUILD_DB_PATH = _dbPathArg
+    ? path.resolve(_dbPathArg.slice('--db-path='.length))
+    : path.join(__dirname, 'dashboard', 'database');
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function log(msg)  { console.log(`  ${msg}`); }
@@ -352,9 +365,12 @@ async function migrateSuggestions(M) {
 async function migratePerGuild(M) {
     section('9/9  Per-guild data  (dashboard/database/<guildId>/*.json)');
 
-    const dbRoot = path.join(__dirname, 'dashboard', 'database');
+    const dbRoot = GUILD_DB_PATH;
+    log(`Looking for guild JSON files at: ${dbRoot}`);
     if (!fs.existsSync(dbRoot)) {
-        skip('dashboard/database/ not found — no per-guild JSON data to migrate');
+        skip(`Path not found: ${dbRoot}`);
+        skip('Re-run with --db-path=<path> pointing to your dashboard/database folder.');
+        skip('Example: node migrate.js --db-path=/home/container/dashboard/database');
         return;
     }
     const guilds = fs.readdirSync(dbRoot)

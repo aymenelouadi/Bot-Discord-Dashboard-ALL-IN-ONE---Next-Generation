@@ -188,6 +188,11 @@ async function _writeToMongo(guildId, filename, data) {
                             number:      t.number      ?? null,
                             closeReason: t.closeReason || null,
                         },
+                        // Preserve the original openedAt on first insert; never overwrite on updates
+                        $setOnInsert: {
+                            createdAt: t.openedAt ? new Date(t.openedAt) : new Date(),
+                        },
+                    },
                     },
                     upsert: true,
                 },
