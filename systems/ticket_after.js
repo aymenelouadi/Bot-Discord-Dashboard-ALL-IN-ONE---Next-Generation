@@ -400,6 +400,7 @@ async function claimTicket(interaction, ticketId) {
     }
 
     otDb.tickets[idx].claimedBy = interaction.user.id;
+    otDb.tickets[idx].claimedAt = new Date().toISOString();
     guildDb.write(guildId, 'open_tickets', otDb);
     ticketStats.onTicketClaim(guildId, otDb.tickets[idx]);
 

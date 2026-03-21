@@ -180,10 +180,13 @@ async function _writeToMongo(guildId, filename, data) {
                             panelId:     t.panelId     || null,
                             status:      t.status      || 'open',
                             claimedBy:   t.claimedBy   || null,
+                            claimedAt:   t.claimedAt   ? new Date(t.claimedAt) : null,
                             closedAt:    t.closedAt    ? new Date(t.closedAt)  : null,
                             closedBy:    t.closedBy    || null,
                             formAnswers: t.formAnswers || {},
                             rating:      t.rating      || null,
+                            number:      t.number      ?? null,
+                            closeReason: t.closeReason || null,
                         },
                     },
                     upsert: true,
@@ -360,7 +363,10 @@ async function _fetchFromMongo(guildId, filename) {
             const tickets = docs.map(t => ({
                 id: t.ticketId, guildId: t.guildId, userId: t.userId,
                 channelId: t.channelId, panelId: t.panelId, status: t.status,
-                claimedBy: t.claimedBy, closedAt: t.closedAt, closedBy: t.closedBy,
+                claimedBy: t.claimedBy, claimedAt: t.claimedAt,
+                openedAt: t.createdAt,
+                closedAt: t.closedAt, closedBy: t.closedBy,
+                closeReason: t.closeReason,
                 formAnswers: t.formAnswers, rating: t.rating, number: t.number,
             }));
             const nextNumber = tickets.reduce((m, t) => Math.max(m, t.number || 0), 0) + 1;

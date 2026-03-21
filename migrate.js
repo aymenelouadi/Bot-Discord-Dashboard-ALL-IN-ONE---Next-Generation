@@ -442,6 +442,8 @@ async function migratePerGuild(M) {
                         closedBy:    t.closedBy   || null,
                         formAnswers: t.formAnswers || {},
                         rating:      t.rating     || null,
+                        number:      t.number     ?? null,
+                        closeReason: t.closeReason || null,
                         createdAt:   t.openedAt   ? new Date(t.openedAt)   : new Date(),
                     }},
                     upsert: true,

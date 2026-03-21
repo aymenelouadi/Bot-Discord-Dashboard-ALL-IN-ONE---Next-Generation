@@ -63,6 +63,12 @@ const TicketSchema = new Schema({
     /** Optional transcript storage ID / URL */
     transcriptUrl: { type: String, default: null },
 
+    /** Sequential ticket number within the guild (e.g. 1, 2, 3…) */
+    number: { type: Number, default: null },
+
+    /** Reason provided when the ticket was closed */
+    closeReason: { type: String, default: null },
+
 }, {
     timestamps: true,
     versionKey: false,
@@ -71,6 +77,7 @@ const TicketSchema = new Schema({
 
 TicketSchema.index({ guildId: 1, status: 1 });
 TicketSchema.index({ guildId: 1, userId: 1 });
+TicketSchema.index({ guildId: 1, number: 1 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // STATIC HELPERS
