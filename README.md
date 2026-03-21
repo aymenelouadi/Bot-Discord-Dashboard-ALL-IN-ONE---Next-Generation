@@ -19,9 +19,7 @@ Protection · Moderation · Tickets · Auto Roles · Levels · Dashboard · and 
 
 ---
 
----
-
-## 📋 Table of Contents
+## 🗂️ Table of Contents
 
 - [Features](#-features)
 - [Requirements](#-requirements)
@@ -29,6 +27,7 @@ Protection · Moderation · Tickets · Auto Roles · Levels · Dashboard · and 
 - [Hosting on Pterodactyl](#-hosting-on-pterodactyl)
 - [Docker](#-docker)
 - [Configuration](#-configuration)
+- [MongoDB Migration](#%EF%B8%8F-mongodb-migration-json--mongodb)
 - [Dashboard Setup](#-dashboard-setup)
 - [Project Structure](#-project-structure)
 - [Support & Donations](#-support--donations)
@@ -278,6 +277,72 @@ docker compose up -d
 | `system.COMMANDS.STATUS` | Bot status: `ONLINE`, `IDLE`, `DND`, `INVISIBLE` |
 | `actions.*` | Per-command role permissions and toggles |
 | `court.*` | Court/complaint system settings |
+
+---
+
+## 🗂️ MongoDB Migration (JSON → MongoDB)
+
+If you are upgrading from a previous version that used flat-file JSON storage, use the built-in
+migration script to move all your data into MongoDB safely.
+
+### Prerequisites
+
+Add the `MONGODB` connection string to your `.env`:
+
+```env
+MONGODB=mongodb+srv://<user>:<password>@cluster.mongodb.net/next-generation
+```
+
+> Get a free cluster at https://www.mongodb.com/atlas
+
+### How it works
+
+`migrate.js` reads every JSON file from `database/` and `dashboard/database/<guildId>/`
+and **upserts** each record into the matching MongoDB collection:
+
+| JSON source | MongoDB collection |
+|---|---|
+| `database/afk.json` | `afks` |
+| `database/warn.json` + `warning.json` | `warnings` |
+| `database/jail.json` + `jailed.json` | `jails` |
+| `database/muting.json` + `records.json` | `mutes` |
+| `database/temp_role.json` | `temproles` |
+| `database/auto_role.json` | `guilds` (→ `autoRoles`) |
+| `database/auto_responder.json` | `guilds` (→ `autoResponder`) |
+| `database/suggestions.json` | `guilds` (→ `suggestionsConfig`) |
+| `dashboard/database/<id>/levels.json` | `memberlevels` |
+| `dashboard/database/<id>/open_tickets.json` | `tickets` |
+| `dashboard/database/<id>/ticket_feedback.json` | `ticketfeedbacks` |
+| `dashboard/database/<id>/staff_scores.json` | `staffscores` |
+| `dashboard/database/<id>/interaction_scores.json` | `interactionscores` |
+| `dashboard/database/<id>/settings.json`, `protection.json`, … | `guilds` |
+
+### Guarantees
+
+| Property | Detail |
+|---|---|
+| **Idempotent** | Uses `findOneAndUpdate` + `upsert: true` — safe to run multiple times, never duplicates |
+| **Non-destructive** | Existing MongoDB documents are only added to / updated, never deleted |
+| **Expired records skipped** | Active mutes, jails, and temp roles past `expiresAt` are not migrated |
+| **Stable IDs** | Legacy records without a `caseId` get a deterministic ID (`LEGACY_<userId>_<index>`) so re-runs always produce the same document |
+
+### Run
+
+```bash
+# Preview — prints what would be migrated without writing anything
+node migrate.js --dry-run
+
+# Full migration
+node migrate.js
+```
+
+### Reading the output
+
+| Symbol | Meaning |
+|---|---|
+| `✅` | Record upserted successfully |
+| `⏭️` | Skipped (empty file, expired record, or dry-run mode) |
+| `❌` | Individual record failed — error printed, migration continues |
 
 ---
 

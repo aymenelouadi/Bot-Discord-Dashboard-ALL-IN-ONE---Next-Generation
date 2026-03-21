@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated clone URL in CONTRIBUTING.md to `https://github.com/aymenelouadi/next-generation.git`
 - Version bumped to **5.3.3 Beta** across package.json, Dockerfile, and dashboard views
 
+### Added — `migrate.js` (JSON → MongoDB migration)
+- New migration script that reads all flat-file JSON databases and upserts them into MongoDB
+- Covers: AFK, Warnings, Jails, Mutes, TempRoles, AutoRoles, AutoResponder, Suggestions, per-guild settings/protection/tickets/levels/staff scores/interaction scores/ticket feedback
+- **Idempotent** — uses `findOneAndUpdate` + `upsert: true`; safe to run multiple times without duplicating records
+- **Dry-run mode** — pass `--dry-run` to preview all operations without writing to MongoDB
+- **Stable legacy IDs** — records missing a `caseId` receive a deterministic `LEGACY_<userId>_<index>` ID so re-runs always produce the same document (no duplicates)
+- **Expired records skipped** — active Jails, Mutes, and TempRoles past `expiresAt` are not migrated
+- **Absolute paths** — all file reads use `path.join(__dirname, ...)` so the script works correctly regardless of working directory
+- **Missing-directory guard** — gracefully skips `dashboard/database/` if the folder does not exist
+
 ---
 
 ## [v5.1.1] — 2026-03-17 ✨ New Systems & Improvements

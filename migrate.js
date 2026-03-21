@@ -103,7 +103,7 @@ function models() {
 
 async function migrateAFK(M) {
     section('1/9  AFK  (database/afk.json)');
-    const data = readJson('./database/afk.json');
+    const data = readJson(path.join(__dirname, 'database', 'afk.json'));
     if (!data || !Object.keys(data).length) { skip('Empty — nothing to migrate'); return; }
     const ops = Object.entries(data).map(([userId, d]) => ({
         updateOne: {
@@ -119,9 +119,9 @@ async function migrateWarnings(M) {
     section('2/9  Warnings  (database/warn.json + warning.json)');
 
     // warn.json — keyed by userId, holds cases array
-    const warnData = readJson('./database/warn.json') || {};
+    const warnData = readJson(path.join(__dirname, 'database', 'warn.json')) || {};
     // warning.json — old format keyed by userId, used as fallback
-    const warningData = readJson('./database/warning.json') || {};
+    const warningData = readJson(path.join(__dirname, 'database', 'warning.json')) || {};
 
     const merged = { ...warningData, ...warnData }; // warn.json wins on conflict
 
@@ -129,8 +129,8 @@ async function migrateWarnings(M) {
 
     const ops = [];
     for (const [userId, d] of Object.entries(merged)) {
-        const cases = (d.cases || []).map(c => ({
-            caseId:      c.caseId      || c.id || `LEGACY_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
+        const cases = (d.cases || []).map((c, i) => ({
+            caseId:      c.caseId      || c.id || `LEGACY_${userId}_${i}`,
             reason:      (c.reason     || 'No reason').substring(0, 1000),
             moderatorId: c.moderatorId || c.moderator || '0',
             createdAt:   c.createdAt   || c.timestamp ? new Date(c.createdAt || c.timestamp) : new Date(),
@@ -155,8 +155,8 @@ async function migrateWarnings(M) {
 async function migrateJails(M) {
     section('3/9  Jails  (database/jail.json + jailed.json)');
 
-    const jailData   = readJson('./database/jail.json')   || {};
-    const jailedData = readJson('./database/jailed.json') || {};
+    const jailData   = readJson(path.join(__dirname, 'database', 'jail.json'))   || {};
+    const jailedData = readJson(path.join(__dirname, 'database', 'jailed.json')) || {};
     const merged     = { ...jailedData, ...jailData };
 
     if (!Object.keys(merged).length) { skip('Empty — nothing to migrate'); return; }
@@ -173,7 +173,7 @@ async function migrateJails(M) {
                     caseId:      d.caseId    || `LEGACY_${userId}`,
                     reason:      d.reason    || 'No reason',
                     moderatorId: d.moderatorId || '0',
-                    jailRoleId:  d.jailRoleId  || d.roleId || null,
+                    jailRoleId:  d.jailRoleId  || d.roleId || 'LEGACY_UNKNOWN',
                     savedRoles:  d.savedRoles  || d.roles   || [],
                     jailedAt:    d.jailedAt ? new Date(d.jailedAt) : new Date(),
                     expiresAt:   d.expiresAt   ? new Date(d.expiresAt) : null,
@@ -189,8 +189,8 @@ async function migrateJails(M) {
 async function migrateMutes(M) {
     section('4/9  Mutes  (database/muting.json + records.json)');
 
-    const mutingData  = readJson('./database/muting.json')  || {};
-    const recordsData = readJson('./database/records.json') || {};
+    const mutingData  = readJson(path.join(__dirname, 'database', 'muting.json'))  || {};
+    const recordsData = readJson(path.join(__dirname, 'database', 'records.json')) || {};
 
     const ops = [];
 
@@ -220,14 +220,15 @@ async function migrateMutes(M) {
     // records.json — case history keyed by userId, action=MUTE
     for (const [userId, d] of Object.entries(recordsData)) {
         const muteCases = (d.cases || []).filter(c => c.action === 'MUTE');
-        for (const c of muteCases) {
+        muteCases.forEach((c, idx) => {
+            const stableCaseId = c.caseId || `REC_${userId}_${idx}`;
             ops.push({
                 updateOne: {
-                    filter: { caseId: c.caseId || `REC_${userId}_${Date.now()}` },
+                    filter: { caseId: stableCaseId },
                     update: { $set: {
                         guildId:     '_legacy',
                         userId,
-                        caseId:      c.caseId    || `REC_${userId}`,
+                        caseId:      stableCaseId,
                         reason:      c.reason    || 'No reason',
                         moderatorId: c.moderatorId || '0',
                         muteType:    'role',
@@ -239,7 +240,7 @@ async function migrateMutes(M) {
                     upsert: true,
                 },
             });
-        }
+        });
     }
 
     if (!ops.length) { skip('Empty — nothing to migrate'); return; }
@@ -248,7 +249,7 @@ async function migrateMutes(M) {
 
 async function migrateTempRoles(M) {
     section('5/9  TempRoles  (database/temp_role.json)');
-    const data = readJson('./database/temp_role.json') || {};
+    const data = readJson(path.join(__dirname, 'database', 'temp_role.json')) || {};
     if (!Object.keys(data).length) { skip('Empty — nothing to migrate'); return; }
 
     const ops = [];
@@ -276,7 +277,7 @@ async function migrateTempRoles(M) {
 
 async function migrateAutoResponder(M) {
     section('6/9  Auto Responder  (database/auto_responder.json)');
-    const data = readJson('./database/auto_responder.json') || {};
+    const data = readJson(path.join(__dirname, 'database', 'auto_responder.json')) || {};
     if (!Object.keys(data).length) { skip('Empty — nothing to migrate'); return; }
 
     for (const [guildId, cfg] of Object.entries(data)) {
@@ -290,7 +291,7 @@ async function migrateAutoResponder(M) {
 
 async function migrateAutoRoles(M) {
     section('7/9  Auto Roles  (database/auto_role.json)');
-    const data = readJson('./database/auto_role.json') || {};
+    const data = readJson(path.join(__dirname, 'database', 'auto_role.json')) || {};
     if (!Object.keys(data).length) { skip('Empty — nothing to migrate'); return; }
 
     for (const [guildId, cfg] of Object.entries(data)) {
@@ -302,9 +303,9 @@ async function migrateSuggestions(M) {
     section('8/9  Suggestions  (database/suggestions.json + suggestions_data.json)');
 
     // suggestions.json — per-guild config
-    const cfgData  = readJson('./database/suggestions.json')      || {};
+    const cfgData  = readJson(path.join(__dirname, 'database', 'suggestions.json'))      || {};
     // suggestions_data.json — per-guild list of suggestion entries
-    const itemData = readJson('./database/suggestions_data.json') || {};
+    const itemData = readJson(path.join(__dirname, 'database', 'suggestions_data.json')) || {};
 
     // Merge config into Guild documents
     for (const [guildId, cfg] of Object.entries(cfgData)) {
@@ -351,6 +352,10 @@ async function migratePerGuild(M) {
     section('9/9  Per-guild data  (dashboard/database/<guildId>/*.json)');
 
     const dbRoot = path.join(__dirname, 'dashboard', 'database');
+    if (!fs.existsSync(dbRoot)) {
+        skip('dashboard/database/ not found — no per-guild JSON data to migrate');
+        return;
+    }
     const guilds = fs.readdirSync(dbRoot)
         .filter(n => fs.statSync(path.join(dbRoot, n)).isDirectory());
 
