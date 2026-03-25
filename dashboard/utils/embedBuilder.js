@@ -86,14 +86,17 @@ function buildDiscordPayload(doc, opts = {}) {
             }));
         } else if (row.type === 'select' && row.select) {
             const s = row.select;
+            const validOptions = (s.options || []).slice(0, 25).filter(o => o.value?.trim());
+            // Discord requires at least 1 option — skip empty select menus
+            if (!validOptions.length) return null;
             const menu = new StringSelectMenuBuilder()
                 .setCustomId(s.customId)
                 .setPlaceholder(s.placeholder || 'Select an option…')
-                .setMinValues(s.minValues ?? 1)
-                .setMaxValues(s.maxValues ?? 1);
+                .setMinValues(Math.min(s.minValues ?? 1, validOptions.length))
+                .setMaxValues(Math.min(s.maxValues ?? 1, validOptions.length));
             if (s.disabled) menu.setDisabled(true);
-            if (s.options?.length) {
-                menu.addOptions(s.options.slice(0, 25).map(o => {
+            if (validOptions.length) {
+                menu.addOptions(validOptions.map(o => {
                     const opt = new StringSelectMenuOptionBuilder()
                         .setLabel(o.label || 'Option')
                         .setValue(o.value);
