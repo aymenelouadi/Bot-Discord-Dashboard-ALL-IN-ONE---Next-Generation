@@ -8,6 +8,15 @@
 
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, StringSelectMenuBuilder, ButtonStyle, StringSelectMenuOptionBuilder } = require('discord.js');
 
+/** Only allow real HTTP/HTTPS URLs — rejects data:, blob:, empty strings, etc. */
+function isValidUrl(str) {
+    if (!str || typeof str !== 'string') return false;
+    try {
+        const u = new URL(str);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch { return false; }
+}
+
 const STYLE_MAP = {
     Primary:   ButtonStyle.Primary,
     Secondary: ButtonStyle.Secondary,
@@ -34,12 +43,19 @@ function buildDiscordPayload(doc, opts = {}) {
         if (e.title?.trim())       eb.setTitle(e.title.trim().slice(0, 256));
         if (e.description?.trim()) eb.setDescription(e.description.trim().slice(0, 4096));
         if (e.color)       { try { eb.setColor(e.color); } catch (_) {} }
-        if (e.url)         eb.setURL(e.url);
+        if (isValidUrl(e.url))       eb.setURL(e.url);
         if (e.timestamp)   eb.setTimestamp();
-        if (e.author?.name) eb.setAuthor({ name: e.author.name, iconURL: e.author.iconUrl || undefined, url: e.author.url || undefined });
-        if (e.footer?.text) eb.setFooter({ text: e.footer.text, iconURL: e.footer.iconUrl || undefined });
-        if (e.thumbnail)   eb.setThumbnail(e.thumbnail);
-        if (e.image)       eb.setImage(e.image);
+        if (e.author?.name) eb.setAuthor({
+            name:    e.author.name,
+            iconURL: isValidUrl(e.author.iconUrl) ? e.author.iconUrl : undefined,
+            url:     isValidUrl(e.author.url)     ? e.author.url     : undefined,
+        });
+        if (e.footer?.text) eb.setFooter({
+            text:    e.footer.text,
+            iconURL: isValidUrl(e.footer.iconUrl) ? e.footer.iconUrl : undefined,
+        });
+        if (isValidUrl(e.thumbnail)) eb.setThumbnail(e.thumbnail);
+        if (isValidUrl(e.image))     eb.setImage(e.image);
         if (e.fields?.length) {
             eb.addFields(e.fields.slice(0, 25).map(f => ({ name: f.name || '\u200b', value: f.value || '\u200b', inline: !!f.inline })));
         }

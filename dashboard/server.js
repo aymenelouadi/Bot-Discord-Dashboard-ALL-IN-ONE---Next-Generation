@@ -88,8 +88,8 @@ app.use(helmet({
 app.use(requestIp.mw());
 // Gzip / Brotli compression — reduces HTML/JS/CSS size by ~65%
 app.use(compression({ level: 6 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static assets with aggressive browser caching (7 days for JS/CSS/images)
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: '7d',
