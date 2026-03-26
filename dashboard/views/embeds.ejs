@@ -9,7 +9,7 @@
   <%- include('partials/head_theme') %>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title><%= lang === 'ar' ? '\u0631\u0633\u0627\u0626\u0644 \u0627\u0644\u0640 Embed' : 'Embed Messages' %> \u2014 <%= guildInfo.name %></title>
+  <title><%= t.embeds.pageTitle %> — <%= guildInfo.name %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Tajawal:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -396,6 +396,36 @@
     .canvas-empty .btn{pointer-events:auto;}
     .canvas-empty-ico{width:64px;height:64px;border-radius:var(--r-xl);background:rgba(124,58,237,.07);border:1.5px dashed rgba(124,58,237,.22);display:flex;align-items:center;justify-content:center;animation:pulse-icon 3s ease-in-out infinite;}
     .flow-arrow{stroke:rgba(124,58,237,.55);stroke-width:1.8;fill:none;marker-end:url(#arrowHead);}
+    .flow-arrow-lbl{font-size:9px;fill:rgba(203,194,255,.7);stroke:rgba(4,0,14,.95);stroke-width:3;paint-order:stroke fill;pointer-events:none;text-anchor:middle;dominant-baseline:auto;}
+
+    /* ── State Groups / Regions ── */
+    .flow-group{position:absolute;border-radius:10px;border:1.5px solid rgba(124,58,237,.35);z-index:1;box-sizing:border-box;min-width:100px;min-height:70px;}
+    .flow-group.selected{outline:2px solid rgba(124,58,237,.5);outline-offset:1px;}
+    .flow-group-header{display:flex;align-items:center;gap:5px;padding:5px 8px 4px;cursor:grab;user-select:none;border-radius:9px 9px 0 0;}
+    .flow-group-header:active{cursor:grabbing;}
+    .flow-group-lbl{font-size:.7rem;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em;}
+    .flow-group-del{background:none;border:none;cursor:pointer;opacity:.35;padding:1px;color:inherit;display:flex;align-items:center;line-height:1;transition:opacity var(--dur-fast);flex-shrink:0;}
+    .flow-group-del:hover{opacity:.9;}
+    .flow-group-resize{position:absolute;bottom:3px;right:3px;width:14px;height:14px;cursor:se-resize;opacity:.3;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transition:opacity var(--dur-fast);}
+    .flow-group:hover .flow-group-resize,.flow-group.selected .flow-group-resize{opacity:.7;}
+    #inspGroupContent{padding:var(--sp-4);gap:var(--sp-3);}
+
+    /* ── Multi-select ── */
+    .flow-state.multi-sel{border-color:rgba(124,58,237,.75);box-shadow:0 0 0 2px rgba(124,58,237,.28),0 4px 16px rgba(0,0,0,.45);}
+    #multiSelPanel{display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 16px;text-align:center;flex:1;}
+    .multi-sel-ico{font-size:1.5rem;line-height:1;}
+    .multi-sel-lbl{font-size:.82rem;font-weight:700;color:var(--white);}
+    .multi-sel-hint{font-size:.72rem;color:var(--muted);}
+
+    /* ── Minimap ── */
+    .flow-minimap{position:absolute;bottom:10px;left:10px;width:160px;height:96px;background:rgba(4,0,14,.88);border:1px solid rgba(124,58,237,.28);border-radius:8px;z-index:50;pointer-events:none;transition:opacity .2s;}
+
+    /* ── Color Theme Swatches ── */
+    .color-theme-wrap{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+    .color-swatches{display:flex;gap:3px;align-items:center;}
+    .color-swatch{width:15px;height:15px;border-radius:3px;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:transform .12s,border-color .12s;box-sizing:border-box;}
+    .color-swatch:hover{transform:scale(1.3);}
+    .color-swatch.active{border-color:rgba(255,255,255,.9);transform:scale(1.25);}
 
     /* ── Inspector ── */
     .flow-inspector{width:var(--insp-w);flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;background:rgba(6,2,18,.98);border:1px solid var(--border);border-radius:0 var(--r-lg) var(--r-lg) 0;transition:width var(--dur-slow) var(--ease-out);}
@@ -449,6 +479,40 @@
     .tr-step-param label{font-size:.67rem;color:var(--muted);}
     .tr-step-add{width:100%;padding:8px;border-radius:var(--r-sm);border:1.5px dashed rgba(124,58,237,.25);background:rgba(124,58,237,.03);color:var(--purple-l);font-size:var(--fs-sm);font-weight:var(--fw-semibold);cursor:pointer;font-family:inherit;transition:all var(--dur-fast);display:flex;align-items:center;justify-content:center;gap:6px;}
     .tr-step-add:hover{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.4);box-shadow:0 0 12px rgba(124,58,237,.1);}
+    /* Custom action-type picker */
+    .tr-type-picker{position:relative;flex:1;min-width:0;user-select:none;}
+    .tr-type-selected{display:flex;align-items:center;gap:6px;padding:5px 9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:7px;cursor:pointer;font-size:.73rem;color:var(--text);transition:border-color .15s,background .15s;white-space:nowrap;overflow:hidden;}
+    .tr-type-selected:hover{border-color:rgba(124,58,237,.5);}
+    .tr-type-picker.open>.tr-type-selected{border-color:rgba(124,58,237,.7);background:rgba(124,58,237,.07);}
+    .tr-type-lbl{overflow:hidden;text-overflow:ellipsis;flex:1;}
+    .tr-type-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#16162a;border:1px solid rgba(124,58,237,.3);border-radius:9px;box-shadow:0 8px 26px rgba(0,0,0,.55);z-index:9999;max-height:240px;overflow-y:auto;padding:4px;scrollbar-width:thin;}
+    .tr-type-picker.open>.tr-type-menu{display:block;}
+    .tr-type-opt{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:6px;font-size:.73rem;cursor:pointer;color:var(--text);transition:background .1s;}
+    .tr-type-opt:hover{background:rgba(124,58,237,.15);}
+    .tr-type-opt.active{background:rgba(124,58,237,.22);color:var(--purple-l);}
+    /* Role picker */
+    .tr-role-picker-wrap{position:relative;flex:1;min-width:0;user-select:none;}
+    .tr-role-pill{display:flex;align-items:center;gap:6px;padding:5px 9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:7px;cursor:pointer;font-size:.73rem;color:var(--text);transition:border-color .15s,background .15s;min-width:0;overflow:hidden;}
+    .tr-role-pill:hover{border-color:rgba(124,58,237,.5);}
+    .tr-role-picker-wrap.open>.tr-role-pill{border-color:rgba(124,58,237,.7);background:rgba(124,58,237,.07);}
+    .tr-role-drop{display:none;top:calc(100% + 4px);left:0;right:0;min-width:190px;background:#16162a;border:1px solid rgba(124,58,237,.3);border-radius:9px;box-shadow:0 8px 26px rgba(0,0,0,.55);z-index:9999;padding:5px;}
+    .tr-role-picker-wrap.open>.tr-role-drop{display:flex;flex-direction:column;}
+    .tr-role-search{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 8px;font-size:.72rem;color:var(--text);width:100%;margin-bottom:4px;font-family:inherit;outline:none;box-sizing:border-box;}
+    .tr-role-search:focus{border-color:rgba(124,58,237,.5);}
+    .tr-role-list{max-height:175px;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:1px;}
+    .tr-role-opt{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;font-size:.73rem;cursor:pointer;color:var(--text);transition:background .1s;}
+    .tr-role-opt:hover{background:rgba(124,58,237,.15);}
+    .tr-role-opt.active{background:rgba(124,58,237,.2);color:var(--purple-l);}
+    .tr-role-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block;}
+    .tr-role-tags{display:flex;flex-wrap:wrap;gap:3px;flex:1;min-width:0;}
+    .tr-role-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;background:rgba(124,58,237,.13);border:1px solid rgba(124,58,237,.25);border-radius:4px;font-size:.68rem;color:var(--purple-l);white-space:nowrap;}
+    .tr-role-tag-x{cursor:pointer;opacity:.6;margin-left:2px;line-height:1;}
+    .tr-role-tag-x:hover{opacity:1;}
+    /* Unsaved-changes indicator on Save button */
+    #btnSave { position:relative; }
+    #builderView.has-unsaved #btnSave { box-shadow:0 0 0 2px rgba(252,211,77,.5); }
+    #builderView.has-unsaved #btnSave::after { content:'\25CF'; position:absolute; top:-3px; right:-3px; font-size:8px; color:#fcd34d; line-height:1; pointer-events:none; }
+    .btn.icon-only { padding:0 8px; min-width:32px; }
 
     /* ══════════════════════════════════════
        EMBED ITEMS
@@ -835,25 +899,25 @@
     <div id="listView">
       <div class="page-header">
         <div class="page-header-left">
-          <h2><%= lang === 'ar' ? '\u0631\u0633\u0627\u0626\u0644 \u0627\u0644\u0640 Embed' : 'Embed Messages' %></h2>
-          <p><%= lang === 'ar' ? '\u0642\u0645 \u0628\u0625\u0646\u0634\u0627\u0621 \u0648\u0625\u062f\u0627\u0631\u0629 \u0631\u0633\u0627\u0626\u0644 Embed \u063a\u0646\u064a\u0629 \u0648\u0625\u0631\u0633\u0627\u0644\u0647\u0627 \u0639\u0628\u0631 \u0627\u0644\u0628\u0648\u062a' : 'Create, manage and send rich embed messages through the bot' %></p>
+          <h2><%= t.embeds.heading %></h2>
+          <p><%= t.embeds.desc %></p>
           <div class="page-header-badge">
             <i data-lucide="file-code-2" style="width:11px;height:11px;stroke:currentColor;"></i>
-            <%= lang === 'ar' ? '\u0627\u0644\u0631\u0633\u0627\u0626\u0644 \u0648\u0627\u0644\u0640 Embeds' : 'Messaging & Embeds' %>
+            <%= t.embeds.badge %>
           </div>
         </div>
         <div class="page-header-right">
           <button class="btn btn-ghost" id="btnOpenTemplates">
             <i data-lucide="layout-template" style="width:16px;height:16px;"></i>
-            <span class="hide-xs"><%= lang === 'ar' ? 'القوالب' : 'Templates' %></span>
+            <span class="hide-xs"><%= t.embeds.btnTemplates %></span>
           </button>
           <button class="btn btn-ghost" id="btnOpenTrash" title="Recycle Bin">
             <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
-            <span class="hide-xs">Trash</span>
+            <span class="hide-xs"><%= t.embeds.btnTrash %></span>
           </button>
           <button class="btn btn-primary" id="btnNewMessage">
             <i data-lucide="plus" style="width:16px;height:16px;"></i>
-            <%= lang === 'ar' ? '\u0631\u0633\u0627\u0644\u0629 \u062c\u062f\u064a\u062f\u0629' : 'New Message' %>
+            <%= t.embeds.btnNewMsg %>
           </button>
         </div>
       </div>
@@ -863,8 +927,8 @@
         <div class="empty-state-icon">
           <i data-lucide="file-code-2" style="width:28px;height:28px;stroke:currentColor;fill:none;"></i>
         </div>
-        <h3><%= lang === 'ar' ? '\u0644\u0627 \u062a\u0648\u062c\u062f \u0631\u0633\u0627\u0626\u0644 \u0628\u0639\u062f' : 'No messages yet' %></h3>
-        <p><%= lang === 'ar' ? '\u0627\u0636\u063a\u0637 \u0639\u0644\u0649 "\u0631\u0633\u0627\u0644\u0629 \u062c\u062f\u064a\u062f\u0629" \u0644\u0625\u0646\u0634\u0627\u0621 \u0623\u0648\u0644 \u0631\u0633\u0627\u0644\u0629 Embed' : 'Click "New Message" to create your first embed message' %></p>
+        <h3><%= t.embeds.emptyTitle %></h3>
+        <p><%= t.embeds.emptyDesc %></p>
       </div>
     </div>
 
@@ -880,10 +944,19 @@
           <span style="font-size:.76rem;color:var(--muted);" class="hide-xs">EP Theme</span>
           <label class="toggle"><input type="checkbox" id="epThemeToggle"><span class="toggle-slider"></span></label>
         </div>
-        <div class="toggle-wrap" title="Each user gets their own independent flow state">
+        <div clas
+        <button class="btn btn-ghost btn-sm" id="btnAddGroup" title="Add a labeled region to group states visually">
+          <i data-lucide="square-dashed" style="width:14px;height:14px;"></i> <span class="hide-xs">Group</span>
+        </button>s="toggle-wrap" title="Each user gets their own independent flow state">
           <span style="font-size:.76rem;color:var(--muted);" class="hide-xs">Multi-User</span>
           <label class="toggle"><input type="checkbox" id="multiUserToggle"><span class="toggle-slider"></span></label>
         </div>
+        <button class="btn btn-ghost btn-sm icon-only" id="btnUndo" title="Undo (Ctrl+Z)" disabled>
+          <i data-lucide="undo-2" style="width:14px;height:14px;"></i>
+        </button>
+        <button class="btn btn-ghost btn-sm icon-only" id="btnRedo" title="Redo (Ctrl+Y)" disabled>
+          <i data-lucide="redo-2" style="width:14px;height:14px;"></i>
+        </button>
         <button class="btn btn-ghost btn-sm" id="btnAddState">
           <i data-lucide="plus" style="width:14px;height:14px;"></i> <span class="hide-xs">Add State</span>
         </button>
@@ -891,9 +964,9 @@
           <i data-lucide="zap" style="width:14px;height:14px;"></i> <span class="hide-xs">Triggers</span>
           <span id="trgCountBadge" class="trg-count-badge" style="display:none;">0</span>
         </button>
-        <button class="btn btn-ghost btn-sm" id="btnSaveAsTemplate" title="<%= lang === 'ar' ? 'حفظ كـ Template' : 'Save as Template' %>">
+        <button class="btn btn-ghost btn-sm" id="btnSaveAsTemplate" title="<%= t.embeds.btnSaveAsTemplate %>">
           <i data-lucide="layout-template" style="width:14px;height:14px;"></i>
-          <span class="hide-xs"><%= lang === 'ar' ? 'قالب' : 'Template' %></span>
+          <span class="hide-xs"><%= t.embeds.btnTemplate %></span>
         </button>
         <button class="btn btn-ghost btn-sm" id="btnVersionHistory" title="Version History" style="position:relative;">
           <i data-lucide="history" style="width:14px;height:14px;"></i>
@@ -919,6 +992,7 @@
             </div>
           </div>
           <div class="flow-canvas" id="flowCanvas">
+            <canvas class="flow-minimap" id="flowMinimap" width="160" height="96"></canvas>
             <div class="canvas-body" id="canvasBody">
               <svg class="flow-svg" id="flowSvg">
                 <defs>
@@ -949,11 +1023,23 @@
             <div class="insp-hd">
               <div class="insp-hd-r1">
                 <input class="insp-label" id="inspLabel" placeholder="State name" maxlength="60">
-                <input type="color" class="insp-color-inp" id="inspColor" value="#7c3aed">
+                <div class="color-theme-wrap">
+                  <div class="color-swatches" id="colorSwatches">
+                    <span class="color-swatch" data-color="#7c3aed" title="Default" style="background:#7c3aed"></span>
+                    <span class="color-swatch" data-color="#22c55e" title="Success" style="background:#22c55e"></span>
+                    <span class="color-swatch" data-color="#ef4444" title="Error" style="background:#ef4444"></span>
+                    <span class="color-swatch" data-color="#f59e0b" title="Warning" style="background:#f59e0b"></span>
+                    <span class="color-swatch" data-color="#0ea5e9" title="Info" style="background:#0ea5e9"></span>
+                    <span class="color-swatch" data-color="#ec4899" title="Event" style="background:#ec4899"></span>
+                    <span class="color-swatch" data-color="#64748b" title="Neutral" style="background:#64748b"></span>
+                  </div>
+                  <input type="color" class="insp-color-inp" id="inspColor" value="#7c3aed" title="Custom color">
+                </div>
               </div>
               <div class="insp-hd-r2">
                 <span class="insp-init-badge" id="inspInitBadge">INITIAL</span>
                 <button class="insp-set-init" id="inspSetInit">Set as Initial</button>
+                <button class="insp-set-init" id="btnCopyState" title="Copy State (Ctrl+C)" style="color:var(--purple-l);"><i data-lucide="copy" style="width:11px;height:11px;"></i></button>
                 <button class="insp-del" id="inspDelState">Delete</button>
               </div>
             </div>
@@ -986,6 +1072,29 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+          <!-- Multi-state selection panel -->
+          <div id="multiSelPanel">
+            <div class="multi-sel-ico">&#xFE0F;&#x2694;</div>
+            <div class="multi-sel-lbl" id="multiSelLbl">2 <%= t.embeds.jsMultiSelSelected %></div>
+            <div class="multi-sel-hint"><%- t.embeds.jsMultiSelHint %></div>
+            <button class="btn btn-danger btn-sm" id="btnDelMulti"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete All Selected</button>
+          </div>
+          <!-- Group region inspector (shown when a group is selected instead of state inspector) -->
+          <div id="inspGroupContent" style="display:none;flex-direction:column;padding:16px;gap:12px;">
+            <div style="display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:2px;">
+              <i data-lucide="square-dashed" style="width:15px;height:15px;color:var(--purple-l);flex-shrink:0;"></i>
+              <span style="font-size:.82rem;font-weight:700;flex:1;color:var(--white);">Group Region</span>
+              <button class="insp-del" id="btnDelGroup">Delete</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="font-size:.72rem;color:var(--muted);min-width:42px;flex-shrink:0;">Label</label>
+              <input class="insp-label" id="inspGroupLabel" placeholder="Group name" maxlength="40" style="font-size:.8rem;">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="font-size:.72rem;color:var(--muted);min-width:42px;flex-shrink:0;">Color</label>
+              <input type="color" class="insp-color-inp" id="inspGroupColor" value="#7c3aed">
             </div>
           </div>
         </div>
@@ -1030,8 +1139,8 @@
           <span class="send-mode-opt-desc">Sends a brand-new message to the selected channel</span>
         </label>
       </div>
-      <h3 id="saveModalTitle"><%= lang === 'ar' ? '\u0627\u0645\u0644\u0623 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629' : 'Fill In Required Information' %></h3>
-      <p id="saveModalDesc" class="modal-desc"><%= lang === 'ar' ? '\u0627\u062e\u062a\u0631 \u0627\u0633\u0645\u0627\u064b \u0644\u0644\u0631\u0633\u0627\u0644\u0629 \u0648\u0627\u0644\u0642\u0646\u0627\u0629 \u0627\u0644\u062a\u064a \u0633\u062a\u064f\u0631\u0633\u0644 \u0641\u064a\u0647\u0627.' : 'Choose a name for this message and the channel to send it to.' %></p>
+      <h3 id="saveModalTitle"><%= t.embeds.saveModalTitle %></h3>
+      <p id="saveModalDesc" class="modal-desc"><%= t.embeds.saveModalDesc %></p>
       <div class="form-group">
         <label class="form-label">Name</label>
         <input class="form-input" id="modalName" maxlength="100" placeholder="e.g. Welcome Message" />
@@ -1046,8 +1155,8 @@
         </select>
       </div>
       <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="modalCancel"><%= lang === 'ar' ? '\u0625\u0644\u063a\u0627\u0621' : 'Cancel' %></button>
-        <button class="btn btn-primary btn-sm" id="modalSave" disabled><%= lang === 'ar' ? '\u062d\u0641\u0638 \u0648\u0625\u0631\u0633\u0627\u0644' : 'Save & Send' %></button>
+        <button class="btn btn-ghost btn-sm" id="modalCancel"><%= t.embeds.btnCancel %></button>
+        <button class="btn btn-primary btn-sm" id="modalSave" disabled><%= t.embeds.btnSaveAndSend %></button>
       </div>
     </div>
   </div>
@@ -1057,7 +1166,7 @@
   <div id="templatesDrawer" aria-hidden="true">
     <div class="tpl-drawer-hd">
       <i data-lucide="layout-template" style="width:16px;height:16px;color:var(--purple-l);flex-shrink:0;"></i>
-      <h3><%= lang === 'ar' ? 'القوالب' : 'Templates' %></h3>
+      <h3><%= t.embeds.tplDrawerTitle %></h3>
       <button class="btn btn-ghost btn-xs" id="btnCloseTplDrawer" title="Close">
         <i data-lucide="x" style="width:14px;height:14px;"></i>
       </button>
@@ -1065,7 +1174,7 @@
     <div class="tpl-drawer-bar">
       <button class="btn btn-ghost btn-sm" id="btnTplImport">
         <i data-lucide="upload" style="width:13px;height:13px;"></i>
-        <%= lang === 'ar' ? 'استيراد JSON' : 'Import JSON' %>
+        <%= t.embeds.btnImportJSON %>
       </button>
       <input type="file" id="tplFileInput" accept=".json,application/json" style="display:none;">
     </div>
@@ -1077,21 +1186,21 @@
     <div class="modal-box" style="max-width:360px;">
       <h3 style="display:flex;align-items:center;gap:8px;">
         <i data-lucide="layout-template" style="width:16px;height:16px;color:var(--purple-l);flex-shrink:0;"></i>
-        <%= lang === 'ar' ? 'حفظ كـ Template' : 'Save as Template' %>
+        <%= t.embeds.tplSaveTitle %>
       </h3>
-      <p class="modal-desc"><%= lang === 'ar' ? 'أعطِ هذا التدفق اسماً لإعادة استخدامه لاحقاً.' : 'Give this flow a name so you can reuse it later.' %></p>
+      <p class="modal-desc"><%= t.embeds.tplSaveDesc %></p>
       <div class="form-group">
-        <label class="form-label"><%= lang === 'ar' ? 'اسم القالب' : 'Template Name' %></label>
+        <label class="form-label"><%= t.embeds.tplNameLabel %></label>
         <input class="form-input" id="tplSaveName" maxlength="100" placeholder="e.g. Welcome Flow">
       </div>
       <div class="form-group">
-        <label class="form-label"><%= lang === 'ar' ? 'الوصف' : 'Description' %> <span style="color:var(--muted);font-size:.78rem;">(<%= lang === 'ar' ? 'اختياري' : 'optional' %>)</span></label>
-        <input class="form-input" id="tplSaveDesc" maxlength="200" placeholder="<%= lang === 'ar' ? 'وصف قصير' : 'Short description' %>…">
+        <label class="form-label"><%= t.embeds.tplDescLabel %> <span style="color:var(--muted);font-size:.78rem;">(<%= t.embeds.tplOptional %>)</span></label>
+        <input class="form-input" id="tplSaveDesc" maxlength="200" placeholder="<%= t.embeds.tplDescPlaceholder %>…">
       </div>
       <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="tplSaveCancel"><%= lang === 'ar' ? 'إلغاء' : 'Cancel' %></button>
+        <button class="btn btn-ghost btn-sm" id="tplSaveCancel"><%= t.embeds.tplCancelBtn %></button>
         <button class="btn btn-primary btn-sm" id="tplSaveConfirm">
-          <i data-lucide="save" style="width:13px;height:13px;"></i> <%= lang === 'ar' ? 'حفظ القالب' : 'Save Template' %>
+          <i data-lucide="save" style="width:13px;height:13px;"></i> <%= t.embeds.tplSaveBtn %>
         </button>
       </div>
     </div>
@@ -1175,13 +1284,12 @@
        ════════════════════════════════════════ */
     const GUILD_ID = '<%= guildId %>';
     const API_BASE = '/dashboard/' + GUILD_ID + '/embeds/api';
-    const isAr     = document.documentElement.lang === 'ar';
     const L = {
-      newFlow:    isAr ? '\u062a\u062f\u0641\u0642 \u062c\u062f\u064a\u062f' : 'New Flow',
-      editFlow:   isAr ? '\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u062a\u062f\u0641\u0642' : 'Edit Flow',
-      saved:      isAr ? '\u062a\u0645 \u0627\u0644\u062d\u0641\u0638!' : 'Saved!',
-      deleted:    isAr ? '\u062a\u0645 \u0627\u0644\u062d\u0630\u0641' : 'Deleted',
-      confirmDel: isAr ? '\u0647\u0644 \u062a\u0631\u064a\u062f \u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u0631\u0633\u0627\u0644\u0629\u061f' : 'Delete this message?',
+      newFlow:    '<%= t.embeds.jsNewFlow %>',
+      editFlow:   '<%= t.embeds.jsEditFlow %>',
+      saved:      '<%= t.embeds.jsSaved %>',
+      deleted:    '<%= t.embeds.jsDeleted %>',
+      confirmDel: '<%= t.embeds.jsConfirmDel %>',
     };
 
     /* ════════════════════════════════════════
@@ -1192,8 +1300,17 @@
     let epTheme         = false;
     let multiUser       = false;
     let selectedStateId = null;
-    let activeTab       = 'embeds';
-    let uid             = 0;
+    let activeTab        = 'embeds';
+    let uid              = 0;
+    let _rolePickerReopen = null;
+    let _trgRolePickerReopen = null;
+    let _isDirty     = false;
+    let _copiedState = null;
+    const _undoStack = [];
+    const _redoStack = [];
+    let selectedGroupId = null;
+    let _groupDrag      = null;
+    const _multiSel     = new Set(); // multi-state selection
     function nid(p) { return p + '_' + (++uid); }
 
     /* ════════════════════════════════════════
@@ -1251,8 +1368,8 @@
       if (!ct.includes('application/json')) {
         // Server returned HTML (e.g. session expired → login redirect, or 404 page)
         const text = await r.text();
-        if (r.status === 401 || r.status === 403) throw new Error(isAr ? 'انتهت الجلسة — أعد تسجيل الدخول' : 'Session expired — please log in again');
-        throw new Error((isAr ? 'خطأ في الخادم' : 'Server error') + ' (' + r.status + ')');
+        if (r.status === 401 || r.status === 403) throw new Error('<%= t.embeds.jsSessionExpired %>');
+        throw new Error('<%= t.embeds.jsServerError %>' + ' (' + r.status + ')');
       }
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || 'Request failed');
@@ -1292,7 +1409,9 @@
           + '<div class="msg-card-actions">'
           + '<button class="btn btn-ghost btn-xs btnEditMsg" data-id="' + m._id + '">'
           + '<i data-lucide="pencil" style="width:12px;height:12px;"></i> '
-          + (isAr ? '\u062a\u0639\u062f\u064a\u0644' : 'Edit') + '</button>'
+          + '<%= t.embeds.jsEdit %></button>'
+          + '<button class="btn btn-ghost btn-xs btnDupMsg" data-id="' + m._id + '" title="<%= t.embeds.jsDuplicate %>">'
+          + '<i data-lucide="copy-plus" style="width:12px;height:12px;"></i></button>'
           + '<button class="btn btn-danger btn-xs btnDelMsg" data-id="' + m._id + '">'
           + '<i data-lucide="trash-2" style="width:12px;height:12px;"></i></button>'
           + '</div>'
@@ -1302,6 +1421,8 @@
       lucide.createIcons();
       $msgGrid.querySelectorAll('.btnEditMsg').forEach(b =>
         b.addEventListener('click', e => { e.stopPropagation(); openEditor(b.dataset.id); }));
+      $msgGrid.querySelectorAll('.btnDupMsg').forEach(b =>
+        b.addEventListener('click', e => { e.stopPropagation(); duplicateMessage(b.dataset.id); }));
       $msgGrid.querySelectorAll('.btnDelMsg').forEach(b =>
         b.addEventListener('click', e => { e.stopPropagation(); deleteMessage(b.dataset.id); }));
       $msgGrid.querySelectorAll('.msg-card').forEach(c =>
@@ -1316,6 +1437,24 @@
         if (idx >= 0) savedMessages.splice(idx, 1);
         renderList();
         toast('Moved to Trash (restore within 30 days)', 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    async function duplicateMessage(id) {
+      const doc = savedMessages.find(m => m._id === id);
+      if (!doc) return;
+      try {
+        const res = await api('POST', '/save', {
+          name:      (doc.name || 'Flow') + ' (Copy)',
+          channelId: doc.channelId,
+          epTheme:   !!doc.epTheme,
+          machine:   JSON.parse(JSON.stringify(doc.machine || {})),
+        });
+        if (res.data) {
+          savedMessages.push(res.data);
+          renderList();
+          toast('<%= t.embeds.jsDuplicatedFlow %>', 'success');
+        }
       } catch (e) { toast(e.message, 'error'); }
     }
 
@@ -1471,6 +1610,10 @@
        EDITOR OPEN / CLOSE
        ════════════════════════════════════════ */
     function openEditor(id) {
+      _undoStack.length = 0; _redoStack.length = 0;
+      clearDirty(); _updateUndoButtons();
+      _multiSel.clear();
+      _multiSel.clear();
       if (id) {
         const doc = savedMessages.find(m => m._id === id);
         if (!doc) return;
@@ -1514,6 +1657,7 @@
         $builderTitle.textContent = L.newFlow;
       }
       if (!machine.triggers) machine.triggers = [];
+      if (!machine.groups)   machine.groups   = [];
       $epTheme.checked   = epTheme;
       $multiUser.checked  = multiUser;
       selectedStateId   = machine.initial;
@@ -1526,11 +1670,14 @@
     }
 
     function closeEditor() {
+      if (_isDirty && !confirm('<%= t.embeds.jsUnsavedChanges %>')) return;
       $builderView.style.display = 'none';
       $listView.style.display    = '';
       currentDoc      = null;
       machine         = { initial: null, states: {} };
+      selectedGroupId = null;
       selectedStateId = null;
+      clearDirty();
       renderList();
     }
 
@@ -1549,6 +1696,7 @@
         embeds: [], components: [], on: {},
       };
       if (!machine.initial) machine.initial = sid;
+      pushHistory(); markDirty();
       selectedStateId = sid;
       renderCanvas();
       renderInspector();
@@ -1556,24 +1704,49 @@
     }
 
     function deleteSelectedState() {
+      // Bulk delete multi-selection
+      if (_multiSel.size > 1) {
+        const allIds = Object.keys(machine.states);
+        const toDelete = [..._multiSel].filter(id => machine.states[id]);
+        if (allIds.length - toDelete.length < 1) { toast('<%= t.embeds.jsCannotDelAll %>', 'error'); return; }
+        pushHistory();
+        for (const did of toDelete) {
+          for (const s of Object.values(machine.states)) {
+            for (const [eid, tr] of Object.entries(s.on || {})) {
+              if (tr.target === did) delete s.on[eid];
+            }
+          }
+          delete machine.states[did];
+        }
+        if (!machine.states[machine.initial]) machine.initial = Object.keys(machine.states)[0];
+        selectedStateId = machine.initial;
+        _multiSel.clear();
+        markDirty();
+        renderCanvas(); renderInspector(); lucide.createIcons();
+        return;
+      }
       if (!selectedStateId) return;
       const ids = Object.keys(machine.states);
       if (ids.length <= 1) { toast('Cannot delete the last state', 'error'); return; }
+      pushHistory();
       // Remove transitions that point to this state
       for (const s of Object.values(machine.states)) {
         for (const [eid, tr] of Object.entries(s.on || {})) {
           if (tr.target === selectedStateId) delete s.on[eid];
+      _multiSel.clear();
         }
       }
       delete machine.states[selectedStateId];
       if (machine.initial === selectedStateId) machine.initial = Object.keys(machine.states)[0];
       selectedStateId = machine.initial;
+      markDirty();
       renderCanvas();
       renderInspector();
       lucide.createIcons();
     }
 
     function setInitialState(id) {
+      pushHistory(); markDirty();
       machine.initial = id;
       renderCanvas();
       renderInspector();
@@ -1581,9 +1754,328 @@
 
     function selectState(id) {
       selectedStateId = id;
+      selectedGroupId = null;
       renderCanvas();
       renderInspector();
       lucide.createIcons();
+      panToState(id);
+    }
+
+    /* ════════════════════════════════════════
+       DIRTY / HISTORY / COPY/PASTE / VALIDATION
+       ════════════════════════════════════════ */
+    function markDirty() {
+      _isDirty = true;
+      $builderView.classList.add('has-unsaved');
+    }
+    function clearDirty() {
+      _isDirty = false;
+      $builderView.classList.remove('has-unsaved');
+    }
+    const MAX_HISTORY = 30;
+    function pushHistory() {
+      _undoStack.push(JSON.stringify(machine));
+      if (_undoStack.length > MAX_HISTORY) _undoStack.shift();
+      _redoStack.length = 0;
+      _updateUndoButtons();
+    }
+    function _updateUndoButtons() {
+      const bu = document.getElementById('btnUndo');
+      const br = document.getElementById('btnRedo');
+      if (bu) bu.disabled = !_undoStack.length;
+      if (br) br.disabled = !_redoStack.length;
+    }
+    function undoAction() {
+      if (!_undoStack.length) return;
+      _redoStack.push(JSON.stringify(machine));
+      machine = JSON.parse(_undoStack.pop());
+      if (!machine.states[selectedStateId]) selectedStateId = machine.initial;
+      renderCanvas(); renderInspector(); lucide.createIcons();
+      _updateUndoButtons();
+    }
+    function redoAction() {
+      if (!_redoStack.length) return;
+      _undoStack.push(JSON.stringify(machine));
+      machine = JSON.parse(_redoStack.pop());
+      if (!machine.states[selectedStateId]) selectedStateId = machine.initial;
+      renderCanvas(); renderInspector(); lucide.createIcons();
+      _updateUndoButtons();
+    }
+    function copySelectedState() {
+      const s = getSelectedState(); if (!s) return;
+      _copiedState = JSON.parse(JSON.stringify(s));
+      toast('<%= t.embeds.jsStateCopied %>', 'success');
+    }
+    function pasteState() {
+      if (!_copiedState) return toast('<%= t.embeds.jsNothingToPaste %>', 'error');
+      pushHistory();
+      const sid = nid('state');
+      machine.states[sid] = JSON.parse(JSON.stringify(_copiedState));
+      machine.states[sid].id    = sid;
+      machine.states[sid].label = (_copiedState.label || 'State') + ' (copy)';
+      machine.states[sid].position = {
+        x: (_copiedState.position?.x || 80) + 30,
+        y: (_copiedState.position?.y || 80) + 30,
+      };
+      machine.states[sid].on = {};
+      selectedStateId = sid;
+      renderCanvas(); renderInspector(); lucide.createIcons();
+      markDirty();
+    }
+    function panToState(sid) {
+      const s = machine.states[sid]; if (!s) return;
+      const pos = s.position || { x: 80, y: 80 };
+      const rect = $flowCanvas.getBoundingClientRect();
+      _viewOX = rect.width  / 2 - (pos.x + 120) * _viewScale;
+      _viewOY = rect.height / 2 - (pos.y +  55) * _viewScale;
+      applyCanvasTransform();
+    }
+    function validateFlow() {
+      const issues = [];
+      for (const [sid, s] of Object.entries(machine.states)) {
+        for (const tr of Object.values(s.on || {})) {
+          if (tr.target && tr.target !== sid && !machine.states[tr.target])
+            issues.push('<%= t.embeds.jsStateErrPre %> "' + esc(s.label || sid) + '" <%= t.embeds.jsStateErrPost %>');
+        }
+      }
+      return issues;
+    }
+    // ── Minimap ──────────────────────────────
+    let _minimapRaf = null;
+    function scheduleMinimapUpdate() {
+      if (_minimapRaf) return;
+      _minimapRaf = requestAnimationFrame(() => { _minimapRaf = null; updateMinimap(); });
+    }
+    function updateMinimap() {
+      const $mm = document.getElementById('flowMinimap');
+      if (!$mm) return;
+      const ids = Object.keys(machine.states);
+      if (ids.length < 2) { $mm.style.opacity = '0'; return; }
+      $mm.style.opacity = '1';
+      const ctx = $mm.getContext('2d');
+      const W = $mm.width, H = $mm.height;
+      ctx.clearRect(0, 0, W, H);
+      const STATE_W = 246, STATE_H = 100;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const sid of ids) {
+        const p = machine.states[sid].position || { x: 80, y: 80 };
+        if (p.x < minX)           minX = p.x;
+        if (p.y < minY)           minY = p.y;
+        if (p.x + STATE_W > maxX) maxX = p.x + STATE_W;
+        if (p.y + STATE_H > maxY) maxY = p.y + STATE_H;
+      }
+      const PAD = 20;
+      minX -= PAD; minY -= PAD; maxX += PAD; maxY += PAD;
+      const bw = maxX - minX, bh = maxY - minY;
+      if (bw <= 0 || bh <= 0) return;
+      const scale = Math.min(W / bw, H / bh);
+      // Draw states
+      for (const sid of ids) {
+        const s = machine.states[sid];
+        const p = s.position || { x: 80, y: 80 };
+        const c = s.color || '#7c3aed';
+        const x = (p.x - minX) * scale, y = (p.y - minY) * scale;
+        const w = Math.max(STATE_W * scale, 3), h = Math.max(STATE_H * scale, 3);
+        ctx.fillStyle = c + '44';
+        ctx.strokeStyle = (_multiSel.has(sid) || selectedStateId === sid)
+          ? 'rgba(255,255,255,.85)' : c + 'bb';
+        ctx.lineWidth = selectedStateId === sid ? 1.5 : 0.8;
+        ctx.beginPath(); ctx.rect(x, y, w, h); ctx.fill(); ctx.stroke();
+      }
+      // Draw arrows
+      ctx.strokeStyle = 'rgba(124,58,237,.4)'; ctx.lineWidth = 0.7;
+      for (const [fromId, s] of Object.entries(machine.states)) {
+        for (const tr of Object.values(s.on || {})) {
+          if (!tr.target || !machine.states[tr.target]) continue;
+          const fp = s.position || { x: 80, y: 80 };
+          const tp = machine.states[tr.target].position || { x: 80, y: 80 };
+          ctx.beginPath();
+          ctx.moveTo((fp.x + STATE_W - minX) * scale, (fp.y + STATE_H / 2 - minY) * scale);
+          ctx.lineTo((tp.x           - minX) * scale, (tp.y + STATE_H / 2 - minY) * scale);
+          ctx.stroke();
+        }
+      }
+      // Draw viewport rectangle
+      const rect = $flowCanvas.getBoundingClientRect();
+      const vx = (-_viewOX / _viewScale - minX) * scale;
+      const vy = (-_viewOY / _viewScale - minY) * scale;
+      const vw = (rect.width  / _viewScale) * scale;
+      const vh = (rect.height / _viewScale) * scale;
+      ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1;
+      ctx.strokeRect(vx, vy, Math.min(W, vw), Math.min(H, vh));
+    }
+    function _initCanvasDelegation() {
+      // Delegated click: select state / make-initial / delete
+      $flowStates.addEventListener('click', e => {
+        const card = e.target.closest('.flow-state'); if (!card) return;
+        const sid = card.dataset.sid;
+        if (e.target.closest('.state-act-btn.make-init')) { e.stopPropagation(); setInitialState(sid); return; }
+        if (e.target.closest('.state-act-btn.del'))       { e.stopPropagation(); selectedStateId = sid; deleteSelectedState(); return; }
+        if (!e.target.closest('.state-act-btn')) {
+          if (e.ctrlKey || e.metaKey) {
+            // Toggle in multi-selection
+            e.stopPropagation();
+            if (_multiSel.has(sid)) { _multiSel.delete(sid); } else { _multiSel.add(sid); }
+            if (selectedStateId && _multiSel.size > 0 && !_multiSel.has(selectedStateId))
+              _multiSel.add(selectedStateId); // keep primary in set
+            if (_multiSel.size === 1) { const only = [..._multiSel][0]; _multiSel.clear(); selectState(only); return; }
+            if (_multiSel.size === 0) return;
+            selectedStateId = sid; selectedGroupId = null;
+            renderCanvas(); renderInspector(); lucide.createIcons();
+          } else {
+            _multiSel.clear();
+            selectState(sid);
+          }
+        }
+      });
+      // Delegated click: group select / delete
+      $flowStates.addEventListener('click', e => {
+        const grp = e.target.closest('.flow-group'); if (!grp) return;
+        if (e.target.closest('.flow-state')) return; // state on top — ignore
+        const gid = grp.dataset.gid;
+        if (e.target.closest('.flow-group-del')) { e.stopPropagation(); selectedGroupId = gid; deleteSelectedGroup(); return; }
+        selectedGroupId = gid; selectedStateId = null;
+        renderGroupInspector();
+        // Highlight selected group
+        document.querySelectorAll('.flow-group').forEach(g => g.classList.toggle('selected', g.dataset.gid === gid));
+      });
+      // Delegated mousedown: drag header / connect port
+      $flowStates.addEventListener('mousedown', e => {
+        const card = e.target.closest('.flow-state'); if (!card) return;
+        const sid = card.dataset.sid;
+        if (e.target.closest('.sc-port'))          { e.stopPropagation(); e.preventDefault(); startConnecting(e, sid); return; }
+        if (e.target.closest('.flow-state-header')) startDrag(e, card, sid);
+      });
+      // Delegated mousedown: group drag / resize
+      $flowStates.addEventListener('mousedown', e => {
+        const grp = e.target.closest('.flow-group'); if (!grp) return;
+        if (e.target.closest('.flow-state')) return; // state on top
+        const gid = grp.dataset.gid;
+        if (e.button !== 0) return;
+        if (e.target.closest('.flow-group-del')) return;
+        if (e.target.closest('.flow-group-resize')) { startGroupDrag(e, gid, true); return; }
+        if (e.target.closest('.flow-group-header')) startGroupDrag(e, gid, false);
+      });
+      // Touchstart: must be non-passive so startDrag can call preventDefault
+      $flowStates.addEventListener('touchstart', e => {
+        const hd = e.target.closest('.flow-state-header'); if (!hd) return;
+        const card = hd.closest('.flow-state'); if (!card) return;
+        startDrag(e, card, card.dataset.sid);
+      }, { passive: false });
+    }
+
+    /* ── Group Region Functions ── */
+    function groupDivHTML(g) {
+      const c  = g.color || '#7c3aed';
+      const bg = c + '18'; // 8-digit hex for ~9% opacity background
+      const isSel = selectedGroupId === g.id;
+      return '<div class="flow-group' + (isSel ? ' selected' : '') + '" data-gid="' + esc(g.id) + '" id="grp_' + esc(g.id) + '"'
+        + ' style="left:' + (g.x || 80) + 'px;top:' + (g.y || 80) + 'px;width:' + (g.w || 320) + 'px;height:' + (g.h || 220) + 'px;'
+        + 'border-color:' + esc(c) + ';background:' + esc(bg) + ';color:' + esc(c) + ';">'
+        + '<div class="flow-group-header">'
+        + '<i data-lucide="grip-vertical" style="width:11px;height:11px;flex-shrink:0;opacity:.5;"></i>'
+        + '<span class="flow-group-lbl">' + esc(g.label || 'Group') + '</span>'
+        + '<button class="flow-group-del" data-gid="' + esc(g.id) + '" title="Delete group" tabindex="-1">'
+        + '<i data-lucide="x" style="width:10px;height:10px;"></i></button>'
+        + '</div>'
+        + '<div class="flow-group-resize" data-gid="' + esc(g.id) + '"></div>'
+        + '</div>';
+    }
+    function addGroup() {
+      pushHistory();
+      if (!machine.groups) machine.groups = [];
+      const id = nid('grp');
+      const palette = ['#7c3aed','#0ea5e9','#22c55e','#f59e0b','#ef4444','#ec4899'];
+      const c = palette[machine.groups.length % palette.length];
+      machine.groups.push({
+        id, label: 'Group ' + (machine.groups.length + 1), color: c,
+        x: 60 + machine.groups.length * 20,
+        y: 60 + machine.groups.length * 20,
+        w: 320, h: 220,
+      });
+      selectedGroupId = id; selectedStateId = null;
+      renderCanvas(); renderGroupInspector(); lucide.createIcons();
+      markDirty();
+    }
+    function deleteSelectedGroup() {
+      if (!selectedGroupId) return;
+      pushHistory();
+      machine.groups = (machine.groups || []).filter(g => g.id !== selectedGroupId);
+      selectedGroupId = null;
+      renderCanvas(); renderGroupInspector(); lucide.createIcons();
+      markDirty();
+    }
+    function syncGroupFromDOM() {
+      if (!selectedGroupId) return;
+      const g = (machine.groups || []).find(gg => gg.id === selectedGroupId);
+      if (!g) return;
+      g.label = document.getElementById('inspGroupLabel').value;
+      g.color = document.getElementById('inspGroupColor').value;
+      // Update only the group element's style and label without full re-render
+      const el = document.getElementById('grp_' + selectedGroupId);
+      if (el) {
+        const c = g.color || '#7c3aed';
+        el.style.borderColor = c;
+        el.style.color       = c;
+        el.style.background  = c + '18';
+        const lbl = el.querySelector('.flow-group-lbl');
+        if (lbl) lbl.textContent = g.label || 'Group';
+      }
+      markDirty();
+    }
+    function renderGroupInspector() {
+      const $ig = document.getElementById('inspGroupContent');
+      if (!$ig) return;
+      if (selectedGroupId) {
+        const g = (machine.groups || []).find(gg => gg.id === selectedGroupId);
+        if (!g) { selectedGroupId = null; renderGroupInspector(); return; }
+        $inspEmpty.style.display   = 'none';
+        $inspContent.style.display = 'none';
+        $ig.style.display = 'flex';
+        document.getElementById('inspGroupLabel').value = g.label || '';
+        document.getElementById('inspGroupColor').value = g.color || '#7c3aed';
+      } else {
+        $ig.style.display = 'none';
+      }
+    }
+    function startGroupDrag(e, gid, isResize) {
+      e.preventDefault(); e.stopPropagation();
+      const g = (machine.groups || []).find(gg => gg.id === gid); if (!g) return;
+      selectedGroupId = gid; selectedStateId = null;
+      renderGroupInspector();
+      document.querySelectorAll('.flow-group').forEach(el => el.classList.toggle('selected', el.dataset.gid === gid));
+      const pt = _canvasXY(_getXY(e));
+      _groupDrag = {
+        gid, isResize,
+        ox: pt.x - (g.x || 80), oy: pt.y - (g.y || 80),
+        iw: g.w || 320, ih: g.h || 220,
+        sx: pt.x, sy: pt.y,
+      };
+      document.addEventListener('mousemove', onGroupDragMove);
+      document.addEventListener('mouseup',   onGroupDragEnd, { once: true });
+    }
+    function onGroupDragMove(e) {
+      if (!_groupDrag) return;
+      e.preventDefault();
+      const g = (machine.groups || []).find(gg => gg.id === _groupDrag.gid); if (!g) return;
+      const el = document.getElementById('grp_' + _groupDrag.gid); if (!el) return;
+      const pt = _canvasXY(_getXY(e));
+      if (_groupDrag.isResize) {
+        g.w = Math.max(100, _groupDrag.iw + (pt.x - _groupDrag.sx));
+        g.h = Math.max(70,  _groupDrag.ih + (pt.y - _groupDrag.sy));
+        el.style.width  = g.w + 'px';
+        el.style.height = g.h + 'px';
+      } else {
+        g.x = Math.max(0, pt.x - _groupDrag.ox);
+        g.y = Math.max(0, pt.y - _groupDrag.oy);
+        el.style.left = g.x + 'px';
+        el.style.top  = g.y + 'px';
+      }
+    }
+    function onGroupDragEnd() {
+      if (_groupDrag) markDirty();
+      _groupDrag = null;
+      document.removeEventListener('mousemove', onGroupDragMove);
     }
 
     /* ════════════════════════════════════════
@@ -1593,21 +2085,11 @@
       const ids = Object.keys(machine.states);
       $stateCountBadge.textContent = ids.length + ' state' + (ids.length !== 1 ? 's' : '');
       $canvasEmpty.style.display   = ids.length ? 'none' : '';
-      $flowStates.innerHTML        = ids.map(sid => stateCardHTML(sid)).join('');
+      // Groups render first (lower z-index 1) then state cards (z-index 10)
+      $flowStates.innerHTML = (machine.groups || []).map(g => groupDivHTML(g)).join('')
+        + ids.map(sid => stateCardHTML(sid)).join('');
       updateArrows();
-      document.querySelectorAll('.flow-state').forEach(card => {
-        const sid = card.dataset.sid;
-        card.addEventListener('click', e => { if (!e.target.closest('.state-act-btn')) selectState(sid); });
-        const hd = card.querySelector('.flow-state-header');
-        if (hd) hd.addEventListener('mousedown', e => startDrag(e, card, sid));
-        if (hd) hd.addEventListener('touchstart', e => startDrag(e, card, sid), { passive: false });
-        const initBtn = card.querySelector('.state-act-btn.make-init');
-        if (initBtn) initBtn.addEventListener('click', e => { e.stopPropagation(); setInitialState(sid); });
-        const delBtn = card.querySelector('.state-act-btn.del');
-        if (delBtn)  delBtn.addEventListener('click',  e => { e.stopPropagation(); selectedStateId = sid; deleteSelectedState(); });
-        const port = card.querySelector('.sc-port');
-        if (port)    port.addEventListener('mousedown', e => { e.stopPropagation(); e.preventDefault(); startConnecting(e, sid); });
-      });
+      scheduleMinimapUpdate();
     }
 
     function stateCardHTML(sid) {
@@ -1620,8 +2102,9 @@
       const cmpCount = (s.components || []).length;
       const pos      = s.position || { x: 80, y: 80 };
       let cls = 'flow-state';
-      if (isSel)   cls += ' selected';
-      if (isInit)  cls += ' is-initial';
+      if (isSel)                cls += ' selected';
+      if (isInit)               cls += ' is-initial';
+      if (_multiSel.has(sid))   cls += ' multi-sel';
 
       const trRows = Object.entries(on).slice(0, 3).map(([eid, tr]) => {
         const toLbl = machine.states[tr.target]?.label || tr.target || '?';
@@ -1658,9 +2141,9 @@
     }
 
     function updateArrows() {
-      $flowSvg.querySelectorAll('.flow-arrow').forEach(e => e.remove());
+      $flowSvg.querySelectorAll('.flow-arrow, .flow-arrow-lbl').forEach(e => e.remove());
       for (const [fromId, s] of Object.entries(machine.states)) {
-        for (const tr of Object.values(s.on || {})) {
+        for (const [evKey, tr] of Object.entries(s.on || {})) {
           if (!tr.target || !machine.states[tr.target]) continue;
           const fromEl = document.getElementById('sc_' + fromId);
           const toEl   = document.getElementById('sc_' + tr.target);
@@ -1675,6 +2158,14 @@
           p.setAttribute('d', `M ${x1} ${y1} C ${cx} ${y1} ${cx} ${y2} ${x2} ${y2}`);
           p.setAttribute('class', 'flow-arrow');
           $flowSvg.appendChild(p);
+          // Transition label at Bezier midpoint
+          const lbl = evKey.length > 16 ? evKey.slice(0, 14) + '\u2026' : evKey;
+          const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          t.setAttribute('x', (x1 + x2) / 2);
+          t.setAttribute('y', (y1 + y2) / 2 - 5);
+          t.setAttribute('class', 'flow-arrow-lbl');
+          t.textContent = lbl;
+          $flowSvg.appendChild(t);
         }
       }
     }
@@ -1697,6 +2188,7 @@
       $canvasBody.style.transform = 'translate(' + _viewOX + 'px,' + _viewOY + 'px) scale(' + _viewScale + ')';
       const lbl = document.getElementById('zoomLabel');
       if (lbl) lbl.textContent = Math.round(_viewScale * 100) + '%';
+      scheduleMinimapUpdate();
     }
 
     // State card drag
@@ -1706,7 +2198,16 @@
       e.stopPropagation();
       const pos = machine.states[sid].position || { x: 0, y: 0 };
       const cpt = _canvasXY(_getXY(e));
-      _drag = { sid, ox: cpt.x - pos.x, oy: cpt.y - pos.y };
+      const isMulti = _multiSel.size > 1 && _multiSel.has(sid);
+      _drag = {
+        sid, ox: cpt.x - pos.x, oy: cpt.y - pos.y,
+        multiBase: isMulti
+          ? Object.fromEntries([..._multiSel].map(id => {
+              const p = machine.states[id]?.position || { x: 0, y: 0 };
+              return [id, { x: p.x, y: p.y }];
+            }))
+          : null,
+      };
       document.addEventListener('mousemove', onDragMove);
       document.addEventListener('mouseup',   onDragEnd, { once: true });
       document.addEventListener('touchmove', onDragMove, { passive: false });
@@ -1717,14 +2218,29 @@
       e.preventDefault();
       const s = machine.states[_drag.sid]; if (!s) return;
       const cpt = _canvasXY(_getXY(e));
-      s.position = { x: Math.max(0, cpt.x - _drag.ox), y: Math.max(0, cpt.y - _drag.oy) };
-      const card = document.getElementById('sc_' + _drag.sid);
-      if (card) { card.style.left = s.position.x + 'px'; card.style.top = s.position.y + 'px'; }
+      const newX = Math.max(0, cpt.x - _drag.ox);
+      const newY = Math.max(0, cpt.y - _drag.oy);
+      if (_drag.multiBase) {
+        const dx = newX - _drag.multiBase[_drag.sid].x;
+        const dy = newY - _drag.multiBase[_drag.sid].y;
+        for (const [id, base] of Object.entries(_drag.multiBase)) {
+          const ss = machine.states[id]; if (!ss) continue;
+          ss.position = { x: Math.max(0, base.x + dx), y: Math.max(0, base.y + dy) };
+          const c = document.getElementById('sc_' + id);
+          if (c) { c.style.left = ss.position.x + 'px'; c.style.top = ss.position.y + 'px'; }
+        }
+      } else {
+        s.position = { x: newX, y: newY };
+        const card = document.getElementById('sc_' + _drag.sid);
+        if (card) { card.style.left = s.position.x + 'px'; card.style.top = s.position.y + 'px'; }
+      }
       updateArrows();
+      scheduleMinimapUpdate();
     }
     function onDragEnd() {
       document.removeEventListener('mousemove', onDragMove);
       document.removeEventListener('touchmove', onDragMove);
+      if (_drag) markDirty();
       _drag = null;
     }
 
@@ -1848,6 +2364,7 @@
       const fs = machine.states[fromId];
       if (!fs.on) fs.on = {};
       fs.on['e_' + Date.now()] = { target: toId, actions: [{ type: 'update_content' }] };
+      pushHistory(); markDirty();
       renderTransitionsPanel();
       updateArrows();
       renderCanvas();
@@ -1890,19 +2407,40 @@
       renderCanvas();
       updateArrows();
       lucide.createIcons();
-      toast('Auto-layout applied', 'success');
+      markDirty(); toast('<%= t.embeds.jsAutoLayout %>', 'success');
     }
 
     /* ════════════════════════════════════════
        INSPECTOR
        ════════════════════════════════════════ */
     function renderInspector() {
+      // Hide group inspector whenever a state is being inspected
+      const $ig = document.getElementById('inspGroupContent');
+      const $ms = document.getElementById('multiSelPanel');
+      if ($ig) $ig.style.display = 'none';
+      selectedGroupId = null;
+      // Multi-selection panel
+      if (_multiSel.size > 1) {
+        $inspEmpty.style.display   = 'none';
+        $inspContent.style.display = 'none';
+        if ($ms) {
+          $ms.style.display = 'flex';
+          const lbl = document.getElementById('multiSelLbl');
+          if (lbl) lbl.textContent = _multiSel.size + ' <%= t.embeds.jsMultiSelSelected %>';
+        }
+        return;
+      }
+      if ($ms) $ms.style.display = 'none';
       const s = getSelectedState();
       if (!s) { $inspEmpty.style.display = ''; $inspContent.style.display = 'none'; return; }
       $inspEmpty.style.display    = 'none';
       $inspContent.style.display  = 'flex';
       $inspLabel.value  = s.label || '';
       $inspColor.value  = s.color || '#7c3aed';
+      // Sync active color swatch
+      document.querySelectorAll('.color-swatch').forEach(sw => {
+        sw.classList.toggle('active', sw.dataset.color === (s.color || '#7c3aed'));
+      });
       const isInit = machine.initial === selectedStateId;
       $inspInitBadge.style.display = isInit ? '' : 'none';
       $inspSetInit.style.display   = isInit ? 'none' : '';
@@ -1937,10 +2475,10 @@
               + '<div class="embed-item-body" id="embedBody' + i + '">' + embedForm(emb, i) + '</div>'
               + '</div>';
           }).join('')
-        : '<p style="font-size:.78rem;color:var(--muted);margin-bottom:10px;">' + (isAr ? '\u0644\u0627 \u064a\u0648\u062c\u062f embeds' : 'No embeds yet') + '</p>';
+        : '<p style="font-size:.78rem;color:var(--muted);margin-bottom:10px;"><%= t.embeds.jsNoEmbeds %></p>';
       html += '<button class="btn btn-ghost btn-xs" id="btnAddEmbed" style="margin-top:6px;">'
         + '<i data-lucide="plus" style="width:12px;height:12px;"></i> '
-        + (isAr ? '\u0625\u0636\u0627\u0641\u0629 Embed' : 'Add Embed') + '</button>';
+        + '<%= t.embeds.jsAddEmbed %></button>';
       $panelEmbeds.innerHTML = html;
       lucide.createIcons();
       bindEmbedEvents();
@@ -1989,10 +2527,10 @@
         + '<div class="form-group"><label class="form-label">URL</label>'
         + '<input class="form-input emb-url" data-idx="' + i + '" value="' + esc(emb.url||'') + '" placeholder="https://..."></div>'
         + '<label class="form-checkbox"><input type="checkbox" class="emb-timestamp" data-idx="' + i + '"' + (emb.timestamp?' checked':'') + '> Timestamp</label>'
-        + '<div class="form-group" style="margin-top:10px;"><label class="form-label">' + (isAr?'\u0627\u0644\u062d\u0642\u0648\u0644':'Fields') + '</label>'
+        + '<div class="form-group" style="margin-top:10px;"><label class="form-label">' + '<%= t.embeds.jsFields %>' + '</label>'
         + '<div class="fields-list" id="fields' + i + '">' + (emb.fields||[]).map((f,fi) => fieldItem(i,fi,f)).join('') + '</div>'
         + '<button class="btn btn-ghost btn-xs btnAddField" data-idx="' + i + '" style="margin-top:6px;">'
-        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + (isAr?'\u0625\u0636\u0627\u0641\u0629 \u062d\u0642\u0644':'Add Field') + '</button>'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + '<%= t.embeds.jsAddField %>' + '</button>'
         + '</div>';
     }
 
@@ -2060,6 +2598,7 @@
       emb.image       = q('.emb-image')?.value  || '';
       emb.url         = q('.emb-url')?.value    || '';
       emb.timestamp   = q('.emb-timestamp')?.checked || false;
+      markDirty();
     }
     function syncFieldFromDOM(ei, fi) {
       const s = getSelectedState(); if (!s) return;
@@ -2068,6 +2607,7 @@
       f.name   = q('.field-name')?.value   || '';
       f.value  = q('.field-value')?.value  || '';
       f.inline = q('.field-inline')?.checked || false;
+      markDirty();
     }
 
     /* ────────────────── Components Panel ────────────────── */
@@ -2082,10 +2622,10 @@
       html += '<div style="display:flex;gap:8px;margin-top:8px;">'
         + '<button class="btn btn-ghost btn-xs" id="btnAddBtnRow">'
         + '<i data-lucide="plus" style="width:12px;height:12px;"></i> '
-        + (isAr ? '\u0635\u0641 \u0623\u0632\u0631\u0627\u0631' : 'Add Buttons') + '</button>'
+        + '<%= t.embeds.jsAddButtons %></button>'
         + '<button class="btn btn-ghost btn-xs" id="btnAddSelRow">'
         + '<i data-lucide="plus" style="width:12px;height:12px;"></i> '
-        + (isAr ? '\u0642\u0627\u0626\u0645\u0629' : 'Add Select') + '</button>'
+        + '<%= t.embeds.jsAddSelect %></button>'
         + '</div>';
       $panelComponents.innerHTML = html;
       lucide.createIcons();
@@ -2128,7 +2668,7 @@
           + '<i data-lucide="x" style="width:12px;height:12px;"></i></button>'
           + '</div>').join('')
         + '<button class="btn btn-ghost btn-xs btnAddBtn" data-ri="' + ri + '" style="margin-top:6px;">'
-        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + (isAr?'\u0632\u0631':'Button') + '</button>'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + '<%= t.embeds.jsButton %>' + '</button>'
         + '</div>';
     }
 
@@ -2152,7 +2692,7 @@
           + '<button class="opt-remove" data-ri="'+ri+'" data-oi="'+oi+'"><i data-lucide="x" style="width:12px;height:12px;"></i></button>'
           + '</div>').join('')
         + '<button class="btn btn-ghost btn-xs btnAddOpt" data-ri="' + ri + '" style="margin-top:6px;">'
-        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + (isAr?'\u062e\u064a\u0627\u0631':'Option') + '</button>'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + '<%= t.embeds.jsOption %>' + '</button>'
         + '</div>';
     }
 
@@ -2261,10 +2801,157 @@
       send_to_channel:   { label: 'Send to Channel',   params: [
         { key: 'channelId', label: 'Channel ID', type: 'text', placeholder: 'Channel ID' },
       ]},
+
+      // ── DM / Channel fork ────────────────────────────────────────────────
+      open_dm:           { label: '📨 Open DM Flow',   params: [
+        { key: 'confirmMessage',  label: 'Confirm message (blank = default)', type: 'text',   placeholder: '📬 Check your DMs to continue!' },
+        { key: 'failMessage',     label: 'DM-blocked message  (blank = default)', type: 'text', placeholder: '❌ Please enable DMs first.' },
+        { key: 'timeout',         label: 'Flow timeout (ms, 0 = no expiry)',  type: 'number', placeholder: '600000' },
+        { key: 'returnAction',    label: 'On complete_flow → action type',    type: 'text',   placeholder: 'add_role | edit_origin_message | send_to_origin' },
+        { key: 'returnRoleId',    label: 'On complete_flow → role',           type: 'role' },
+        { key: 'returnChannelId', label: 'On complete_flow → channel ID',     type: 'text',   placeholder: 'Channel ID (if returnAction = send_to_channel)' },
+      ]},
+      open_channel_flow: { label: '↗ Continue in Channel', params: [
+        { key: 'channelId',       label: 'Channel ID',                        type: 'text',   placeholder: 'Channel to forward the flow to' },
+        { key: 'mention',         label: 'Mention user? ("no" to disable)',   type: 'text',   placeholder: 'leave blank to mention' },
+        { key: 'timeout',         label: 'Flow timeout (ms, 0 = no expiry)',  type: 'number', placeholder: '600000' },
+        { key: 'returnAction',    label: 'On complete_flow → action type',    type: 'text',   placeholder: 'add_role | edit_origin_message | send_to_origin' },
+        { key: 'returnRoleId',    label: 'On complete_flow → role',           type: 'role' },
+      ]},
+
+      // ── Origin-aware actions (for states inside a DM / channel flow) ─────
+      complete_flow:       { label: '✅ Complete Flow',       params: [] },
+      send_to_origin:      { label: '↩ Send to Origin Channel', params: [] },
+      edit_origin_message: { label: '✏️ Edit Origin Message',   params: [] },
+
+      // ── Role management ──────────────────────────────────────────────────
+      add_role:    { label: '🔑 Add Role',    params: [
+        { key: 'roleId', label: 'Role to add',    type: 'role' },
+      ]},
+      remove_role: { label: '🗑 Remove Role', params: [
+        { key: 'roleId', label: 'Role to remove', type: 'role' },
+      ]},
+
+      // ── Advanced Role Automation (conditions + anti-abuse + smart logic) ──
+      role_toggle: { label: '🔄 Toggle Role', params: [
+        { key: 'roleId',          label: 'Role',                               type: 'role' },
+        { key: 'feedbackMessage', label: 'Feedback msg (blank = silent)',       type: 'text',   placeholder: '✅ Role updated!' },
+        { key: 'addedMessage',    label: 'When added (overrides feedback)',     type: 'text',   placeholder: '✅ Role granted!' },
+        { key: 'removedMessage',  label: 'When removed (overrides feedback)',   type: 'text',   placeholder: '❌ Role removed.' },
+        { key: 'hasRole',         label: 'Required role (must have)',           type: 'role' },
+        { key: 'missingRole',     label: 'Blocked role (must NOT have)',        type: 'role' },
+        { key: 'minLevel',        label: 'Min level required',                  type: 'number', placeholder: '5' },
+        { key: 'minXp',           label: 'Min XP required',                    type: 'number', placeholder: '500' },
+        { key: 'denyMessage',     label: 'Deny message',                        type: 'text',   placeholder: '🚫 You do not meet the requirements.' },
+        { key: 'abuse_cooldown',  label: 'Cooldown (seconds)',                  type: 'number', placeholder: '10' },
+        { key: 'abuse_maxUses',   label: 'Max uses (0 = unlimited)',            type: 'number', placeholder: '0' },
+      ]},
+      role_exclusive: { label: '🎯 Exclusive Role', params: [
+        { key: 'roleId',         label: 'Role to assign',                      type: 'role' },
+        { key: 'groupRoles',     label: 'Sibling roles',                       type: 'roles' },
+        { key: 'hasRole',        label: 'Required role',                       type: 'role' },
+        { key: 'missingRole',    label: 'Blocked role',                        type: 'role' },
+        { key: 'minLevel',       label: 'Min level required',                  type: 'number' },
+        { key: 'denyMessage',    label: 'Deny message',                        type: 'text' },
+        { key: 'abuse_cooldown', label: 'Cooldown (seconds)',                  type: 'number', placeholder: '10' },
+        { key: 'abuse_maxUses',  label: 'Max uses (0 = unlimited)',            type: 'number', placeholder: '0' },
+      ]},
+      role_temp: { label: '⏳ Temp Role', params: [
+        { key: 'roleId',         label: 'Role',                                type: 'role' },
+        { key: 'duration',       label: 'Duration (ms)',                       type: 'number', placeholder: '3600000  (= 1 hour)' },
+        { key: 'confirmMessage', label: 'Confirm msg  ([expiry] = timestamp)', type: 'text',   placeholder: '✅ Granted until [expiry]!' },
+        { key: 'hasRole',        label: 'Required role',                       type: 'role' },
+        { key: 'missingRole',    label: 'Blocked role',                        type: 'role' },
+        { key: 'minLevel',       label: 'Min level required',                  type: 'number' },
+        { key: 'denyMessage',    label: 'Deny message',                        type: 'text' },
+        { key: 'abuse_cooldown', label: 'Cooldown (seconds)',                  type: 'number', placeholder: '60' },
+        { key: 'abuse_maxUses',  label: 'Max uses (0 = unlimited)',            type: 'number', placeholder: '1' },
+      ]},
+      role_conditional: { label: '📋 Conditional Role', params: [
+        { key: 'roleId',         label: 'Role',                                type: 'role' },
+        { key: 'operator',       label: 'Operator (add / remove)',             type: 'text',   placeholder: 'add' },
+        { key: 'hasRole',        label: 'Required role',                       type: 'role' },
+        { key: 'missingRole',    label: 'Blocked role',                        type: 'role' },
+        { key: 'hasAllRoles',    label: 'Must have ALL',                       type: 'roles' },
+        { key: 'hasAnyRole',     label: 'Must have ANY',                       type: 'roles' },
+        { key: 'minLevel',       label: 'Min level',                           type: 'number' },
+        { key: 'minXp',          label: 'Min XP',                              type: 'number' },
+        { key: 'denyMessage',    label: 'Deny message',                        type: 'text' },
+        { key: 'abuse_cooldown', label: 'Cooldown (seconds)',                  type: 'number' },
+        { key: 'abuse_maxUses',  label: 'Max uses',                            type: 'number' },
+      ]},
+      role_check_branch: { label: '🔀 Role Branch (Condition Gate)', params: [
+        { key: 'thenTarget',     label: 'State ID if conditions PASS',         type: 'text',   placeholder: 'state_id' },
+        { key: 'elseTarget',     label: 'State ID if conditions FAIL',         type: 'text',   placeholder: 'state_id (optional)' },
+        { key: 'hasRole',        label: 'Must HAVE role',                      type: 'role' },
+        { key: 'missingRole',    label: 'Must NOT have role',                  type: 'role' },
+        { key: 'hasAllRoles',    label: 'Must have ALL',                       type: 'roles' },
+        { key: 'hasAnyRole',     label: 'Must have ANY',                       type: 'roles' },
+        { key: 'minLevel',       label: 'Min total level',                     type: 'number' },
+        { key: 'minTextLevel',   label: 'Min text level',                      type: 'number' },
+        { key: 'minVoiceLevel',  label: 'Min voice level',                     type: 'number' },
+        { key: 'minXp',          label: 'Min XP',                              type: 'number' },
+        { key: 'minMessages',    label: 'Min messages sent',                   type: 'number' },
+      ]},
+      grant_xp: { label: '⭐ Grant XP', params: [
+        { key: 'xp',    label: 'XP amount',            type: 'number', placeholder: '50' },
+        { key: 'track', label: 'Track (text / voice)',  type: 'text',   placeholder: 'text' },
+      ]},
+
+      // ── Dynamic pipeline actions ─────────────────────────────────────────
+      role_sequence: { label: '⛓ Role Sequence', params: [
+        { key: 'actions',         label: 'Sub-actions (JSON array)',            type: 'textarea', placeholder: '[{"type":"role_temp","roleId":"...","duration":3600000},{"type":"grant_xp","xp":50}]' },
+        { key: 'feedbackMessage', label: 'Feedback message after all steps',    type: 'text',     placeholder: '✅ Done!' },
+      ]},
+      fire_webhook: { label: '🌐 Fire Webhook', params: [
+        { key: 'url',            label: 'Webhook URL (https://...)',            type: 'text',     placeholder: 'https://your-server.com/webhook' },
+        { key: 'payload',        label: 'JSON Payload (supports {{vars}})',     type: 'textarea', placeholder: '{"userId":"{{member.id}}","guild":"{{guild.name}}","level":{{level}}}' },
+        { key: 'successMessage', label: 'Success message (blank = silent)',     type: 'text',     placeholder: '✅ Webhook sent!' },
+        { key: 'failMessage',    label: 'Fail message (blank = silent)',        type: 'text',     placeholder: '❌ Webhook failed.' },
+      ]},
+
+      // ── Direct DM (no flow tracking) ─────────────────────────────────────
+      send_dm_message: { label: '💬 Send DM Message', params: [] },
+
       delay:             { label: 'Delay',              params: [
         { key: 'ms', label: 'Milliseconds', type: 'number', placeholder: 'e.g. 2000' },
       ]},
     };
+
+    /* Lucide icon name for each action type */
+    const ACTION_ICONS = {
+      update_content:     'refresh-cw',      replace_embeds:      'image',
+      append_embeds:      'layers',           update_components:   'layout-dashboard',
+      disable_component:  'toggle-left',      enable_component:    'toggle-right',
+      hide_component:     'eye-off',          send_ephemeral:      'message-circle',
+      send_to_channel:    'send',             open_dm:             'mail',
+      open_channel_flow:  'corner-right-up',  complete_flow:       'check-circle',
+      send_to_origin:     'corner-left-down', edit_origin_message: 'pencil',
+      add_role:           'user-plus',        remove_role:         'user-minus',
+      role_toggle:        'repeat-2',         role_exclusive:      'target',
+      role_temp:          'clock',            role_conditional:    'list-checks',
+      role_check_branch:  'git-branch',       grant_xp:            'star',
+      role_sequence:      'link-2',           fire_webhook:        'globe',
+      send_dm_message:    'message-square',   delay:               'timer',
+    };
+    // Strip leading emoji / special chars from a label for clean display
+    function _stripEmoji(s) { return s.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2B00}-\u{2BFF}✅↗↩]+\s*/u, '').replace(/^[^\w\s]+\s*/, '').trim() || s; }
+    // Shared role icon helper: unicode emoji → span, custom icon → img, else → colored dot
+    function _ri(r) {
+      if (!r) return '<span class="tr-role-dot" style="background:#5b5ea6;"></span>';
+      if (r.unicodeEmoji) return '<span style="font-size:12px;line-height:1;flex-shrink:0;">' + esc(r.unicodeEmoji) + '</span>';
+      if (r.icon) return '<img src="' + esc(r.icon) + '" style="width:13px;height:13px;border-radius:3px;object-fit:cover;flex-shrink:0;" loading="lazy">';
+      const c = (r.color && r.color !== '#000000') ? r.color : '#5b5ea6';
+      return '<span class="tr-role-dot" style="background:' + esc(c) + ';"></span>';
+    }
+    // Register document-level click once to close open pickers
+    if (!window.__trPickerListenerAdded) {
+      window.__trPickerListenerAdded = true;
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.tr-type-picker.open').forEach(p => p.classList.remove('open'));
+        document.querySelectorAll('.tr-role-picker-wrap.open').forEach(p => p.classList.remove('open'));
+      });
+    }
 
     /* ────────────────── Smart Trigger Definitions ────────────────── */
     const TRIGGER_TYPE_DEFS = {
@@ -2275,10 +2962,10 @@
       member_join:  { label: 'Member Join',       icon: 'user-plus',      params: [] },
       member_leave: { label: 'Member Leave',      icon: 'user-minus',     params: [] },
       role_add:     { label: 'Role Added',        icon: 'shield-check',   params: [
-        { key: 'roleId', label: 'Role ID', type: 'text', placeholder: '1234567890' },
+        { key: 'roleId', label: 'Role', type: 'role' },
       ]},
       role_remove:  { label: 'Role Removed',      icon: 'shield-off',     params: [
-        { key: 'roleId', label: 'Role ID', type: 'text', placeholder: '1234567890' },
+        { key: 'roleId', label: 'Role', type: 'role' },
       ]},
       message:      { label: 'Message Keyword',   icon: 'message-circle', params: [
         { key: 'pattern',  label: 'Keyword / Regex',         type: 'text',    placeholder: 'buy' },
@@ -2318,8 +3005,11 @@
       }
       const on          = s.on;
       const otherStates = Object.keys(machine.states).filter(id => id !== selectedStateId);
-      const stateOpts   = otherStates.map(id =>
-        '<option value="' + esc(id) + '">' + esc(machine.states[id].label || id) + '</option>').join('');
+      // Include current state as a "(self)" self-loop option at the top of the list
+      const selfLabel   = esc((machine.states[selectedStateId]?.label || selectedStateId) + ' (self)');
+      const stateOpts   = '<option value="' + esc(selectedStateId) + '">' + selfLabel + '</option>'
+        + otherStates.map(id =>
+          '<option value="' + esc(id) + '">' + esc(machine.states[id].label || id) + '</option>').join('');
       const triggers  = getStateTriggers(selectedStateId);
       const usedIds   = Object.keys(on);
       const available = triggers.filter(t => !usedIds.includes(t.id));
@@ -2329,26 +3019,86 @@
         const def = ACTION_DEFS[step.type];
         if (!def || !def.params.length) return '';
         return '<div class="tr-step-params">' + def.params.map(p => {
-          const val = (step[p.key] !== undefined && step[p.key] !== null) ? step[p.key] : '';
+          const val   = (step[p.key] !== undefined && step[p.key] !== null) ? step[p.key] : '';
+          const attrD = ' data-tid="' + esc(tid) + '" data-idx="' + idx + '" data-key="' + esc(p.key) + '"';
+          let inputHtml;
+          if (p.type === 'role' || p.type === 'roles') {
+            const isMulti  = p.type === 'roles';
+            const selIds   = val ? String(val).split(',').map(v => v.trim()).filter(Boolean) : [];
+            const optsHtml = guildRoles.map(r => {
+              const act = selIds.includes(r.id) ? ' active' : '';
+              return '<div class="tr-role-opt' + act + '" data-roleid="' + esc(r.id) + '">'
+                + _ri(r)
+                + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(r.name) + '</span>'
+                + (act ? '<i data-lucide="check" style="width:10px;height:10px;flex-shrink:0;opacity:.8;"></i>' : '')
+                + '</div>';
+            }).join('');
+            let pillInner;
+            if (isMulti) {
+              const tagsHtml = selIds.map(id => {
+                const r = guildRoles.find(x => x.id === id);
+                return '<span class="tr-role-tag" data-roleid="' + esc(id) + '">'
+                  + _ri(r)
+                  + esc(r ? r.name : id)
+                  + '<span class="tr-role-tag-x" data-roleid="' + esc(id) + '">\xd7</span></span>';
+              }).join('');
+              pillInner = '<div class="tr-role-tags">' + (tagsHtml || '<span style="opacity:.4;font-size:.71rem;">Select roles\u2026</span>') + '</div>'
+                + '<i data-lucide="chevron-down" style="width:11px;height:11px;margin-left:4px;flex-shrink:0;opacity:.4;"></i>';
+            } else {
+              const sr = guildRoles.find(r => r.id === String(val));
+              pillInner = (sr
+                ? _ri(sr) + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">' + esc(sr.name) + '</span>'
+                : '<i data-lucide="shield" style="width:12px;height:12px;opacity:.35;flex-shrink:0;"></i><span style="flex:1;opacity:.4;font-size:.71rem;">Select role\u2026</span>')
+                + '<i data-lucide="chevron-down" style="width:11px;height:11px;flex-shrink:0;opacity:.4;"></i>';
+            }
+            inputHtml =
+              '<div class="tr-role-picker-wrap' + (isMulti ? ' multi' : '') + '" data-ptid="' + esc(tid) + '" data-pidx="' + idx + '" data-pkey="' + esc(p.key) + '">'
+              + '<input type="hidden" class="tr-param-input"' + attrD + ' value="' + esc(String(val)) + '">'
+              + '<div class="tr-role-pill">' + pillInner + '</div>'
+              + '<div class="tr-role-drop">'
+              + '<input class="tr-role-search" type="text" placeholder="Search roles\u2026">'
+              + '<div class="tr-role-list">' + (guildRoles.length ? optsHtml : '<div style="padding:6px 8px;font-size:.72rem;opacity:.5;">No roles</div>') + '</div>'
+              + '</div>'
+              + '</div>';
+          } else if (p.type === 'textarea') {
+            inputHtml = '<textarea class="form-input tr-param-input"'
+              + ' placeholder="' + esc(p.placeholder || '') + '"'
+              + attrD
+              + ' style="min-height:70px;font-size:.72rem;width:100%;resize:vertical;">' + esc(String(val)) + '</textarea>';
+          } else {
+            inputHtml = '<input class="form-input tr-param-input" type="' + esc(p.type || 'text') + '"'
+              + ' placeholder="' + esc(p.placeholder || '') + '"'
+              + ' value="' + esc(String(val)) + '"'
+              + attrD + '>';
+          }
           return '<div class="tr-step-param">'
             + '<label>' + esc(p.label) + '</label>'
-            + '<input class="form-input tr-param-input" type="' + esc(p.type || 'text') + '"'
-            + ' placeholder="' + esc(p.placeholder || '') + '"'
-            + ' value="' + esc(String(val)) + '"'
-            + ' data-tid="' + esc(tid) + '" data-idx="' + idx + '" data-key="' + esc(p.key) + '">'
+            + inputHtml
             + '</div>';
         }).join('') + '</div>';
       }
 
       // Render one pipeline step card
       function stepHTML(tid, step, idx) {
-        const typeOpts = Object.entries(ACTION_DEFS).map(([k, v]) =>
-          '<option value="' + esc(k) + '"' + (step.type === k ? ' selected' : '') + '>' + esc(v.label) + '</option>'
+        const curDef  = ACTION_DEFS[step.type] || { label: step.type, params: [] };
+        const curIcon = ACTION_ICONS[step.type] || 'zap';
+        const curLbl  = _stripEmoji(curDef.label);
+        const optItems = Object.entries(ACTION_DEFS).map(([k, v]) =>
+          '<div class="tr-type-opt' + (step.type === k ? ' active' : '') + '" data-value="' + esc(k) + '">'
+          + '<i data-lucide="' + esc(ACTION_ICONS[k] || 'zap') + '" style="width:13px;height:13px;flex-shrink:0;"></i>'
+          + '<span>' + esc(_stripEmoji(v.label)) + '</span>'
+          + '</div>'
         ).join('');
         return '<div class="tr-step" data-idx="' + idx + '">'
           + '<div class="tr-step-hd">'
-          + '<select class="form-select tr-step-type" style="flex:1;font-size:.74rem;" data-tid="' + esc(tid) + '" data-idx="' + idx + '">'
-          + typeOpts + '</select>'
+          + '<div class="tr-type-picker" data-tid="' + esc(tid) + '" data-idx="' + idx + '">'
+          + '<div class="tr-type-selected">'
+          + '<i data-lucide="' + esc(curIcon) + '" style="width:13px;height:13px;flex-shrink:0;"></i>'
+          + '<span class="tr-type-lbl">' + esc(curLbl) + '</span>'
+          + '<i data-lucide="chevron-down" style="width:11px;height:11px;margin-left:auto;flex-shrink:0;opacity:.5;"></i>'
+          + '</div>'
+          + '<div class="tr-type-menu">' + optItems + '</div>'
+          + '</div>'
           + '<button class="state-act-btn del tr-step-del" data-tid="' + esc(tid) + '" data-idx="' + idx + '" title="Remove step">'
           + '<i data-lucide="x" style="width:10px;height:10px;"></i></button>'
           + '</div>'
@@ -2358,8 +3108,7 @@
 
       let html = '';
       if (!usedIds.length)
-        html += '<p style="font-size:.78rem;color:var(--muted);margin-bottom:10px;">'
-             + (isAr ? '\u0644\u0627 \u062a\u062d\u0648\u0644\u0627\u062a \u0628\u0639\u062f' : 'No transitions yet') + '</p>';
+        html += '<p style="font-size:.78rem;color:var(--muted);margin-bottom:10px;"><%= t.embeds.jsNoTransitions %></p>';
 
       html += usedIds.map(tid => {
         const tr         = on[tid];
@@ -2393,10 +3142,10 @@
           + '</div>';
       } else if (!triggers.length) {
         html += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,.03);border-radius:9px;font-size:.76rem;color:var(--muted);">'
-          + (isAr ? '\u0623\u0636\u0641 \u0623\u0632\u0631\u0627\u0631\u0627\u064b \u0641\u064a \u062a\u0628\u0648\u064a\u0628 \u0627\u0644\u0645\u0643\u0648\u0646\u0627\u062a \u0623\u0648\u0644\u0627\u064b' : 'Add buttons or select options in the Components tab first.') + '</div>';
+          + '<%= t.embeds.jsAddButtonsFirst %></div>';
       } else {
         html += '<p style="font-size:.74rem;color:var(--muted);margin-top:8px;">'
-          + (isAr ? '\u062c\u0645\u064a\u0639 \u0627\u0644\u0645\u062d\u0641\u0632\u0627\u062a \u0645\u0643\u0648\u0646\u0629 \u062a\u062d\u0648\u0644\u0627\u062a' : 'All triggers already have transitions.') + '</p>';
+          + '<%= t.embeds.jsAllTriggersHaveTransitions %></p>';
       }
 
       $panelTransitions.innerHTML = html;
@@ -2416,12 +3165,23 @@
         updateArrows(); renderCanvas();
       }));
 
-      // Step type change → reset to bare { type } then re-render params
-      $panelTransitions.querySelectorAll('.tr-step-type').forEach(sel => sel.addEventListener('change', () => {
+      // Custom type picker — toggle open on header click
+      $panelTransitions.querySelectorAll('.tr-type-selected').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const picker = btn.closest('.tr-type-picker');
+        const isOpen = picker.classList.contains('open');
+        $panelTransitions.querySelectorAll('.tr-type-picker.open').forEach(p => p.classList.remove('open'));
+        if (!isOpen) { picker.classList.add('open'); lucide.createIcons(); }
+      }));
+      // Custom type picker — option click → reset action type and re-render
+      $panelTransitions.querySelectorAll('.tr-type-opt').forEach(opt => opt.addEventListener('click', e => {
+        e.stopPropagation();
+        const picker = opt.closest('.tr-type-picker');
+        const { tid, idx } = picker.dataset;
         const ss = getSelectedState(); if (!ss?.on) return;
-        const acts = ss.on[sel.dataset.tid]?.actions;
-        if (!acts?.[+sel.dataset.idx]) return;
-        acts[+sel.dataset.idx] = { type: sel.value };
+        const acts = ss.on[tid]?.actions;
+        if (!acts?.[+idx]) return;
+        acts[+idx] = { type: opt.dataset.value };
         renderTransitionsPanel();
       }));
 
@@ -2429,10 +3189,76 @@
       $panelTransitions.querySelectorAll('.tr-param-input').forEach(inp => inp.addEventListener('input', () => {
         const ss = getSelectedState(); if (!ss?.on) return;
         const { tid, idx, key } = inp.dataset;
+        if (!tid || idx === undefined || !key) return;
         const acts = ss.on[tid]?.actions;
         if (!acts?.[+idx]) return;
         acts[+idx][key] = inp.type === 'number' ? (parseInt(inp.value) || 0) : inp.value;
       }));
+
+      // Role picker — open / close
+      $panelTransitions.querySelectorAll('.tr-role-pill').forEach(pill => pill.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap   = pill.closest('.tr-role-picker-wrap');
+        const isOpen = wrap.classList.contains('open');
+        $panelTransitions.querySelectorAll('.tr-role-picker-wrap.open').forEach(w => w.classList.remove('open'));
+        if (!isOpen) {
+          wrap.classList.add('open'); lucide.createIcons();
+          const s = wrap.querySelector('.tr-role-search');
+          if (s) { s.value = ''; s.focus(); wrap.querySelectorAll('.tr-role-opt').forEach(o => o.style.display = ''); }
+        }
+      }));
+      // Role picker — search filter
+      $panelTransitions.querySelectorAll('.tr-role-search').forEach(inp => {
+        inp.addEventListener('click',   e => e.stopPropagation());
+        inp.addEventListener('keydown', e => e.stopPropagation());
+        inp.addEventListener('input',   e => {
+          e.stopPropagation();
+          const q = inp.value.toLowerCase();
+          inp.closest('.tr-role-drop').querySelectorAll('.tr-role-opt').forEach(opt => {
+            const name = opt.querySelector('span')?.textContent || '';
+            opt.style.display = name.toLowerCase().includes(q) ? '' : 'none';
+          });
+        });
+      });
+      // Role picker — option click (single: close; multi: stay open & toggle)
+      $panelTransitions.querySelectorAll('.tr-role-opt').forEach(opt => opt.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap    = opt.closest('.tr-role-picker-wrap');
+        const isMulti = wrap.classList.contains('multi');
+        const hidden  = wrap.querySelector('.tr-param-input');
+        const rid     = opt.dataset.roleid;
+        if (isMulti) {
+          const cur = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+          const i   = cur.indexOf(rid);
+          if (i === -1) cur.push(rid); else cur.splice(i, 1);
+          hidden.value = cur.join(',');
+          _rolePickerReopen = { ptid: wrap.dataset.ptid, pidx: wrap.dataset.pidx, pkey: wrap.dataset.pkey };
+        } else {
+          hidden.value = rid;
+        }
+        hidden.dispatchEvent(new Event('input'));
+        renderTransitionsPanel();
+      }));
+      // Multi-role — remove tag via × button
+      $panelTransitions.querySelectorAll('.tr-role-tag-x').forEach(x => x.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap   = x.closest('.tr-role-picker-wrap');
+        const hidden = wrap.querySelector('.tr-param-input');
+        const rid    = x.dataset.roleid;
+        const cur    = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+        const i      = cur.indexOf(rid);
+        if (i !== -1) cur.splice(i, 1);
+        hidden.value = cur.join(',');
+        hidden.dispatchEvent(new Event('input'));
+        renderTransitionsPanel();
+      }));
+      // Re-open multi-role picker after re-render (keeps dropdown open while selecting multiple roles)
+      if (_rolePickerReopen) {
+        const rr = _rolePickerReopen; _rolePickerReopen = null;
+        const rp = [...$panelTransitions.querySelectorAll('.tr-role-picker-wrap')]
+          .find(w => w.dataset.ptid === rr.ptid && w.dataset.pidx === rr.pidx && w.dataset.pkey === rr.pkey);
+        if (rp) { rp.classList.add('open'); lucide.createIcons(); const s = rp.querySelector('.tr-role-search'); if (s) s.focus(); }
+      }
 
       // Remove step
       $panelTransitions.querySelectorAll('.tr-step-del').forEach(btn => btn.addEventListener('click', () => {
@@ -2465,7 +3291,7 @@
         if (!ss.on) ss.on = {};
         const trigSel = document.getElementById('trNewTrigger');
         if (!trigSel?.value) return toast('Select a trigger component first', 'error');
-        ss.on[trigSel.value] = { target: otherStates[0] || '', actions: [{ type: 'update_content' }] };
+        ss.on[trigSel.value] = { target: otherStates[0] || selectedStateId, actions: [{ type: 'update_content' }] };
         renderTransitionsPanel(); updateArrows(); renderCanvas();
       });
     }
@@ -2486,16 +3312,14 @@
               + '<span class="perm-role-dot" style="background:' + esc(col) + ';"></span>'
               + esc(r.name) + '</label>';
           }).join('')
-        : '<p class="perm-no-roles">' + (isAr ? 'لا توجد أدوار في هذا السيرفر.' : 'No roles found in this server.') + '</p>';
+        : '<p class="perm-no-roles"><%= t.embeds.jsNoRoles %></p>';
 
       $panelPermissions.innerHTML =
         '<div class="perm-section">'
         + '<div class="perm-section-hd"><i data-lucide="shield" style="width:13px;height:13px;"></i>&nbsp;'
-        + (isAr ? 'الأدوار المسموح بها' : 'Allowed Roles') + '</div>'
+        + '<%= t.embeds.jsAllowedRoles %></div>'
         + '<p class="perm-desc">'
-        + (isAr
-           ? 'فقط الأعضاء الذين لديهم هذه الأدوار يمكنهم التفاعل مع هذه الحالة. اتركه فارغاً للسماح للجميع.'
-           : 'Only members with these roles can interact with this state. Leave empty to allow everyone.')
+        + '<%= t.embeds.jsPermDesc %>'
         + '</p>'
         + '<div class="perm-roles-grid">' + rolesHtml + '</div>'
         + (activeCnt
@@ -2506,28 +3330,20 @@
 
         + '<div class="perm-section">'
         + '<div class="perm-section-hd"><i data-lucide="timer" style="width:13px;height:13px;"></i>&nbsp;Cooldown</div>'
-        + '<p class="perm-desc">'
-        + (isAr
-           ? 'عدد الثواني التي ينتظرها المستخدم قبل التفاعل مجدداً. 0 = بلا حد.'
-           : 'Seconds a user must wait before interacting again. 0 = no cooldown.')
-        + '</p>'
+        + '<p class="perm-desc"><%= t.embeds.jsCooldownDesc %></p>'
         + '<div style="display:flex;align-items:center;gap:8px;">'
         + '<input type="number" class="form-input" id="permCooldown" min="0" max="86400" value="'
         + (perms.cooldown || 0) + '" style="width:88px;">'
-        + '<span style="font-size:.76rem;color:var(--muted);">' + (isAr ? 'ثانية' : 'seconds') + '</span>'
+        + '<span style="font-size:.76rem;color:var(--muted);"><%= t.embeds.jsSeconds %></span>'
         + '</div>'
         + '</div>'
 
         + '<div class="perm-section">'
         + '<div class="perm-section-hd"><i data-lucide="message-square-x" style="width:13px;height:13px;"></i>&nbsp;'
-        + (isAr ? 'رسالة الرفض' : 'Deny Message') + '</div>'
+        + '<%= t.embeds.jsDenyMessage %></div>'
         + '<input class="form-input" id="permDenyMsg" value="' + esc(perms.denyMessage || '')
-        + '" placeholder="' + (isAr ? 'ليس لديك صلاحية.' : "You don't have permission to do that.") + '">'
-        + '<p style="font-size:.71rem;color:var(--muted);margin-top:4px;">'
-        + (isAr
-           ? 'تُرسل بشكل خاص (ephemeral) عند رفض الصلاحية أو تجاوز الـ cooldown.'
-           : 'Sent privately (ephemeral) when role check fails or cooldown is active.')
-        + '</p>'
+        + '" placeholder="<%= t.embeds.jsDenyPlaceholder %>">'
+        + '<p style="font-size:.71rem;color:var(--muted);margin-top:4px;"><%= t.embeds.jsDenyMessageDesc %></p>'
         + '</div>';
 
       lucide.createIcons();
@@ -2597,6 +3413,43 @@
           } else if (p.type === 'channel') {
             inp = '<select class="form-select trg-ch-inp" data-ti="' + i + '" data-key="' + esc(p.key) + '" style="font-size:.72rem;">'
               + channelOptHtml + '</select>';
+          } else if (p.type === 'role' || p.type === 'roles') {
+            const isMulti  = p.type === 'roles';
+            const selIds   = val ? String(val).split(',').map(v => v.trim()).filter(Boolean) : [];
+            const optsHtml = guildRoles.map(r => {
+              const act = selIds.includes(r.id) ? ' active' : '';
+              return '<div class="tr-role-opt' + act + '" data-roleid="' + esc(r.id) + '">'
+                + _ri(r)
+                + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(r.name) + '</span>'
+                + (act ? '<i data-lucide="check" style="width:10px;height:10px;flex-shrink:0;opacity:.8;"></i>' : '')
+                + '</div>';
+            }).join('');
+            let pillInner;
+            if (isMulti) {
+              const tagsHtml = selIds.map(id => {
+                const r = guildRoles.find(x => x.id === id);
+                return '<span class="tr-role-tag" data-roleid="' + esc(id) + '">'
+                  + _ri(r)
+                  + esc(r ? r.name : id)
+                  + '<span class="tr-role-tag-x" data-roleid="' + esc(id) + '">\xd7</span></span>';
+              }).join('');
+              pillInner = '<div class="tr-role-tags">' + (tagsHtml || '<span style="opacity:.4;font-size:.71rem;">Select roles\u2026</span>') + '</div>'
+                + '<i data-lucide="chevron-down" style="width:11px;height:11px;margin-left:4px;flex-shrink:0;opacity:.4;"></i>';
+            } else {
+              const sr = guildRoles.find(r => r.id === String(val));
+              pillInner = (sr
+                ? _ri(sr) + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">' + esc(sr.name) + '</span>'
+                : '<i data-lucide="shield" style="width:12px;height:12px;opacity:.35;flex-shrink:0;"></i><span style="flex:1;opacity:.4;font-size:.71rem;">Select role\u2026</span>')
+                + '<i data-lucide="chevron-down" style="width:11px;height:11px;flex-shrink:0;opacity:.4;"></i>';
+            }
+            inp = '<div class="tr-role-picker-wrap trg-role-wrap' + (isMulti ? ' multi' : '') + '" data-pti="' + i + '" data-pkey="' + esc(p.key) + '">'
+              + '<input type="hidden" class="trg-role-inp" data-ti="' + i + '" data-key="' + esc(p.key) + '" value="' + esc(String(val)) + '">'
+              + '<div class="tr-role-pill">' + pillInner + '</div>'
+              + '<div class="tr-role-drop">'
+              + '<input class="tr-role-search" type="text" placeholder="Search roles\u2026">'
+              + '<div class="tr-role-list">' + (guildRoles.length ? optsHtml : '<div style="padding:6px 8px;font-size:.72rem;opacity:.5;">No roles</div>') + '</div>'
+              + '</div>'
+              + '</div>';
           } else {
             inp = '<input class="form-input trg-txt-inp" data-ti="' + i + '" data-key="' + esc(p.key) + '"'
               + ' type="text" value="' + esc(String(val)) + '" placeholder="' + esc(p.placeholder || '') + '"'
@@ -2643,6 +3496,67 @@
       document.querySelectorAll('.trg-txt-inp').forEach(el => el.addEventListener('input', () => { machine.triggers[+el.dataset.ti][el.dataset.key] = el.value; }));
       document.querySelectorAll('.trg-ch-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti][el.dataset.key] = el.value; }));
       document.querySelectorAll('.trg-cb-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti][el.dataset.key] = el.checked; }));
+      // Role picker events (triggers modal)
+      document.querySelectorAll('.trg-role-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti][el.dataset.key] = el.value; }));
+      $body.querySelectorAll('.trg-role-wrap .tr-role-pill').forEach(pill => pill.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap   = pill.closest('.trg-role-wrap');
+        const isOpen = wrap.classList.contains('open');
+        $body.querySelectorAll('.trg-role-wrap.open').forEach(w => w.classList.remove('open'));
+        if (!isOpen) {
+          wrap.classList.add('open'); lucide.createIcons();
+          const s = wrap.querySelector('.tr-role-search');
+          if (s) { s.value = ''; s.focus(); wrap.querySelectorAll('.tr-role-opt').forEach(o => o.style.display = ''); }
+        }
+      }));
+      $body.querySelectorAll('.trg-role-wrap .tr-role-search').forEach(inp => {
+        inp.addEventListener('click',   e => e.stopPropagation());
+        inp.addEventListener('keydown', e => e.stopPropagation());
+        inp.addEventListener('input',   e => {
+          e.stopPropagation();
+          const q = inp.value.toLowerCase();
+          inp.closest('.tr-role-drop').querySelectorAll('.tr-role-opt').forEach(opt => {
+            const name = opt.querySelector('span')?.textContent || '';
+            opt.style.display = name.toLowerCase().includes(q) ? '' : 'none';
+          });
+        });
+      });
+      $body.querySelectorAll('.trg-role-wrap .tr-role-opt').forEach(opt => opt.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap    = opt.closest('.trg-role-wrap');
+        const isMulti = wrap.classList.contains('multi');
+        const hidden  = wrap.querySelector('.trg-role-inp');
+        const rid     = opt.dataset.roleid;
+        if (isMulti) {
+          const cur = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+          const ii  = cur.indexOf(rid);
+          if (ii === -1) cur.push(rid); else cur.splice(ii, 1);
+          hidden.value = cur.join(',');
+          _trgRolePickerReopen = { pti: wrap.dataset.pti, pkey: wrap.dataset.pkey };
+        } else {
+          hidden.value = rid;
+        }
+        hidden.dispatchEvent(new Event('change'));
+        renderTriggersModal();
+      }));
+      $body.querySelectorAll('.trg-role-wrap .tr-role-tag-x').forEach(x => x.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap   = x.closest('.trg-role-wrap');
+        const hidden = wrap.querySelector('.trg-role-inp');
+        const rid    = x.dataset.roleid;
+        const cur    = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+        const ii     = cur.indexOf(rid);
+        if (ii !== -1) cur.splice(ii, 1);
+        hidden.value = cur.join(',');
+        hidden.dispatchEvent(new Event('change'));
+        renderTriggersModal();
+      }));
+      if (_trgRolePickerReopen) {
+        const rr = _trgRolePickerReopen; _trgRolePickerReopen = null;
+        const rp = [...$body.querySelectorAll('.trg-role-wrap')]
+          .find(w => w.dataset.pti === rr.pti && w.dataset.pkey === rr.pkey);
+        if (rp) { rp.classList.add('open'); lucide.createIcons(); const s = rp.querySelector('.tr-role-search'); if (s) s.focus(); }
+      }
       document.querySelectorAll('.trg-state-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti].targetState = el.value; }));
       document.querySelectorAll('.trg-act-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti].actions = [el.value]; }));
       document.querySelectorAll('.trg-del-btn').forEach(btn => btn.addEventListener('click', () => {
@@ -2726,11 +3640,24 @@
     $inspColor.addEventListener('input', () => {
       const s = getSelectedState(); if (!s) return;
       s.color = $inspColor.value;
+      document.querySelectorAll('.color-swatch').forEach(el => el.classList.toggle('active', el.dataset.color === s.color));
       const c = document.getElementById('sc_' + selectedStateId);
       if (c) { const dot = c.querySelector('.flow-state-dot'); if (dot) dot.style.background = s.color; }
     });
+    // Color theme swatches
+    document.getElementById('colorSwatches').addEventListener('click', e => {
+      const sw = e.target.closest('.color-swatch'); if (!sw) return;
+      const s = getSelectedState(); if (!s) return;
+      s.color = sw.dataset.color;
+      $inspColor.value = s.color;
+      document.querySelectorAll('.color-swatch').forEach(el => el.classList.toggle('active', el.dataset.color === s.color));
+      const c = document.getElementById('sc_' + selectedStateId);
+      if (c) { const dot = c.querySelector('.flow-state-dot'); if (dot) dot.style.background = s.color; }
+    });
+    document.getElementById('btnDelMulti').addEventListener('click', deleteSelectedState);
     $inspSetInit.addEventListener('click', () => { if (selectedStateId) setInitialState(selectedStateId); });
     $inspDelState.addEventListener('click', () => deleteSelectedState());
+    document.getElementById('btnCopyState').addEventListener('click', copySelectedState);
     document.querySelectorAll('.insp-tab').forEach(tab => tab.addEventListener('click', function () {
       activeTab = this.dataset.tab;
       renderActiveTab();
@@ -2741,13 +3668,28 @@
     document.getElementById('previewToggleBar').addEventListener('click', () => {
       document.getElementById('previewWrap').classList.toggle('collapsed');
     });
-
-    /* ════════════════════════════════════════
-       TOOLBAR EVENTS
-       ════════════════════════════════════════ */
     document.getElementById('btnAddState').addEventListener('click', addState);
     document.getElementById('btnAddStateEmpty').addEventListener('click', addState);
+    document.getElementById('btnAddGroup').addEventListener('click', addGroup);
     document.getElementById('btnBack').addEventListener('click', closeEditor);
+    document.getElementById('btnUndo').addEventListener('click', undoAction);
+    document.getElementById('btnRedo').addEventListener('click', redoAction);
+    document.getElementById('btnDelGroup').addEventListener('click', deleteSelectedGroup);
+    document.getElementById('inspGroupLabel').addEventListener('input', syncGroupFromDOM);
+    document.getElementById('inspGroupColor').addEventListener('input', syncGroupFromDOM);
+    _initCanvasDelegation();
+    window.addEventListener('beforeunload', e => { if (_isDirty) { e.preventDefault(); e.returnValue = ''; } });
+    document.addEventListener('keydown', e => {
+      if ($builderView.style.display === 'none') return;
+      if ((e.key === 'Delete' || e.key === 'Backspace') && (_multiSel.size > 1 || selectedStateId) && !e.target.matches('input,textarea,select,[contenteditable]')) {
+        e.preventDefault(); deleteSelectedState(); return;
+      }
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === 'z' && !e.shiftKey)                          { e.preventDefault(); undoAction(); }
+      else if (e.key === 'y' || (e.key === 'z' && e.shiftKey))  { e.preventDefault(); redoAction(); }
+      else if (e.key === 'c' && selectedStateId)                 { e.preventDefault(); copySelectedState(); }
+      else if (e.key === 'v')                                    { e.preventDefault(); pasteState(); }
+    });
     document.getElementById('btnNewMessage').addEventListener('click', () => openEditor(null));
     $epTheme.addEventListener('change',   () => { epTheme   = $epTheme.checked; });
     $multiUser.addEventListener('change', () => { multiUser = $multiUser.checked; });
@@ -2780,13 +3722,13 @@
     });
     document.getElementById('btnSaveTriggers').addEventListener('click', async () => {
       if (!currentDoc) {
-        toast(isAr ? '\u0627\u062d\u0641\u0638 \u0627\u0644\u062a\u062f\u0641\u0642 \u0623\u0648\u0644\u0627\u064b \u0639\u0628\u0631 \u0632\u0631 Save & Send' : 'Save the flow first via Save & Send', 'error');
+        toast('<%= t.embeds.jsSaveFirst %>', 'error');
         return;
       }
       const btn = document.getElementById('btnSaveTriggers');
       btn.disabled = true;
       const prev = btn.innerHTML;
-      btn.innerHTML = '<i data-lucide="loader" style="width:13px;height:13px;"></i> ' + (isAr ? '\u062c\u0627\u0631\u064a...' : 'Saving...');
+      btn.innerHTML = '<i data-lucide="loader" style="width:13px;height:13px;"></i> <%= t.embeds.jsSaving %>';
       try {
         const result = await api('POST', '/save', {
           _id:       currentDoc._id,
@@ -2795,7 +3737,7 @@
           epTheme,
           machine:   Object.assign({}, machine, { multiUser: multiUser || undefined }),
         });
-        toast(isAr ? '\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u062a\u0631\u064a\u062c\u0631\u0627\u062a!' : 'Triggers saved!', 'success');
+        toast('<%= t.embeds.jsTriggersSaved %>', 'success');
         // Sync the local machine triggers so inspector stays up-to-date
         if (result.data) {
           currentDoc = result.data;
@@ -2819,17 +3761,19 @@
     const $modeNew       = document.getElementById('modeNew');
 
     document.getElementById('btnSave').addEventListener('click', () => {
+      const _valIssues = validateFlow();
+      if (_valIssues.length && !confirm('<%= t.embeds.jsWarnBefore %>\n' + _valIssues.map(x => '• ' + x).join('\n') + '\n\n<%= t.embeds.jsContinueAnyway %>')) return;
       const isEdit = !!(currentDoc?.messageId);
       // Update modal title and description based on context
       document.getElementById('saveModalTitle').textContent = currentDoc
-        ? (isAr ? 'حفظ التغييرات' : 'Save Changes')
-        : (isAr ? 'رسالة جديدة' : 'New Message');
+        ? '<%= t.embeds.jsSaveChanges %>'
+        : '<%= t.embeds.jsNewMessage %>';
       document.getElementById('saveModalDesc').textContent = currentDoc
-        ? (isAr ? 'تحديث اسم الرسالة والقناة وخيارات الإرسال.' : 'Update the message name, channel, and send options.')
-        : (isAr ? 'اختر اسماً للرسالة والقناة التي ستُرسل فيها.' : 'Choose a name for this message and the channel to send it to.');
+        ? '<%= t.embeds.jsUpdateDesc %>'
+        : '<%= t.embeds.saveModalDesc %>';
       $modalSave.textContent = isEdit
-        ? (isAr ? 'حفظ وتحديث' : 'Save & Update')
-        : (isAr ? 'حفظ وإرسال' : 'Save & Send');
+        ? '<%= t.embeds.jsSaveAndUpdate %>'
+        : '<%= t.embeds.btnSaveAndSend %>';
       if (currentDoc) {
         $modalName.value    = currentDoc.name || '';
         $modalChannel.value = currentDoc.channelId || '';
@@ -2852,7 +3796,7 @@
     $saveModal.addEventListener('click', e => { if (e.target === $saveModal) $saveModal.classList.remove('open'); });
     $modalSave.addEventListener('click', async () => {
       $modalSave.disabled = true;
-      $modalSave.textContent = isAr ? '\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638...' : 'Saving...';
+      $modalSave.textContent = '<%= t.embeds.jsSaving %>';
       epTheme   = $epTheme.checked;
       multiUser = $multiUser.checked;
       const forceNew = $modeNew.checked;
@@ -2871,6 +3815,7 @@
         const result = await api('POST', '/save', payload);
         $saveModal.classList.remove('open');
         toast(L.saved, 'success');
+        clearDirty();
         if (currentDoc) {
           const idx = savedMessages.findIndex(m => m._id === currentDoc._id);
           if (idx >= 0) savedMessages[idx] = result.data;
@@ -2882,7 +3827,7 @@
         $builderTitle.textContent = L.editFlow + ': ' + result.data.name;
       } catch (e) { toast(e.message, 'error'); }
       $modalSave.disabled = false;
-      $modalSave.textContent = isAr ? '\u062d\u0641\u0638 \u0648\u0625\u0631\u0633\u0627\u0644' : 'Save & Send';
+      $modalSave.textContent = '<%= t.embeds.btnSaveAndSend %>';
     });
 
     /* ════════════════════════════════════════
@@ -3016,8 +3961,8 @@
       if (!savedTemplates.length) {
         $grid.innerHTML = '<div class="tpl-empty">'
           + '<div class="tpl-empty-ico"><i data-lucide="layout-template" style="width:24px;height:24px;stroke:currentColor;fill:none;"></i></div>'
-          + '<p style="font-size:.82rem;font-weight:600;margin:0 0 4px;">' + (isAr ? 'لا توجد قوالب بعد' : 'No templates yet') + '</p>'
-          + '<p style="font-size:.75rem;margin:0;">' + (isAr ? 'احفظ تدفقك الحالي كـ قالب لإعادة استخدامه لاحقاً.' : 'Save your current flow as a template to reuse it later.') + '</p>'
+          + '<p style="font-size:.82rem;font-weight:600;margin:0 0 4px;"><%= t.embeds.jsNoTpls %></p>'
+          + '<p style="font-size:.75rem;margin:0;"><%= t.embeds.jsNoTplsDesc %></p>'
           + '</div>';
         lucide.createIcons();
         return;
@@ -3033,7 +3978,7 @@
           + (t.description ? '<p class="tpl-card-desc">' + esc(t.description) + '</p>' : '')
           + (date ? '<p class="tpl-card-date">' + date + '</p>' : '')
           + '<div class="tpl-card-acts">'
-          + '<button class="btn btn-primary btn-xs btnTplApply" data-id="' + esc(t._id) + '"><i data-lucide="play" style="width:11px;height:11px;"></i> ' + (isAr ? 'تطبيق' : 'Apply') + '</button>'
+          + '<button class="btn btn-primary btn-xs btnTplApply" data-id="' + esc(t._id) + '"><i data-lucide="play" style="width:11px;height:11px;"></i> <%= t.embeds.jsApply %></button>'
           + '<button class="btn btn-ghost btn-xs btnTplExport" data-id="' + esc(t._id) + '"><i data-lucide="download" style="width:11px;height:11px;"></i> Export</button>'
           + '<button class="btn btn-danger btn-xs btnTplDel" data-id="' + esc(t._id) + '"><i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>'
           + '</div>'
@@ -3082,11 +4027,11 @@
         const id = delBtn.dataset.id;
         const t  = savedTemplates.find(function(x) { return x._id === id; });
         if (!t) return;
-        if (!confirm((isAr ? 'هل تريد حذف القالب: ' : 'Delete template: ') + t.name + '?')) return;
+        if (!confirm('<%= t.embeds.jsConfirmDelTpl %> ' + t.name + '?')) return;
         api('DELETE', '/templates/' + id).then(function() {
           savedTemplates = savedTemplates.filter(function(x) { return x._id !== id; });
           renderTemplates();
-          toast(isAr ? 'تم حذف القالب' : 'Template deleted', 'success');
+          toast('<%= t.embeds.jsTplDeleted %>', 'success');
         }).catch(function(err) { toast(err.message, 'error'); });
       }
     });
@@ -3114,7 +4059,7 @@
           document.getElementById('tplSaveModal').classList.add('open');
           lucide.createIcons();
         } catch (err) {
-          toast((isAr ? 'ملف JSON غير صالح: ' : 'Invalid JSON: ') + err.message, 'error');
+          toast('<%= t.embeds.jsInvalidJSON %> ' + err.message, 'error');
         }
       };
       reader.readAsText(file);
@@ -3123,7 +4068,7 @@
 
     document.getElementById('btnSaveAsTemplate').addEventListener('click', function() {
       if (!machine || !machine.initial || !Object.keys(machine.states || {}).length) {
-        toast(isAr ? 'ابدأ بإنشاء Flow أولاً' : 'Build a flow first', 'error');
+        toast('<%= t.embeds.jsBuildFirst %>', 'error');
         return;
       }
       _pendingTplMachine = JSON.parse(JSON.stringify(machine));
@@ -3159,7 +4104,7 @@
         renderTemplates();
         document.getElementById('tplSaveModal').classList.remove('open');
         _pendingTplMachine = null;
-        toast(isAr ? 'تم حفظ القالب ✓' : 'Template saved!', 'success');
+        toast('<%= t.embeds.jsTplSaved %>', 'success');
       } catch (e) { toast(e.message, 'error'); }
       this.disabled = false;
       this.innerHTML = origHtml;
@@ -3238,7 +4183,7 @@
     if (copyIdRow) copyIdRow.addEventListener('click', () => {
       navigator.clipboard.writeText(copyIdRow.dataset.uid || '').catch(() => {});
       const lbl = document.getElementById('prof-copy-label');
-      if (lbl) { const orig = lbl.textContent; lbl.textContent = isAr ? '\u062a\u0645 \u0627\u0644\u0646\u0633\u062e!' : 'Copied!'; setTimeout(() => lbl.textContent = orig, 1500); }
+      if (lbl) { const orig = lbl.textContent; lbl.textContent = '<%= t.embeds.jsCopied %>'; setTimeout(() => lbl.textContent = orig, 1500); }
     });
     document.querySelectorAll('.mgmt-section-btn').forEach(btn =>
       btn.addEventListener('click', () => { const body = btn.nextElementSibling; btn.classList.toggle('open'); if (body) body.classList.toggle('open'); }));

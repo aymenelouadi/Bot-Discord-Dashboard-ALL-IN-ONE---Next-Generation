@@ -14,7 +14,8 @@
  *     queries without recomputing from XP on every read.
  *   • `voiceJoinedAt` stores the moment a member entered a voice channel so
  *     the system can award minutes on voiceStateUpdate leave event.
- *   • `lastTextTime` epoch-ms for message cooldown enforcement.
+ *   • `lastTextTime` epoch-ms for message
+ *  cooldown enforcement.
  */
 
 'use strict';

@@ -110,7 +110,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: IS_PROD,      // true over HTTPS proxy, false on localhost
-        sameSite: IS_PROD ? 'none' : 'lax',
+        sameSite: IS_PROD ? 'strict' : 'lax',
         maxAge: 1000 * 60 * 60 * 24
     }
 }));
@@ -920,7 +920,7 @@ app.get('/dashboard/:guildId/embeds', require('./middleware/auth'), async (req, 
         if (guild) {
             guildRoles = guild.roles.cache
                 .filter(r => !r.managed && r.name !== '@everyone')
-                .map(r => ({ id: r.id, name: r.name, color: r.hexColor || '#99aab5', position: r.rawPosition }))
+                .map(r => ({ id: r.id, name: r.name, color: r.hexColor || '#99aab5', position: r.rawPosition, icon: r.iconURL() || null, unicodeEmoji: r.unicodeEmoji || null }))
                 .sort((a, b) => b.position - a.position);
         }
     }
@@ -1778,7 +1778,7 @@ app.post('/dashboard/:guildId/tickets/panels/send', require('./middleware/auth')
     const { guildId } = req.params;
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
 
-    const { panelId, messageId, forceNew } = req.body;
+    const { panelId, messageId, forceNew, channelId: reqChannelId } = req.body;
     if (!panelId) return res.status(400).json({ error: 'panelId required' });
 
     const client = getClient();
@@ -1789,6 +1789,15 @@ app.post('/dashboard/:guildId/tickets/panels/send', require('./middleware/auth')
 
     const panel = ticketData.panels?.find(p => p.id === panelId);
     if (!panel) return res.status(404).json({ error: 'Panel not found' });
+
+    // If channelId provided in request (e.g. user set channel then clicked Send without saving first),
+    // persist it to the panel so sendPanel can use it
+    if (reqChannelId && reqChannelId !== panel.panelChannel) {
+        panel.panelChannel = reqChannelId;
+        const idx = ticketData.panels.findIndex(p => p.id === panelId);
+        if (idx >= 0) ticketData.panels[idx].panelChannel = reqChannelId;
+        guildDb.write(guildId, 'tickets', ticketData);
+    }
 
     try {
         const ticketsSystem = require('../systems/tickets');
@@ -1813,7 +1822,7 @@ app.post('/dashboard/:guildId/tickets/multi-panels/send', require('./middleware/
     const { guildId } = req.params;
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
 
-    const { mpId, messageId, forceNew, channelId: reqChannelId } = req.body;
+    const { mpId, messageId, forceNew, channelId: reqChannelId, panels: reqPanels } = req.body;
     if (!mpId) return res.status(400).json({ error: 'mpId required' });
 
     const client = getClient();
@@ -1833,9 +1842,19 @@ app.post('/dashboard/:guildId/tickets/multi-panels/send', require('./middleware/
         guildDb.write(guildId, 'tickets', ticketData);
     }
 
+    // If panels provided in the request and stored mp.panels is empty, persist them first
+    const panelSlots = (Array.isArray(reqPanels) && reqPanels.length > 0 && (!mp.panels || mp.panels.length === 0))
+        ? reqPanels
+        : (mp.panels || []);
+    if (panelSlots !== (mp.panels || []) && panelSlots.length > 0) {
+        const idx = ticketData.multiPanels.findIndex(m => m.id === mpId);
+        if (idx >= 0) ticketData.multiPanels[idx].panels = panelSlots;
+        guildDb.write(guildId, 'tickets', ticketData);
+    }
+
     // Resolve panel data for each slot in the multi-panel
     // Match by panelId first, then fall back to matching by name
-    const panels = (mp.panels || []).map((slot, i) => {
+    const panels = panelSlots.map((slot, i) => {
         const full = (slot.panelId && ticketData.panels?.find(p => p.id === slot.panelId))
             || ticketData.panels?.find(p => (p.name || p.panelTitle) === slot.name);
         return full ? { ...full, ...slot, panelId: full.id } : { ...slot, _slotIndex: i };
@@ -2532,7 +2551,7 @@ app.post('/dashboard/:guildId/protection/save', require('./middleware/auth'), (r
         const prev = existing[key] || {};
         newData[key] = {
             enabled:         src.enabled === true || src.enabled === 'true',
-            action:          src.action || prev.action || '2',
+            action:          parseInt(src.action ?? prev.action ?? 2, 10) || 2,
         };
         if (src.limit !== undefined) newData[key].limit = parseInt(src.limit, 10) || 5;
         else if (prev.limit !== undefined) newData[key].limit = prev.limit;

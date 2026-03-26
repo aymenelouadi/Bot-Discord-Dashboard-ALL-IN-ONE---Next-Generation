@@ -56,12 +56,20 @@
 'use strict';
 
 const { MessageFlags,
+        ChannelType,
         ActionRowBuilder,
         ButtonBuilder,
         ButtonStyle }         = require('discord.js');
 const logger                  = require('../utils/logger');
 const EmbedMessage            = require('./schemas/EmbedMessage');
 const { buildDiscordPayload } = require('../dashboard/utils/embedBuilder');
+const {
+    executeRoleAction,
+    evalBranchConditions,
+    restoreTempRoles,
+    grantXP,
+    resolveTemplate,
+}                             = require('./role_automation');
 
 // ═════════════════════════════════════════════════════════════════════════════
 // HELPERS
@@ -79,19 +87,22 @@ const { buildDiscordPayload } = require('../dashboard/utils/embedBuilder');
  */
 function _computeTransition(machineDef, currentStateId, eventId) {
     const tr = machineDef.states?.[currentStateId]?.on?.[eventId];
-    if (!tr?.target) return null;
+    if (!tr) return null;
 
-    if (!machineDef.states?.[tr.target]) {
+    // Allow empty/missing target to mean "stay on current state" (self-loop)
+    const targetStateId = tr.target || currentStateId;
+
+    if (!machineDef.states?.[targetStateId]) {
         logger.warn('[emped] Transition target state not found', {
             from:        currentStateId,
             event:       eventId,
-            target:      tr.target,
+            target:      targetStateId,
             knownStates: Object.keys(machineDef.states || {}),
         });
         return null;
     }
 
-    return { targetStateId: tr.target, actions: tr.actions || [] };
+    return { targetStateId, actions: tr.actions || [] };
 }
 
 /**
@@ -159,6 +170,7 @@ function _removeComponent(components, customId) {
 }
 
 /** Action types that write to the Discord message (used to decide default dirty flag). */
+// open_dm and open_channel_flow send to a NEW context — they do NOT dirty the original message.
 const CONTENT_ACTION_TYPES = new Set([
     'update_content', 'replace_embeds', 'append_embeds', 'update_components',
     'disable_component', 'enable_component', 'hide_component',
@@ -166,6 +178,76 @@ const CONTENT_ACTION_TYPES = new Set([
 
 /** Per-user cooldown tracker. key = `${docId}:${stateId}:${userId}` → timestamp ms */
 const _cooldownMap = new Map();
+
+// ═════════════════════════════════════════════════════════════════════════════
+// FLOW CONTEXT STORE  —  Cross-Context (DM / Channel) Flow Tracking
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * In-memory registry of every active DM or channel-forwarded flow.
+ *
+ * Key:   Discord message ID of the forwarded message (string)
+ * Value: {
+ *   docId:        string          — EmbedMessage._id
+ *   guildId:      string | null   — origin guild (null if flow started from DM)
+ *   channelId:    string | null   — origin channel (where the trigger button was clicked)
+ *   originMsgId:  string | null   — Discord message ID of the triggering message
+ *   userId:       string          — user who triggered open_dm / open_channel_flow
+ *   returnActions: object[]       — pipeline executed in origin context on complete_flow
+ *   timer:        Timeout | null  — auto-expire handle
+ * }
+ *
+ * Contexts are session-scoped (lost on bot restart — acceptable for interactive flows).
+ */
+const _flowContexts = new Map();
+
+/**
+ * Register a new flow context; automatically expires after `timeoutMs`.
+ * @param {string} forwardedMsgId  Discord message ID of the sent DM / channel message
+ * @param {object} ctx             Context payload (see above)
+ * @param {number} timeoutMs       0 = no expiry; default 10 minutes
+ */
+function _registerFlowContext(forwardedMsgId, ctx, timeoutMs = 10 * 60_000) {
+    const existing = _flowContexts.get(forwardedMsgId);
+    if (existing?.timer) clearTimeout(existing.timer);
+    const timer = timeoutMs > 0
+        ? setTimeout(() => _flowContexts.delete(forwardedMsgId), timeoutMs)
+        : null;
+    _flowContexts.set(forwardedMsgId, { ...ctx, timer });
+}
+
+/**
+ * Release a flow context and cancel its expiry timer.
+ * Called automatically by `complete_flow`.
+ */
+function _releaseFlowContext(forwardedMsgId) {
+    const ctx = _flowContexts.get(forwardedMsgId);
+    if (ctx?.timer) clearTimeout(ctx.timer);
+    _flowContexts.delete(forwardedMsgId);
+}
+
+/**
+ * Parse the simple `returnAction` / `returnRoleId` shorthand fields,
+ * OR a fully-formed `returnActions` array, into a normalised action array.
+ * This lets the dashboard store a single returnAction without a nested editor.
+ */
+function _parseReturnActions(action) {
+    // Fully-formed array takes priority
+    if (Array.isArray(action.returnActions) && action.returnActions.length)
+        return action.returnActions;
+    // JSON string fallback (power users can paste raw JSON in the text field)
+    if (typeof action.returnActions === 'string' && action.returnActions.trim().startsWith('[')) {
+        try { return JSON.parse(action.returnActions); } catch { /* ignore */ }
+    }
+    // Simple shorthand: single action type + optional role
+    if (action.returnAction) {
+        const a = { type: action.returnAction };
+        if (action.returnRoleId) a.roleId = action.returnRoleId;
+        if (action.returnChannelId) a.channelId = action.returnChannelId;
+        return [a];
+    }
+    return [];
+}
 
 // ═════════════════════════════════════════════════════════════════════════════
 // ACTION EXECUTOR  —  Unlimited Automation Pipeline
@@ -186,6 +268,20 @@ const _cooldownMap = new Map();
  *   hide_component       { customId, duration? }    Hide component; restore after `duration` ms
  *   send_ephemeral                                  Send ephemeral followUp with target state embeds
  *   send_to_channel      { channelId }              Send target embeds to another channel
+ *   open_dm              { confirmMessage?, failMessage?, timeout?, returnAction?, returnRoleId?, returnChannelId? }
+ *   open_channel_flow    { channelId, mention?, timeout?, returnAction?, returnRoleId? }
+ *   add_role             { roleId }                 Add a role (simple)
+ *   remove_role          { roleId }                 Remove a role (simple)
+ *   role_toggle          { roleId, conditions?, abuse? }       Toggle on↔off
+ *   role_exclusive       { roleId, groupRoles[], conditions?, abuse? } Mutual exclusion
+ *   role_temp            { roleId, duration, conditions?, abuse? }     Timed role
+ *   role_conditional     { roleId, operator, conditions, abuse? }      Conditional op
+ *   role_check_branch    { thenTarget, elseTarget, hasRole?, minLevel?, conditions? }
+ *   grant_xp             { xp, track: 'text'|'voice' }         Award XP
+ *   send_dm_message                                 One-shot DM with target state (no flow tracking)
+ *   send_to_origin                                  Send target state to origin channel (from DM/channel flow)
+ *   edit_origin_message                             Edit the original guild message to show target state
+ *   complete_flow                                   Mark flow complete; fire returnActions in origin guild
  *   delay                { ms }                     Wait N ms (flushes pending edit first)
  */
 
@@ -204,7 +300,8 @@ async function _checkPermissions(interaction, doc, currentStateId) {
     const userId = interaction.user?.id;
 
     // ── Role check ──────────────────────────────────────────────────────────
-    if (perms.allowedRoles?.length) {
+    // Skip role check in DM context — member object is unavailable there.
+    if (perms.allowedRoles?.length && interaction.guildId) {
         const hasRole = interaction.member?.roles?.cache?.some(
             r => perms.allowedRoles.includes(r.id)
         );
@@ -237,7 +334,7 @@ async function _checkPermissions(interaction, doc, currentStateId) {
     return true;
 }
 
-async function _execute(interaction, doc, currentStateId, targetStateId, rawActions) {
+async function _execute(interaction, doc, currentStateId, targetStateId, rawActions, flowCtx = null) {
     const machineDef   = doc.machine;
     const initialState = machineDef.states[machineDef.initial] || {};
     const targetState  = machineDef.states[targetStateId];
@@ -339,6 +436,266 @@ async function _execute(interaction, doc, currentStateId, targetStateId, rawActi
                 break;
             }
 
+            // ── Open DM Flow ──────────────────────────────────────────────────
+            // Sends target state to the user's DM and tracks the DM message so
+            // button/select interactions inside the DM continue the same flow.
+            // On complete_flow the stored returnActions fire back in the guild.
+            case 'open_dm': {
+                const dmUserId  = interaction.user?.id;
+                const dmUser    = dmUserId
+                    ? await interaction.client.users.fetch(dmUserId).catch(() => null)
+                    : null;
+                if (!dmUser) break;
+                const dmPayload = buildDiscordPayload({
+                    embeds:     targetState.embeds     || [],
+                    components: targetState.components || [],
+                });
+                try {
+                    const dmMsg = await dmUser.send(dmPayload);
+                    // Track DM message state so DM interactions can look up this doc
+                    EmbedMessage.updateOne(
+                        { _id: doc._id },
+                        { $set: { [`instanceStates.${dmMsg.id}`]: targetStateId } }
+                    ).catch(e => logger.warn('[emped] open_dm state save failed:', { error: e?.message }));
+                    // Store rich flow context so origin-aware actions work in DM
+                    _registerFlowContext(dmMsg.id, {
+                        docId:        String(doc._id),
+                        guildId:      interaction.guildId   || null,
+                        channelId:    interaction.channelId || null,
+                        originMsgId:  interaction.message?.id || null,
+                        userId:       dmUserId,
+                        returnActions: _parseReturnActions(action),
+                    }, Number(action.timeout) > 0 ? Number(action.timeout) : 10 * 60_000);
+                    // Ephemeral confirmation in the originating channel
+                    const confirmText = action.confirmMessage?.trim() || '📬 Check your DMs to continue!';
+                    await interaction.followUp({ content: confirmText, flags: MessageFlags.Ephemeral }).catch(() => {});
+                } catch (e) {
+                    if (e.code === 50007) {
+                        // User has DMs disabled
+                        const failText = action.failMessage?.trim() || '❌ Could not send you a DM. Please enable DMs from server members first.';
+                        await interaction.followUp({ content: failText, flags: MessageFlags.Ephemeral }).catch(() => {});
+                    } else {
+                        logger.warn('[emped] open_dm failed:', { error: e?.message });
+                    }
+                }
+                break;
+            }
+
+            // ── Open Channel Flow ─────────────────────────────────────────────
+            // Sends target state to a specific channel (with user mention) and
+            // tracks the new message so interactions there continue the same flow.
+            // On complete_flow the stored returnActions fire back in the origin.
+            case 'open_channel_flow': {
+                if (!action.channelId) {
+                    logger.warn('[emped] open_channel_flow: no channelId configured');
+                    break;
+                }
+                const flowCh = await interaction.client.channels.fetch(action.channelId).catch(() => null);
+                if (!flowCh) {
+                    logger.warn('[emped] open_channel_flow: channel not found', { channelId: action.channelId });
+                    break;
+                }
+                const flowPayload = buildDiscordPayload({
+                    embeds:     targetState.embeds     || [],
+                    components: targetState.components || [],
+                });
+                // Optionally mention the user so they know where to continue
+                if (action.mention !== 'no' && interaction.user?.id)
+                    flowPayload.content = `<@${interaction.user.id}>`;
+                const flowMsg = await flowCh.send(flowPayload)
+                    .catch(e => { logger.warn('[emped] open_channel_flow send failed:', { error: e?.message }); return null; });
+                if (flowMsg) {
+                    EmbedMessage.updateOne(
+                        { _id: doc._id },
+                        { $set: { [`instanceStates.${flowMsg.id}`]: targetStateId } }
+                    ).catch(e => logger.warn('[emped] open_channel_flow state save failed:', { error: e?.message }));
+                    // Store flow context for origin-aware return actions
+                    _registerFlowContext(flowMsg.id, {
+                        docId:        String(doc._id),
+                        guildId:      interaction.guildId   || null,
+                        channelId:    interaction.channelId || null,
+                        originMsgId:  interaction.message?.id || null,
+                        userId:       interaction.user?.id  || null,
+                        returnActions: _parseReturnActions(action),
+                    }, Number(action.timeout) > 0 ? Number(action.timeout) : 10 * 60_000);
+                }
+                break;
+            }
+
+            // ── Add / Remove Role (works in guild and from DM with flowCtx) ───────
+            case 'add_role': {
+                if (!action.roleId) break;
+                const _gId = interaction.guildId || flowCtx?.guildId;
+                const _uId = interaction.user?.id  || flowCtx?.userId;
+                if (!_gId || !_uId) break;
+                const _guild  = await interaction.client.guilds.fetch(_gId).catch(() => null);
+                const _member = _guild && await _guild.members.fetch(_uId).catch(() => null);
+                if (_member)
+                    await _member.roles.add(action.roleId)
+                        .catch(e => logger.warn('[emped] add_role failed:', { error: e?.message }));
+                break;
+            }
+
+            case 'remove_role': {
+                if (!action.roleId) break;
+                const _gId = interaction.guildId || flowCtx?.guildId;
+                const _uId = interaction.user?.id  || flowCtx?.userId;
+                if (!_gId || !_uId) break;
+                const _guild  = await interaction.client.guilds.fetch(_gId).catch(() => null);
+                const _member = _guild && await _guild.members.fetch(_uId).catch(() => null);
+                if (_member)
+                    await _member.roles.remove(action.roleId)
+                        .catch(e => logger.warn('[emped] remove_role failed:', { error: e?.message }));
+                break;
+            }
+
+            // ── Advanced Role Automation  (via role_automation.js engine) ─────────────
+            // All of these support: conditions, anti-abuse, denyMessage
+
+            case 'role_toggle':
+            case 'role_exclusive':
+            case 'role_temp':
+            case 'role_conditional':
+            case 'role_sequence':
+            case 'fire_webhook': {
+                const raResult = await executeRoleAction(
+                    interaction.client, interaction, action, doc, flowCtx
+                );
+                // role_toggle: smart added/removed feedback with template vars
+                if (action.type === 'role_toggle' && action.feedbackMessage && raResult.granted) {
+                    const added = !raResult.had;
+                    const rawMsg = added
+                        ? (action.addedMessage?.trim()   || action.feedbackMessage)
+                        : (action.removedMessage?.trim() || action.feedbackMessage);
+                    // Build a minimal ctx so {{member.mention}} etc. work in feedback
+                    const _uid = interaction.user?.id;
+                    const _ctx = { member: { id: _uid, mention: `<@${_uid}>`, tag: interaction.user?.tag || '', username: interaction.user?.username || '' }, result: raResult };
+                    if (rawMsg) await interaction.followUp({ content: resolveTemplate(rawMsg, _ctx), flags: 64 }).catch(() => {});
+                }
+                // role_temp: expiry feedback with [expiry] and {{result.expiresAt}} support
+                if (action.type === 'role_temp' && raResult.granted && raResult.expiresAt && action.confirmMessage) {
+                    const until   = `<t:${Math.floor(raResult.expiresAt.getTime() / 1000)}:R>`;
+                    const _uid    = interaction.user?.id;
+                    const _ctx    = { member: { id: _uid, mention: `<@${_uid}>`, tag: interaction.user?.tag || '', username: interaction.user?.username || '' }, result: raResult, expiry: until };
+                    const rawMsg  = action.confirmMessage.replace(/\[expiry\]/g, until);
+                    await interaction.followUp({ content: resolveTemplate(rawMsg, _ctx), flags: 64 }).catch(() => {});
+                }
+                // role_sequence: top-level feedback after all sub-actions complete
+                if (action.type === 'role_sequence' && raResult.granted && action.feedbackMessage) {
+                    await interaction.followUp({ content: action.feedbackMessage, flags: 64 }).catch(() => {});
+                }
+                break;
+            }
+
+            // ── Branch: evaluate conditions → redirect to different target state ──
+            // Does NOT send a message on its own; only overrides what state gets
+            // displayed + persisted.  Put at the START of the pipeline.
+            case 'role_check_branch': {
+                const _branchGuildId = interaction.guildId || flowCtx?.guildId;
+                const _branchUserId  = interaction.user?.id || flowCtx?.userId;
+                if (!_branchGuildId || !_branchUserId) break;
+
+                const _branchGuild  = await interaction.client.guilds.fetch(_branchGuildId).catch(() => null);
+                const _branchMember = _branchGuild && await _branchGuild.members.fetch(_branchUserId).catch(() => null);
+                if (!_branchMember) break;
+
+                const { passed } = await evalBranchConditions(_branchMember, action, _branchGuildId);
+                const branchTarget = passed ? action.thenTarget : action.elseTarget;
+
+                if (branchTarget && machineDef.states[branchTarget]) {
+                    const branchState = machineDef.states[branchTarget];
+                    // Override the content that will be sent to Discord
+                    ctx.embeds     = [...(branchState.embeds     || [])];
+                    ctx.components = [...(branchState.components || [])];
+                    ctx.dirty      = true;
+                    // Override the persisted state ID
+                    ctx.resolvedTargetStateId = branchTarget;
+                }
+                break;
+            }
+
+            // ── XP grant (gamification) ───────────────────────────────────────
+            case 'grant_xp': {
+                const _xpGuildId = interaction.guildId || flowCtx?.guildId;
+                const _xpUserId  = interaction.user?.id || flowCtx?.userId;
+                if (_xpGuildId && _xpUserId)
+                    await grantXP(_xpGuildId, _xpUserId, Number(action.xp) || 0,
+                                  action.track === 'voice' ? 'voice' : 'text');
+                break;
+            }
+
+            // ────────────────────────────────────────────────────────────────
+            case 'send_dm_message': {
+                const _userId = interaction.user?.id;
+                const _user   = _userId && await interaction.client.users.fetch(_userId).catch(() => null);
+                if (!_user) break;
+                const _dmP = buildDiscordPayload({
+                    embeds:     targetState.embeds     || [],
+                    components: targetState.components || [],
+                });
+                await _user.send(_dmP).catch(e => {
+                    if (e.code !== 50007 /* Cannot message this user */)
+                        logger.warn('[emped] send_dm_message failed:', { error: e?.message });
+                });
+                break;
+            }
+
+            // ── Origin-aware actions (require an active flowCtx) ──────────────
+
+            // Send target state embeds to the channel where the flow was started.
+            case 'send_to_origin': {
+                const _fCtx = flowCtx || _flowContexts.get(interaction.message?.id);
+                if (!_fCtx?.channelId) {
+                    logger.warn('[emped] send_to_origin: no active flow context for this message');
+                    break;
+                }
+                const _ch = await interaction.client.channels.fetch(_fCtx.channelId).catch(() => null);
+                if (_ch) {
+                    const _p = buildDiscordPayload({
+                        embeds:     targetState.embeds     || [],
+                        components: targetState.components || [],
+                    });
+                    await _ch.send(_p).catch(e => logger.warn('[emped] send_to_origin failed:', { error: e?.message }));
+                }
+                break;
+            }
+
+            // Edit the original guild message that triggered open_dm / open_channel_flow.
+            case 'edit_origin_message': {
+                const _fCtx = flowCtx || _flowContexts.get(interaction.message?.id);
+                if (!_fCtx?.channelId || !_fCtx?.originMsgId) {
+                    logger.warn('[emped] edit_origin_message: no flow context or originMsgId');
+                    break;
+                }
+                const _ch  = await interaction.client.channels.fetch(_fCtx.channelId).catch(() => null);
+                const _msg = _ch && await _ch.messages.fetch(_fCtx.originMsgId).catch(() => null);
+                if (_msg) {
+                    const _p = buildDiscordPayload({
+                        embeds:     targetState.embeds     || [],
+                        components: targetState.components || [],
+                    });
+                    await _msg.edit(_p).catch(e => logger.warn('[emped] edit_origin_message failed:', { error: e?.message }));
+                }
+                break;
+            }
+
+            // Mark DM / channel flow as complete; execute returnActions in the origin guild.
+            case 'complete_flow': {
+                const _fCtx = flowCtx || _flowContexts.get(interaction.message?.id);
+                if (!_fCtx) {
+                    logger.warn('[emped] complete_flow: no active flow context for this message');
+                    break;
+                }
+                if (_fCtx.returnActions?.length) {
+                    const _originDoc = await EmbedMessage.findById(_fCtx.docId).lean();
+                    if (_originDoc)
+                        await _executeReturnActions(interaction.client, _originDoc, _fCtx, targetState)
+                            .catch(e => logger.warn('[emped] complete_flow returnActions failed:', { error: e?.message }));
+                }
+                _releaseFlowContext(interaction.message?.id);
+                break;
+            }
+
             case 'delay': {
                 // Flush any pending content edit BEFORE sleeping
                 if (ctx.dirty) {
@@ -394,15 +751,85 @@ async function _execute(interaction, doc, currentStateId, targetStateId, rawActi
     // ── Persist the new instance state for this Discord message ───────────────
     const discordMsgId = interaction.message?.id;
     if (discordMsgId) {
-        // Multi-user: key = "msgId:userId"; single-user (default): key = "msgId"
-        const userId     = interaction.user?.id;
-        const stateKey   = (doc.machine?.multiUser && userId)
-            ? `${discordMsgId}:${userId}`
-            : discordMsgId;
+        // DM interactions are inherently per-user — always key by message ID only.
+        // Guild multi-user flows key by "msgId:userId" so each user has its own state.
+        const userId   = interaction.user?.id;
+        const stateKey = (!interaction.guildId)
+            ? discordMsgId
+            : (doc.machine?.multiUser && userId)
+                ? `${discordMsgId}:${userId}`
+                : discordMsgId;
         EmbedMessage.updateOne(
             { _id: doc._id },
-            { $set: { [`instanceStates.${stateKey}`]: targetStateId } }
+            { $set: { [`instanceStates.${stateKey}`]: ctx.resolvedTargetStateId || targetStateId } }
         ).catch(e => logger.warn('[emped] instanceState save failed:', { error: e?.message }));
+    }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// RETURN-ACTION EXECUTOR  —  Guild-side pipeline after complete_flow
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Execute the `returnActions` pipeline stored in a flow context.
+ * Runs without an active interaction (bot-initiated), using the stored origin data.
+ *
+ * Supported return-action types:
+ *   add_role             Add a role to the user in the origin guild
+ *   remove_role          Remove a role from the user in the origin guild
+ *   send_to_origin       Send target state embed to the origin channel
+ *   send_to_channel      Send target state embed to a configured channel
+ *   edit_origin_message  Edit the original triggering message in the guild
+ *
+ * @param {import('discord.js').Client} client
+ * @param {object}  doc          EmbedMessage lean doc (for context, not execution)
+ * @param {object}  fCtx         Flow context ({ guildId, channelId, originMsgId, userId })
+ * @param {object}  targetState  The state whose embeds/components are the payload
+ */
+async function _executeReturnActions(client, doc, fCtx, targetState) {
+    const payload = buildDiscordPayload({
+        embeds:     targetState.embeds     || [],
+        components: targetState.components || [],
+    });
+
+    for (const action of _normalizeActions(fCtx.returnActions)) {
+        try {
+            switch (action.type) {
+                case 'add_role': {
+                    if (!action.roleId || !fCtx.guildId || !fCtx.userId) break;
+                    const g = await client.guilds.fetch(fCtx.guildId).catch(() => null);
+                    const m = g && await g.members.fetch(fCtx.userId).catch(() => null);
+                    if (m) await m.roles.add(action.roleId);
+                    break;
+                }
+                case 'remove_role': {
+                    if (!action.roleId || !fCtx.guildId || !fCtx.userId) break;
+                    const g = await client.guilds.fetch(fCtx.guildId).catch(() => null);
+                    const m = g && await g.members.fetch(fCtx.userId).catch(() => null);
+                    if (m) await m.roles.remove(action.roleId);
+                    break;
+                }
+                case 'send_to_origin':
+                case 'send_to_channel': {
+                    const cid = action.channelId || fCtx.channelId;
+                    if (!cid) break;
+                    const ch = await client.channels.fetch(cid).catch(() => null);
+                    if (ch) await ch.send(payload);
+                    break;
+                }
+                case 'edit_origin_message': {
+                    if (!fCtx.channelId || !fCtx.originMsgId) break;
+                    const ch  = await client.channels.fetch(fCtx.channelId).catch(() => null);
+                    const msg = ch && await ch.messages.fetch(fCtx.originMsgId).catch(() => null);
+                    if (msg) await msg.edit(payload);
+                    break;
+                }
+                default:
+                    logger.warn('[emped] returnAction: unsupported type "' + action.type + '"');
+            }
+        } catch (e) {
+            logger.warn(`[emped] returnAction "${action.type}" failed:`, { error: e?.message });
+        }
     }
 }
 
@@ -657,25 +1084,38 @@ function registerHandlers(client) {
 
     client.on('interactionCreate', async interaction => {
         try {
-            const guildId = interaction.guildId;
-            if (!guildId) return;
+            const guildId  = interaction.guildId;
+            const isFromDM = !guildId
+                && (interaction.channel?.type === ChannelType.DM || !interaction.channel);
+
+            // Allow guild interactions + DM button/select interactions (for open_dm flows).
+            // Reject everything else that has no guild context.
+            if (!guildId && !isFromDM) return;
+            if (isFromDM && !interaction.isButton() && !interaction.isStringSelectMenu()) return;
 
             // ── Button ────────────────────────────────────────────────────────
             if (interaction.isButton()) {
-                const customId = interaction.customId;
+                const customId     = interaction.customId;
+                const discordMsgId = interaction.message?.id;
 
-                // Fast lookup via componentIds index
-                const doc = await EmbedMessage.findOne({
-                    guildId,
-                    componentIds: customId,
-                }).lean();
+                let doc;
+                if (guildId) {
+                    // Guild context: standard lookup by guildId + componentId
+                    doc = await EmbedMessage.findOne({ guildId, componentIds: customId }).lean();
+                } else {
+                    // DM context: find doc that owns both this componentId and this DM message
+                    if (!discordMsgId) return;
+                    doc = await EmbedMessage.findOne({
+                        componentIds: customId,
+                        [`instanceStates.${discordMsgId}`]: { $exists: true },
+                    }).lean();
+                }
                 if (!doc?.machine?.states) return; // Not our embed message
 
-                const discordMsgId   = interaction.message?.id;
                 const userId         = interaction.user?.id;
                 const instanceStates = doc.instanceStates || {};
-                // Multi-user: each user has independent state per message
-                const stateKey       = (doc.machine?.multiUser && discordMsgId && userId)
+                // DM messages are already per-user; multiUser key only applies in guild context
+                const stateKey       = (guildId && doc.machine?.multiUser && discordMsgId && userId)
                     ? `${discordMsgId}:${userId}`
                     : discordMsgId;
                 const currentStateId = (stateKey && instanceStates[stateKey])
@@ -686,9 +1126,13 @@ function registerHandlers(client) {
 
                 if (!await _checkPermissions(interaction, doc, currentStateId)) return;
 
+                // Load flow context if this message is part of a DM/channel-forwarded flow
+                const flowCtxBtn = discordMsgId ? (_flowContexts.get(discordMsgId) || null) : null;
+
                 return await _execute(
                     interaction, doc,
-                    currentStateId, result.targetStateId, result.actions
+                    currentStateId, result.targetStateId, result.actions,
+                    flowCtxBtn
                 );
             }
 
@@ -697,18 +1141,23 @@ function registerHandlers(client) {
                 const menuCustomId  = interaction.customId;
                 const selectedValue = interaction.values?.[0];
                 if (!selectedValue) return;
+                const discordMsgId  = interaction.message?.id;
 
-                // Look up by select menu's customId
-                const doc = await EmbedMessage.findOne({
-                    guildId,
-                    componentIds: menuCustomId,
-                }).lean();
+                let doc;
+                if (guildId) {
+                    doc = await EmbedMessage.findOne({ guildId, componentIds: menuCustomId }).lean();
+                } else {
+                    if (!discordMsgId) return;
+                    doc = await EmbedMessage.findOne({
+                        componentIds: menuCustomId,
+                        [`instanceStates.${discordMsgId}`]: { $exists: true },
+                    }).lean();
+                }
                 if (!doc?.machine?.states) return;
 
-                const discordMsgId   = interaction.message?.id;
                 const userId         = interaction.user?.id;
                 const instanceStates = doc.instanceStates || {};
-                const stateKey       = (doc.machine?.multiUser && discordMsgId && userId)
+                const stateKey       = (guildId && doc.machine?.multiUser && discordMsgId && userId)
                     ? `${discordMsgId}:${userId}`
                     : discordMsgId;
                 const currentStateId = (stateKey && instanceStates[stateKey])
@@ -723,9 +1172,13 @@ function registerHandlers(client) {
 
                 if (!await _checkPermissions(interaction, doc, currentStateId)) return;
 
+                // Load flow context if this message is part of a DM/channel-forwarded flow
+                const flowCtxSel = discordMsgId ? (_flowContexts.get(discordMsgId) || null) : null;
+
                 return await _execute(
                     interaction, doc,
-                    currentStateId, result.targetStateId, result.actions
+                    currentStateId, result.targetStateId, result.actions,
+                    flowCtxSel
                 );
             }
 
@@ -755,6 +1208,9 @@ module.exports = {
     invalidateTriggerCache,
     execute(client) {
         registerHandlers(client);
+        // Re-schedule all active temp role removals after restart
+        restoreTempRoles(client)
+            .catch(e => logger.warn('[emped] restoreTempRoles error:', { error: e?.message }));
     },
 };
 

@@ -744,12 +744,14 @@
                 <span class="edit-label"><%= t.moderation.ignoredChannels %></span>
                 <div class="csel-wrap" data-field="ignoredChannels">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= t.moderation.select %></span>
+                    <% var _ignCh = cmd.ignoredChannels || []; %>
+                    <% _ignCh.forEach(function(chId) { var _ch = guildChannels.find(function(c){ return c.id === chId; }); if (_ch) { %><span class="csel-chip" data-id="<%= _ch.id %>">#<%= _ch.name %></span><% } }); %>
+                    <% if (!_ignCh.length) { %><span class="csel-placeholder"><%= t.moderation.select %></span><% } %>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
                     <% guildChannels.forEach(function(ch) { %>
-                      <div class="csel-option" onclick="toggleCselOption(this,'<%= ch.id %>','#<%= ch.name %>')">
+                      <div class="csel-option <%= (_ignCh.indexOf(ch.id) !== -1) ? 'selected' : '' %>" onclick="toggleCselOption(this,'<%= ch.id %>','#<%= ch.name %>')">
                         <div class="csel-option-check"></div>
                         <span>#<%= ch.name %></span>
                       </div>
@@ -764,12 +766,14 @@
                 <span class="edit-label"><%= t.moderation.ignoredRoles %></span>
                 <div class="csel-wrap" data-field="ignoredRoles">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= t.moderation.select %></span>
+                    <% var _ignRoles = cmd.ignoredRoles || []; %>
+                    <% _ignRoles.forEach(function(rId) { var _r = guildRoles.find(function(r){ return r.id === rId; }); if (_r) { %><span class="csel-chip" data-id="<%= _r.id %>"><%= _r.name %></span><% } }); %>
+                    <% if (!_ignRoles.length) { %><span class="csel-placeholder"><%= t.moderation.select %></span><% } %>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
                     <% guildRoles.forEach(function(r) { %>
-                      <div class="csel-option" onclick="toggleCselOption(this,'<%= r.id %>','<%= r.name %>')">
+                      <div class="csel-option <%= (_ignRoles.indexOf(r.id) !== -1) ? 'selected' : '' %>" onclick="toggleCselOption(this,'<%= r.id %>','<%= r.name %>')">
                         <div class="csel-option-check"></div>
                         <span><%= r.name %></span>
                       </div>
@@ -784,12 +788,14 @@
                 <span class="edit-label"><%= t.moderation.enabledChannels %></span>
                 <div class="csel-wrap" data-field="enabledChannels">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= t.moderation.select %></span>
+                    <% var _enCh = cmd.enabledChannels || []; %>
+                    <% _enCh.forEach(function(chId) { var _ch = guildChannels.find(function(c){ return c.id === chId; }); if (_ch) { %><span class="csel-chip" data-id="<%= _ch.id %>">#<%= _ch.name %></span><% } }); %>
+                    <% if (!_enCh.length) { %><span class="csel-placeholder"><%= t.moderation.select %></span><% } %>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
                     <% guildChannels.forEach(function(ch) { %>
-                      <div class="csel-option" onclick="toggleCselOption(this,'<%= ch.id %>','#<%= ch.name %>')">
+                      <div class="csel-option <%= (_enCh.indexOf(ch.id) !== -1) ? 'selected' : '' %>" onclick="toggleCselOption(this,'<%= ch.id %>','#<%= ch.name %>')">
                         <div class="csel-option-check"></div>
                         <span>#<%= ch.name %></span>
                       </div>
@@ -804,12 +810,14 @@
                 <span class="edit-label"><%= t.moderation.allowedRoles %></span>
                 <div class="csel-wrap" data-field="allowedRoles">
                   <div class="csel-display" onclick="toggleCsel(this)">
-                    <span class="csel-placeholder"><%= t.moderation.select %></span>
+                    <% var _allowedRoles = cmd.allowedRoles || []; %>
+                    <% _allowedRoles.forEach(function(rId) { var _r = guildRoles.find(function(r){ return r.id === rId; }); if (_r) { %><span class="csel-chip" data-id="<%= _r.id %>"><%= _r.name %></span><% } }); %>
+                    <% if (!_allowedRoles.length) { %><span class="csel-placeholder"><%= t.moderation.select %></span><% } %>
                     <i data-lucide="chevrons-up-down" class="csel-arrow" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
                   </div>
                   <div class="csel-dropdown">
                     <% guildRoles.forEach(function(r) { %>
-                      <div class="csel-option" onclick="toggleCselOption(this,'<%= r.id %>','<%= r.name %>')">
+                      <div class="csel-option <%= (_allowedRoles.indexOf(r.id) !== -1) ? 'selected' : '' %>" onclick="toggleCselOption(this,'<%= r.id %>','<%= r.name %>')">
                         <div class="csel-option-check"></div>
                         <span><%= r.name %></span>
                       </div>
@@ -871,7 +879,7 @@
                 <div class="edit-toggle-row">
                   <span class="edit-toggle-label"><%= t.moderation.autoDeleteAuthor %></span>
                   <label class="sw-wrap">
-                    <input type="checkbox" class="sw-input" data-field="autoDeleteAuthor">
+                    <input type="checkbox" class="sw-input" data-field="autoDeleteAuthor" <%= cmd.autoDeleteAuthor ? 'checked' : '' %>>
                     <span class="sw-track"><span class="sw-thumb"></span></span>
                   </label>
                 </div>
@@ -882,7 +890,7 @@
                 <div class="edit-toggle-row">
                   <span class="edit-toggle-label"><%= t.moderation.autoDeleteBot %></span>
                   <label class="sw-wrap">
-                    <input type="checkbox" class="sw-input" data-field="autoDeleteReply">
+                    <input type="checkbox" class="sw-input" data-field="autoDeleteReply" <%= cmd.autoDeleteReply ? 'checked' : '' %>>
                     <span class="sw-track"><span class="sw-thumb"></span></span>
                   </label>
                 </div>

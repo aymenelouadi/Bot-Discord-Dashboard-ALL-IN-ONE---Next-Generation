@@ -14,8 +14,9 @@ const REDIRECT_URI  = process.env.QAUTH_LINK || 'http://localhost:2000/auth/disc
 const SCOPES = ['identify', 'email', 'guilds'].join('%20');
 
 /* ── Build OAuth redirect URL ────────────────────────── */
-function getOAuthURL() {
-    return `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${SCOPES}`;
+function getOAuthURL(state) {
+    const base = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${SCOPES}`;
+    return state ? `${base}&state=${encodeURIComponent(state)}` : base;
 }
 
 /* ── Exchange code for token ─────────────────────────── */

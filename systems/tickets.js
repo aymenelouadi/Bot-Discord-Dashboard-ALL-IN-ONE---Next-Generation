@@ -49,15 +49,18 @@ function _btnStyle(n) { return BTN_STYLE[Number(n)] || ButtonStyle.Primary; }
 
 // Resolve a bannerImage value to { url, attachment? }
 // Returns null if the image can't be resolved.
+const _UPLOADS_ROOT = path.resolve(__dirname, '../dashboard/public/uploads');
 function _resolveBanner(bannerImage) {
     if (!bannerImage) return null;
-    if (bannerImage.startsWith('http://') || bannerImage.startsWith('https://')) {
+    if (bannerImage.startsWith('https://')) {
         return { url: bannerImage, attachment: null };
     }
     if (bannerImage.startsWith('/uploads/')) {
-        const filePath = path.join(__dirname, '../dashboard/public', bannerImage);
+        // Security: resolve and confirm the path stays within the uploads directory
+        const filePath = path.resolve(__dirname, '../dashboard/public', bannerImage.slice(1));
+        if (!filePath.startsWith(_UPLOADS_ROOT + path.sep) && filePath !== _UPLOADS_ROOT) return null;
         if (!fs.existsSync(filePath)) return null;
-        const ext    = path.extname(bannerImage).slice(1).toLowerCase() || 'png';
+        const ext    = path.extname(filePath).slice(1).toLowerCase() || 'png';
         const fname  = `banner.${ext}`;
         const buffer = fs.readFileSync(filePath);
         return { url: `attachment://${fname}`, attachment: new AttachmentBuilder(buffer, { name: fname }) };

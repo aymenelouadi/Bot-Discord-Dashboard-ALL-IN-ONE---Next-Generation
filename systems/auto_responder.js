@@ -130,6 +130,18 @@ module.exports = {
             }
 
             // ── Send reply ──
+            // If the user message was deleted first, reply() will fail with UNKNOWN_MESSAGE.
+            // Use a helper that falls back to channel.send on that specific error.
+            const _safeReply = async (opts) => {
+                try {
+                    return await message.reply(opts);
+                } catch (err) {
+                    if (err?.code === 50035 || (err?.message || '').includes('MESSAGE_REFERENCE_UNKNOWN_MESSAGE')) {
+                        return message.channel.send({ content: opts.content });
+                    }
+                    throw err;
+                }
+            };
             let botReply = null;
             try {
                 switch (rule.sendType) {
@@ -138,7 +150,7 @@ module.exports = {
                         break;
 
                     case 'reply_mention':
-                        botReply = await message.reply({ content: text, allowedMentions: { repliedUser: true } });
+                        botReply = await _safeReply({ content: text, allowedMentions: { repliedUser: true } });
                         break;
 
                     case 'dm':
@@ -151,7 +163,7 @@ module.exports = {
 
                     case 'reply':
                     default:
-                        botReply = await message.reply({ content: text, allowedMentions: { repliedUser: false } });
+                        botReply = await _safeReply({ content: text, allowedMentions: { repliedUser: false } });
                         break;
                 }
             } catch (err) {

@@ -152,8 +152,9 @@ const ActionConfig = z.object({
 /** Single anti_* entry in settings.json protection section */
 const ProtectionEntry = z.object({
     enable:          z.boolean().optional(),
+    enabled:         z.boolean().optional(),
     limit:           z.number().int().min(0).optional(),
-    action:          z.number().int().min(0).max(3).optional(),
+    action:          z.coerce.number().int().min(0).max(3).optional(),
     whitelist_roles: z.array(snowflake).optional(),
 }).passthrough();
 

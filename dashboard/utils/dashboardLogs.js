@@ -13,7 +13,6 @@ const fs     = require('fs');
 const path   = require('path');
 const crypto = require('crypto');
 const https  = require('https');
-const http   = require('http');
 
 const LOG_FILE  = path.join(__dirname, '../data/dashboard-logs.json');
 const MAX_ENTRIES = 500;
@@ -50,19 +49,30 @@ function _buildEmbed(entry, color) {
     };
 }
 
+// Validate that a URL is a Discord webhook (prevents SSRF)
+function _isDiscordWebhook(rawUrl) {
+    try {
+        const u = new URL(rawUrl);
+        return u.protocol === 'https:' &&
+            (u.hostname === 'discord.com' || u.hostname === 'discordapp.com') &&
+            u.pathname.startsWith('/api/webhooks/');
+    } catch { return false; }
+}
+
 function _sendWebhook(entry) {
     try {
         const settingsUtil = require('../../utils/settings');
         const cfg = settingsUtil.get();
         const wh = cfg?.DASHBOARD?.WEBHOOK_LOG;
         if (!wh?.URL) return;
+        // Security: only allow valid Discord webhook URLs (prevents SSRF)
+        if (!_isDiscordWebhook(wh.URL)) return;
         const payload = JSON.stringify({
             username: 'Dashboard Logs',
             embeds: [_buildEmbed(entry, wh.COLOR || '#7c3aed')],
         });
         const url = new URL(wh.URL);
-        const lib  = url.protocol === 'https:' ? https : http;
-        const req  = lib.request({
+        const req  = https.request({
             hostname: url.hostname,
             path:     url.pathname + url.search,
             method:   'POST',

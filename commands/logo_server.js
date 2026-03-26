@@ -33,7 +33,7 @@ module.exports = {
 
         const guild = ctx.guild;
 
-        if (!guild.icon) {
+        if (!guild?.icon) {
             const payload = {
                 flags: CV2,
                 components: [{
