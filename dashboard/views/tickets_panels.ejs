@@ -6126,7 +6126,7 @@
             try {
               const r = await fetch('/dashboard/<%= guildId %>/tickets/multi-panels/send', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mpId, channelId, forceNew: true }),
+                body: JSON.stringify({ mpId, channelId, forceNew: true, panels: mpPanels }),
               });
               const data = await r.json();
               if (!r.ok) { alert('Error: ' + (data.error || r.status)); }
@@ -6564,6 +6564,7 @@
           document.getElementById('panel-send-btn').addEventListener('click', async () => {
             const panelId = document.getElementById('panel-id').value;
             const msgId = document.getElementById('panel-message-id').value;
+            const channelId = document.getElementById('panel-channel').value || null;
             const sendBtn = document.getElementById('panel-send-btn');
             const dot = document.getElementById('panel-send-dot');
             const statusTx = document.getElementById('panel-send-status');
@@ -6578,7 +6579,7 @@
               const res = await fetch('/dashboard/<%= guildId %>/tickets/panels/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ panelId, messageId: msgId || null }),
+                body: JSON.stringify({ panelId, messageId: msgId || null, channelId }),
               });
               const data = await res.json();
               if (!res.ok || !data.success) throw new Error(data.error || 'Send failed');
@@ -6610,6 +6611,10 @@
               alert('<%= t.ticketsPanels.pleaseChooseAChannelFirst %>');
               return;
             }
+            if (!mpPanels || mpPanels.length === 0) {
+              alert('<%= t.ticketsPanels.addAtLeastOnePanelFirst || "Add at least one panel to the multi-panel first." %>');
+              return;
+            }
             sendBtn.disabled = true;
             dot.className = 'send-dot sending';
             statusTx.textContent = '<%= t.ticketsPanels.sending2 %>';
@@ -6617,7 +6622,7 @@
               const res = await fetch('/dashboard/<%= guildId %>/tickets/multi-panels/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mpId, channelId, messageId: msgId || null }),
+                body: JSON.stringify({ mpId, channelId, messageId: msgId || null, panels: mpPanels }),
               });
               const data = await res.json();
               if (!res.ok || !data.success) throw new Error(data.error || 'Send failed');
