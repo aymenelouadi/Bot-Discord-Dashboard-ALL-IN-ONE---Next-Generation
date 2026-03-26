@@ -14,13 +14,24 @@ const dashLogs     = require('../utils/dashboardLogs');
 
 /* ── GET /auth/discord ─────────────────────────────── */
 router.get('/discord', (req, res) => {
-    const url = discord.getOAuthURL();
-    res.redirect(url);
+    const crypto = require('crypto');
+    const state = crypto.randomBytes(16).toString('hex');
+    req.session.oauthState = state;
+    req.session.save(() => {
+        const url = discord.getOAuthURL(state);
+        res.redirect(url);
+    });
 });
 
 /* ── GET /auth/discord/redirect ────────────────────── */
 router.get('/discord/redirect', async (req, res) => {
-    const { code, error } = req.query;
+    const { code, error, state } = req.query;
+
+    // CSRF check: state must match what we generated
+    if (!state || state !== req.session?.oauthState) {
+        return res.redirect('/?error=invalid_state');
+    }
+    delete req.session.oauthState;
 
     if (error || !code) {
         return res.redirect('/?error=access_denied');
