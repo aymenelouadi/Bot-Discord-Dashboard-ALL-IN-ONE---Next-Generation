@@ -1989,7 +1989,11 @@ app.get('/dashboard/:guildId/tickets/charts', require('./middleware/auth'), asyn
     const panels    = ticketData?.panels || [];
 
     // ── helpers ──────────────────────────────────────────────────────────
-    const toDay = iso => iso ? iso.slice(0, 10) : null;
+    const toDay = iso => {
+        if (!iso) return null;
+        const s = iso instanceof Date ? iso.toISOString() : String(iso);
+        return s.slice(0, 10);
+    };
     const last30 = Array.from({ length: 30 }, (_, i) => {
         const d = new Date(); d.setDate(d.getDate() - (29 - i));
         return d.toISOString().slice(0, 10);
