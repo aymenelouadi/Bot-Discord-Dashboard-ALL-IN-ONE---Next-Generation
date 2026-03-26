@@ -493,6 +493,206 @@ app.post('/settings/logs/clear-cancel', require('./middleware/auth'), express.js
     res.json(result);
 });
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   Auto Backup MongoDB — /settings/backup (SHIPS only)
+   ═══════════════════════════════════════════════════════════════════════════ */
+const _backupEng = require('./utils/backupEngine');
+// Initialise once server is ready (non-blocking)
+setImmediate(() => {
+    const sourceUri = process.env.MONGODB;
+    if (sourceUri) {
+        _backupEng.engine.init(sourceUri).catch(e =>
+            logger.warn('BackupEngine init failed', { category: 'backup', error: e.message }),
+        );
+    }
+});
+
+/* GET /settings/backup — list targets (URIs always masked) */
+app.get('/settings/backup', require('./middleware/auth'), (req, res) => {
+    if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
+    const { _getTargets, decryptUri, maskUri, maskWebhook } = _backupEng;
+    const stats   = _backupEng.engine.getStats();
+    const targets = _getTargets().map(t => {
+        const st = stats[t.id] || {};
+        return {
+            id:             t.id,
+            name:           t.name,
+            uriMasked:      t.uri_enc ? maskUri(decryptUri(t.uri_enc) || '') : '(unreadable)',
+            mode:           t.mode,
+            scheduleMs:     t.scheduleMs || null,
+            enabled:        t.enabled,
+            notifyWebhooks: (t.notifyWebhooks || []).map(w => maskWebhook(w)),
+            lastRun:        st.lastRun    || t.lastRun    || null,
+            lastStatus:     st.lastStatus || t.lastStatus || null,
+            stats: {
+                success:   st.success   || 0,
+                failed:    st.failed    || 0,
+                totalDocs: st.totalDocs || 0,
+            },
+            nextAt: _backupEng.engine.getSchedulerNextAt(t.id),
+        };
+    });
+    res.json({ targets });
+});
+
+/* POST /settings/backup — add a new backup target */
+app.post('/settings/backup', require('./middleware/auth'), express.json(), async (req, res) => {
+    if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
+    const { name, uri, mode, scheduleMs, enabled, notifyWebhooks } = req.body;
+
+    if (!name || typeof name !== 'string' || !name.trim() || name.trim().length > 80)
+        return res.status(400).json({ error: 'Name must be 1–80 characters' });
+    if (!uri || typeof uri !== 'string' || !/^mongodb(\+srv)?:\/\//.test(uri.trim()))
+        return res.status(400).json({ error: 'Invalid MongoDB URI' });
+    if (!['changestream', 'queue', 'schedule'].includes(mode))
+        return res.status(400).json({ error: 'Invalid mode' });
+    if (mode === 'schedule') {
+        const ms = Number(scheduleMs);
+        if (!ms || ms < 60_000 || ms > 30 * 24 * 3600_000)
+            return res.status(400).json({ error: 'scheduleMs must be 60 000 – 2 592 000 000 ms' });
+    }
+
+    const { encryptUri, _getTargets, _saveTargets } = _backupEng;
+    const id = require('crypto').randomBytes(8).toString('hex');
+    const target = {
+        id,
+        name:           name.trim(),
+        uri_enc:        encryptUri(uri.trim()),
+        mode,
+        scheduleMs:     mode === 'schedule' ? Number(scheduleMs) : null,
+        enabled:        enabled !== false,
+        notifyWebhooks: Array.isArray(notifyWebhooks)
+            ? notifyWebhooks
+                .filter(w => typeof w === 'string' && /^https:\/\/discord\.com\/api\/webhooks\//.test(w))
+                .slice(0, 20)
+            : [],
+        lastRun:    null,
+        lastStatus: null,
+    };
+    const targets = _getTargets();
+    targets.push(target);
+    _saveTargets(targets);
+
+    if (target.enabled) {
+        _backupEng.engine._startTarget(target).catch(e =>
+            logger.warn(`BackupEngine: failed to start target "${target.name}"`, {
+                category: 'backup', error: e.message,
+            }),
+        );
+    }
+    res.json({ success: true, id });
+});
+
+/* PUT /settings/backup/:id — update an existing target */
+app.put('/settings/backup/:id', require('./middleware/auth'), express.json(), async (req, res) => {
+    if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
+    const { id } = req.params;
+    if (!/^[0-9a-f]{16}$/.test(id)) return res.status(400).json({ error: 'Invalid id' });
+
+    const { encryptUri, _getTargets, _saveTargets } = _backupEng;
+    const targets = _getTargets();
+    const idx     = targets.findIndex(t => t.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Target not found' });
+
+    const t = { ...targets[idx] };
+    const { name, uri, mode, scheduleMs, enabled, notifyWebhooks, webhooksAppend, webhooksRemove } = req.body;
+
+    if (name !== undefined) {
+        if (typeof name !== 'string' || !name.trim() || name.trim().length > 80)
+            return res.status(400).json({ error: 'Name must be 1–80 characters' });
+        t.name = name.trim();
+    }
+    if (uri && typeof uri === 'string' && uri.trim()) {
+        if (!/^mongodb(\+srv)?:\/\//.test(uri.trim()))
+            return res.status(400).json({ error: 'Invalid MongoDB URI' });
+        t.uri_enc = encryptUri(uri.trim());
+    }
+    if (mode !== undefined) {
+        if (!['changestream', 'queue', 'schedule'].includes(mode))
+            return res.status(400).json({ error: 'Invalid mode' });
+        t.mode = mode;
+    }
+    if (scheduleMs !== undefined) {
+        const ms = Number(scheduleMs);
+        if (t.mode === 'schedule' && (ms < 60_000 || ms > 30 * 24 * 3600_000))
+            return res.status(400).json({ error: 'scheduleMs out of range' });
+        t.scheduleMs = ms || null;
+    }
+    if (enabled !== undefined) t.enabled = Boolean(enabled);
+
+    // Webhooks: remove by index, then append new ones
+    if (Array.isArray(webhooksRemove) && webhooksRemove.length) {
+        const removeSet = new Set(webhooksRemove.map(Number).filter(n => !isNaN(n)));
+        t.notifyWebhooks = (t.notifyWebhooks || []).filter((_, i) => !removeSet.has(i));
+    }
+    if (Array.isArray(webhooksAppend)) {
+        const valid = webhooksAppend.filter(w =>
+            typeof w === 'string' && /^https:\/\/discord\.com\/api\/webhooks\//.test(w));
+        t.notifyWebhooks = [...(t.notifyWebhooks || []), ...valid].slice(0, 20);
+    }
+    if (Array.isArray(notifyWebhooks)) {
+        t.notifyWebhooks = notifyWebhooks
+            .filter(w => typeof w === 'string' && /^https:\/\/discord\.com\/api\/webhooks\//.test(w))
+            .slice(0, 20);
+    }
+
+    targets[idx] = t;
+    _saveTargets(targets);
+    _backupEng.engine.reloadTarget(id).catch(() => {});
+    res.json({ success: true });
+});
+
+/* DELETE /settings/backup/:id — remove a target */
+app.delete('/settings/backup/:id', require('./middleware/auth'), async (req, res) => {
+    if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
+    const { id } = req.params;
+    if (!/^[0-9a-f]{16}$/.test(id)) return res.status(400).json({ error: 'Invalid id' });
+    const { _getTargets, _saveTargets } = _backupEng;
+    const targets = _getTargets();
+    const idx     = targets.findIndex(t => t.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Target not found' });
+    await _backupEng.engine._stopTarget(id).catch(() => {});
+    targets.splice(idx, 1);
+    _saveTargets(targets);
+    res.json({ success: true });
+});
+
+/* POST /settings/backup/test — test a URI (can be called before saving) */
+app.post('/settings/backup/test', require('./middleware/auth'), express.json(), async (req, res) => {
+    if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
+    const { uri, id } = req.body;
+    let resolvedUri = uri;
+    if (!resolvedUri && id) {
+        if (!/^[0-9a-f]{16}$/.test(id)) return res.status(400).json({ error: 'Invalid id' });
+        const { _getTargets, decryptUri } = _backupEng;
+        const target = _getTargets().find(t => t.id === id);
+        if (!target) return res.status(404).json({ error: 'Target not found' });
+        resolvedUri = target.uri_enc ? decryptUri(target.uri_enc) : null;
+        if (!resolvedUri) return res.status(400).json({ error: 'Cannot decrypt URI' });
+    }
+    if (!resolvedUri || !/^mongodb(\+srv)?:\/\//.test(resolvedUri))
+        return res.status(400).json({ error: 'Invalid MongoDB URI' });
+    try {
+        const result = await _backupEng.engine.testConnection(resolvedUri);
+        res.json(result);
+    } catch (e) {
+        res.status(400).json({ error: e.message });
+    }
+});
+
+/* POST /settings/backup/:id/run — trigger an immediate full backup */
+app.post('/settings/backup/:id/run', require('./middleware/auth'), async (req, res) => {
+    if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
+    const { id } = req.params;
+    if (!/^[0-9a-f]{16}$/.test(id)) return res.status(400).json({ error: 'Invalid id' });
+    try {
+        const result = await _backupEng.engine.runNow(id);
+        res.json({ success: true, ...result });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 app.get('/dashboard', require('./middleware/auth'), (req, res) => {
     const { getClient }  = require('./utils/botClient');
     const guildDb        = require('./utils/guildDb');

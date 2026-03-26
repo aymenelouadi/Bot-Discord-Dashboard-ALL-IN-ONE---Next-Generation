@@ -443,6 +443,81 @@
     .geo-field-value { font-size:.82rem; font-weight:600; color:var(--white); word-break:break-all; }
     .geo-field-value.mono { font-family:monospace; font-size:.76rem; }
     .geo-field.full { grid-column:1/-1; }
+
+    /* ── Auto Backup MongoDB ── */
+    .bkp-header-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between; }
+    .bkp-list { display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+    .bkp-row { display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:14px; transition:border-color .15s; flex-wrap:wrap; }
+    .bkp-row:hover { border-color:rgba(6,182,212,.25); }
+    .bkp-status-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,.15); }
+    .bkp-status-dot.ok { background:var(--green); box-shadow:0 0 6px rgba(34,197,94,.6); }
+    .bkp-status-dot.fail { background:#ef4444; box-shadow:0 0 6px rgba(239,68,68,.6); }
+    .bkp-status-dot.off { background:rgba(255,255,255,.2); }
+    .bkp-info { flex:1; min-width:140px; }
+    .bkp-name { font-size:.87rem; font-weight:700; color:var(--white); display:flex; align-items:center; gap:7px; }
+    .bkp-uri  { font-size:.72rem; font-family:monospace; color:var(--muted); margin-top:2px; word-break:break-all; }
+    .bkp-meta { font-size:.7rem; color:var(--muted); margin-top:3px; display:flex; gap:10px; flex-wrap:wrap; }
+    .bkp-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:99px; font-size:.68rem; font-weight:700; }
+    .bkp-badge-cs  { background:rgba(6,182,212,.12); border:1px solid rgba(6,182,212,.3); color:var(--cyan-l); }
+    .bkp-badge-q   { background:rgba(124,58,237,.12); border:1px solid rgba(124,58,237,.3); color:var(--purple-l); }
+    .bkp-badge-s   { background:rgba(217,119,6,.1);   border:1px solid rgba(217,119,6,.3);  color:var(--gold-l); }
+    .bkp-badge-off { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:var(--muted); }
+    .bkp-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; flex-wrap:wrap; }
+    .bkp-icon-btn { display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:9px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); color:var(--muted); cursor:pointer; transition:all .15s; }
+    .bkp-icon-btn:hover { background:rgba(124,58,237,.15); border-color:rgba(124,58,237,.35); color:var(--purple-l); }
+    .bkp-icon-btn.run:hover { background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.35); color:#86efac; }
+    .bkp-icon-btn.del:hover { background:rgba(220,38,38,.12); border-color:rgba(220,38,38,.35); color:#fca5a5; }
+    .bkp-icon-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .bkp-empty { text-align:center; color:var(--muted); font-size:.83rem; padding:28px 0; }
+    /* Backup modal */
+    #bkp-modal-backdrop { position:fixed; inset:0; z-index:900; background:rgba(0,0,0,.7); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; visibility:hidden; transition:opacity .22s,visibility .22s; }
+    #bkp-modal-backdrop.open { opacity:1; visibility:visible; }
+    .bkp-modal { width:min(540px,100%); max-height:90vh; overflow-y:auto; background:rgba(10,3,30,.97); border:1px solid rgba(124,58,237,.25); border-radius:20px; padding:28px 24px; box-shadow:0 24px 80px rgba(0,0,0,.7); display:flex; flex-direction:column; gap:16px; scrollbar-width:thin; scrollbar-color:rgba(124,58,237,.25) transparent; }
+    .bkp-modal h3 { font-size:1rem; font-weight:800; color:var(--white); display:flex; align-items:center; gap:9px; }
+    .bkp-field { display:flex; flex-direction:column; gap:5px; }
+    .bkp-field label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+    .bkp-input { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:10px; color:var(--white); font-size:.85rem; padding:9px 12px; outline:none; font-family:inherit; transition:border-color .18s; width:100%; }
+    .bkp-input:focus { border-color:rgba(124,58,237,.5); }
+    .bkp-input::placeholder { color:var(--muted); }
+    .bkp-input[type="password"] { font-family:monospace; letter-spacing:.04em; }
+    .bkp-uri-row { display:flex; gap:6px; align-items:center; }
+    .bkp-uri-row .bkp-input { flex:1; }
+    .bkp-uri-reveal { background:none; border:none; cursor:pointer; color:var(--muted); padding:4px; display:flex; align-items:center; }
+    .bkp-uri-reveal:hover { color:var(--white); }
+    .bkp-mode-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .bkp-mode-opt { position:relative; cursor:pointer; }
+    .bkp-mode-opt input { position:absolute; opacity:0; width:0; height:0; }
+    .bkp-mode-card { border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:12px 10px; text-align:center; transition:all .18s; display:flex; flex-direction:column; gap:4px; align-items:center; }
+    .bkp-mode-opt input:checked + .bkp-mode-card { border-color:rgba(124,58,237,.6); background:rgba(124,58,237,.12); }
+    .bkp-mode-card:hover { border-color:rgba(124,58,237,.4); background:rgba(124,58,237,.06); }
+    .bkp-mode-icon { font-size:1.3rem; }
+    .bkp-mode-title { font-size:.75rem; font-weight:700; color:var(--white); }
+    .bkp-mode-desc { font-size:.65rem; color:var(--muted); line-height:1.4; }
+    .bkp-interval-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .bkp-interval-select { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:10px; color:var(--white); font-size:.83rem; padding:9px 12px; outline:none; font-family:inherit; cursor:pointer; flex:1; min-width:140px; }
+    .bkp-interval-select:focus { border-color:rgba(124,58,237,.5); }
+    .bkp-interval-select option { background:#0a0022; }
+    .bkp-custom-row { display:flex; gap:6px; align-items:center; margin-top:6px; }
+    .bkp-webhooks-list { display:flex; flex-direction:column; gap:6px; }
+    .bkp-wh-item { display:flex; align-items:center; gap:6px; padding:8px 10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; }
+    .bkp-wh-url { flex:1; font-size:.72rem; font-family:monospace; color:var(--cyan-l); word-break:break-all; }
+    .bkp-wh-del { display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:6px; border:none; background:rgba(220,38,38,.15); color:#fca5a5; cursor:pointer; flex-shrink:0; transition:background .15s; }
+    .bkp-wh-del:hover { background:rgba(220,38,38,.35); }
+    .bkp-add-wh-row { display:flex; gap:6px; }
+    .bkp-add-wh-row .bkp-input { flex:1; font-size:.78rem; font-family:monospace; }
+    .bkp-add-wh-btn { display:flex; align-items:center; gap:5px; padding:8px 12px; border-radius:10px; border:1px solid rgba(6,182,212,.3); background:rgba(6,182,212,.08); color:var(--cyan-l); font-size:.75rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
+    .bkp-add-wh-btn:hover { background:rgba(6,182,212,.18); }
+    .bkp-test-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .bkp-test-btn { display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px; border:1px solid rgba(6,182,212,.3); background:rgba(6,182,212,.08); color:var(--cyan-l); font-size:.78rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .bkp-test-btn:hover { background:rgba(6,182,212,.18); }
+    .bkp-test-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .bkp-test-result { font-size:.75rem; padding:5px 10px; border-radius:8px; }
+    .bkp-test-result.ok   { background:rgba(34,197,94,.1);  border:1px solid rgba(34,197,94,.3);  color:#86efac; }
+    .bkp-test-result.fail { background:rgba(220,38,38,.1);  border:1px solid rgba(220,38,38,.3);  color:#fca5a5; }
+    .bkp-modal-footer { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding-top:4px; border-top:1px solid rgba(255,255,255,.05); }
+    .bkp-enable-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
+    .bkp-enable-label { font-size:.85rem; font-weight:600; color:var(--white); }
+    @media(max-width:480px) { .bkp-mode-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -785,7 +860,36 @@
         <div class="sess-list" id="sess-list"></div>
       </div>
 
-      <!-- Card 4: Logs & Activity -->
+      <!-- Card: Auto Backup MongoDB -->
+      <div class="content-card config-card" id="bkp-card">
+        <div class="bkp-header-row">
+          <div class="config-card-header" style="margin-bottom:0;flex:1;">
+            <div class="content-card-icon" style="background:rgba(6,182,212,.1);border-color:rgba(6,182,212,.25);">
+              <i data-lucide="database-backup" style="width:22px;height:22px;stroke:var(--cyan-l);stroke-width:2;"></i>
+            </div>
+            <div>
+              <h3><%= t.systemSettings.autoBackup %></h3>
+              <p style="font-size:.8rem;color:var(--muted);margin-top:2px;"><%= t.systemSettings.autoBackupDesc %></p>
+            </div>
+          </div>
+          <button class="save-btn primary" id="bkp-add-btn" style="flex-shrink:0;">
+            <i data-lucide="plus" style="width:14px;height:14px;stroke:currentColor;"></i>
+            <%= t.systemSettings.autoBackupAdd %>
+          </button>
+        </div>
+
+        <div class="config-divider"><%= t.systemSettings.autoBackupTargets %></div>
+
+        <div id="bkp-loading" style="text-align:center;color:var(--muted);font-size:.8rem;padding:18px 0;">
+          <i data-lucide="loader-2" style="width:14px;height:14px;stroke:currentColor;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;margin-inline-end:6px;"></i>
+          <%= t.systemSettings.autoBackupLoading %>
+        </div>
+        <div id="bkp-empty" class="bkp-empty" style="display:none;"><%= t.systemSettings.autoBackupEmpty %></div>
+        <div id="bkp-list" class="bkp-list"></div>
+      </div>
+
+      <!-- Card: Logs & Activity -->
+
       <div class="content-card config-card" id="logs-card">
         <div class="config-card-header">
           <div class="content-card-icon">
@@ -865,7 +969,130 @@
     </div>
   </div>
 
+  <!-- ═══ Auto Backup MongoDB — Add / Edit Modal ═══ -->
+  <div id="bkp-modal-backdrop">
+    <div class="bkp-modal">
+      <h3>
+        <i data-lucide="database-backup" style="width:20px;height:20px;stroke:var(--cyan-l);stroke-width:2;flex-shrink:0;"></i>
+        <span id="bkp-modal-title"><%= t.systemSettings.autoBackupAddTitle %></span>
+      </h3>
+
+      <!-- Name -->
+      <div class="bkp-field">
+        <label><%= t.systemSettings.autoBackupName %></label>
+        <input class="bkp-input" type="text" id="bkp-name-inp" maxlength="80" placeholder="e.g. Primary Replica" />
+      </div>
+
+      <!-- URI -->
+      <div class="bkp-field">
+        <label><%= t.systemSettings.autoBackupUri %></label>
+        <div class="bkp-uri-row">
+          <input class="bkp-input" type="password" id="bkp-uri-inp" placeholder="mongodb+srv://user:pass@host/db" autocomplete="off" />
+          <button type="button" class="bkp-uri-reveal" id="bkp-uri-reveal" title="Show/hide">
+            <i data-lucide="eye" style="width:16px;height:16px;stroke:currentColor;"></i>
+          </button>
+        </div>
+        <small style="font-size:.7rem;color:var(--muted);">Leave blank to keep existing URI when editing.</small>
+      </div>
+
+      <!-- Mode selector -->
+      <div class="bkp-field">
+        <label><%= t.systemSettings.autoBackupMode %></label>
+        <div class="bkp-mode-grid">
+          <label class="bkp-mode-opt">
+            <input type="radio" name="bkp-mode" value="changestream" checked />
+            <div class="bkp-mode-card">
+              <div class="bkp-mode-icon">⚡</div>
+              <div class="bkp-mode-title"><%= t.systemSettings.autoBackupModeCS %></div>
+              <div class="bkp-mode-desc"><%= t.systemSettings.autoBackupModeCSDesc %></div>
+            </div>
+          </label>
+          <label class="bkp-mode-opt">
+            <input type="radio" name="bkp-mode" value="queue" />
+            <div class="bkp-mode-card">
+              <div class="bkp-mode-icon">📦</div>
+              <div class="bkp-mode-title"><%= t.systemSettings.autoBackupModeQ %></div>
+              <div class="bkp-mode-desc"><%= t.systemSettings.autoBackupModeQDesc %></div>
+            </div>
+          </label>
+          <label class="bkp-mode-opt">
+            <input type="radio" name="bkp-mode" value="schedule" />
+            <div class="bkp-mode-card">
+              <div class="bkp-mode-icon">⏱</div>
+              <div class="bkp-mode-title"><%= t.systemSettings.autoBackupModeSched %></div>
+              <div class="bkp-mode-desc"><%= t.systemSettings.autoBackupModeSchedDesc %></div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Schedule interval (only shown when mode=schedule) -->
+      <div class="bkp-field" id="bkp-interval-field" style="display:none;">
+        <label><%= t.systemSettings.autoBackupInterval %></label>
+        <select class="bkp-interval-select" id="bkp-interval-preset">
+          <option value="60000">1 <%= t.systemSettings.autoBackupMin %></option>
+          <option value="300000">5 <%= t.systemSettings.autoBackupMin %></option>
+          <option value="900000">15 <%= t.systemSettings.autoBackupMin %></option>
+          <option value="1800000">30 <%= t.systemSettings.autoBackupMin %></option>
+          <option value="3600000" selected>1 <%= t.systemSettings.autoBackupHour %></option>
+          <option value="21600000">6 <%= t.systemSettings.autoBackupHours %></option>
+          <option value="43200000">12 <%= t.systemSettings.autoBackupHours %></option>
+          <option value="86400000">1 <%= t.systemSettings.autoBackupDay %></option>
+          <option value="604800000">7 <%= t.systemSettings.autoBackupDays %></option>
+          <option value="2592000000">30 <%= t.systemSettings.autoBackupDays %> (1 <%= t.systemSettings.autoBackupMonth %>)</option>
+          <option value="custom"><%= t.systemSettings.autoBackupCustom %>…</option>
+        </select>
+        <div class="bkp-custom-row" id="bkp-custom-row" style="display:none;">
+          <input class="bkp-input" type="number" id="bkp-custom-min" min="1" max="43200" placeholder="minutes" style="max-width:110px;" />
+          <span style="font-size:.8rem;color:var(--muted);"><%= t.systemSettings.autoBackupMinutes %></span>
+        </div>
+      </div>
+
+      <!-- Discord Webhook Notifications -->
+      <div class="bkp-field">
+        <label><%= t.systemSettings.autoBackupWebhooks %></label>
+        <div id="bkp-wh-list" class="bkp-webhooks-list"></div>
+        <div class="bkp-add-wh-row" style="margin-top:6px;">
+          <input class="bkp-input" type="text" id="bkp-wh-inp" placeholder="https://discord.com/api/webhooks/..." />
+          <button type="button" class="bkp-add-wh-btn" id="bkp-wh-add-btn">
+            <i data-lucide="plus" style="width:13px;height:13px;stroke:currentColor;"></i>
+            <%= t.systemSettings.autoBackupWebhookAdd %>
+          </button>
+        </div>
+        <small style="font-size:.7rem;color:var(--muted);margin-top:4px;display:block;"><%= t.systemSettings.autoBackupWebhookHint %></small>
+      </div>
+
+      <!-- Test connection -->
+      <div class="bkp-test-row">
+        <button type="button" class="bkp-test-btn" id="bkp-test-btn">
+          <i data-lucide="plug" style="width:13px;height:13px;stroke:currentColor;"></i>
+          <%= t.systemSettings.autoBackupTest %>
+        </button>
+        <span id="bkp-test-result" class="bkp-test-result" style="display:none;"></span>
+      </div>
+
+      <!-- Enable toggle -->
+      <div class="bkp-enable-row">
+        <span class="bkp-enable-label"><%= t.systemSettings.autoBackupEnabled %></span>
+        <label class="switch">
+          <input type="checkbox" id="bkp-enabled-toggle" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Footer -->
+      <div class="bkp-modal-footer">
+        <button type="button" class="save-btn" style="background:var(--surface);color:var(--muted);border:1px solid rgba(255,255,255,.1);" id="bkp-modal-cancel"><%= t.systemSettings.cancel %></button>
+        <button type="button" class="save-btn primary" id="bkp-modal-save">
+          <i data-lucide="save" style="width:14px;height:14px;stroke:currentColor;"></i>
+          <span id="bkp-modal-save-text"><%= t.systemSettings.save %></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Bot Guilds Section -->
+
   <div class="page-wrap page-wrap-guilds">
     <div class="guilds-section">
       <div class="guilds-section-header">
@@ -1819,6 +2046,437 @@
     }
     document.getElementById('geo-close-btn').addEventListener('click', closeGeoModal);
     document.getElementById('geo-modal-backdrop').addEventListener('click', e => { if (e.target === e.currentTarget) closeGeoModal(); });
+
+    /* ═══════════════════════════════════════════════════════════════════════
+       Auto Backup MongoDB
+       ═══════════════════════════════════════════════════════════════════════ */
+    (function () {
+      const _t = _sys_t;
+      let _bkpTargets        = [];
+      let _bkpEditId         = null;
+      let _bkpModalWebhooks  = []; // {masked, isNew, rawUrl?}
+
+      const MODE_LABELS = {
+        changestream: _t.autoBackupModeCS     || 'Change Stream',
+        queue:        _t.autoBackupModeQ      || 'Queue',
+        schedule:     _t.autoBackupModeSched  || 'Scheduled',
+      };
+
+      function _esc(s) {
+        return String(s||'')
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+          .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function _tf(tpl, vars) {
+        if (!tpl) return '';
+        return tpl.replace(/\{(\w+)\}/g, (_,k) => vars[k] ?? '');
+      }
+
+      function _msToLabel(ms) {
+        if (!ms) return '—';
+        const m = Math.round(ms / 60000);
+        if (m < 60)   return `${m} ${_t.autoBackupMin || 'min'}`;
+        const h = Math.round(m / 60);
+        if (h < 24)   return `${h} ${h === 1 ? (_t.autoBackupHour||'hr') : (_t.autoBackupHours||'hrs')}`;
+        const d = Math.round(h / 24);
+        if (d < 30)   return `${d} ${d === 1 ? (_t.autoBackupDay||'day') : (_t.autoBackupDays||'days')}`;
+        return `${Math.round(d/30)} ${_t.autoBackupMonth||'mo'}`;
+      }
+
+      function _timeAgo(iso) {
+        try {
+          const diff = Date.now() - new Date(iso).getTime();
+          if (diff < 60000)  return '<1m';
+          if (diff < 3600000) return `${Math.floor(diff/60000)}m`;
+          if (diff < 86400000) return `${Math.floor(diff/3600000)}h`;
+          return `${Math.floor(diff/86400000)}d`;
+        } catch { return iso; }
+      }
+
+      /* ── Render target list ── */
+      function _renderList(targets) {
+        const loading = document.getElementById('bkp-loading');
+        const empty   = document.getElementById('bkp-empty');
+        const list    = document.getElementById('bkp-list');
+        if (!loading || !empty || !list) return;
+        loading.style.display = 'none';
+        if (!targets.length) {
+          empty.style.display = '';
+          list.innerHTML = '';
+          return;
+        }
+        empty.style.display = 'none';
+        list.innerHTML = targets.map(t => {
+          const dotClass = !t.enabled
+            ? 'off'
+            : (t.lastStatus === 'success' ? 'ok' : t.lastStatus === 'failed' ? 'fail' : '');
+          const modeLabel = MODE_LABELS[t.mode] || t.mode;
+          const modeBadge = t.mode === 'changestream'
+            ? `<span class="bkp-badge bkp-badge-cs">⚡ ${_esc(modeLabel)}</span>`
+            : t.mode === 'queue'
+            ? `<span class="bkp-badge bkp-badge-q">📦 ${_esc(modeLabel)}</span>`
+            : `<span class="bkp-badge bkp-badge-s">⏱ ${_esc(modeLabel)}${t.scheduleMs ? ` (${_msToLabel(t.scheduleMs)})` : ''}</span>`;
+          const disabledBadge = !t.enabled
+            ? `<span class="bkp-badge bkp-badge-off">${_t.autoBackupDisabled||'Disabled'}</span>` : '';
+          const lastRun = t.lastRun ? _timeAgo(t.lastRun) : (_t.autoBackupNeverRun||'Never');
+          const diff = t.nextAt ? (t.nextAt - Date.now()) : 0;
+          const nextSched = (t.mode === 'schedule' && t.nextAt && t.enabled && diff > 0)
+            ? `<span>⏭ ${_t.autoBackupIn||'in'} ${_msToLabel(diff)}</span>` : '';
+          const stats = t.stats || { success: 0, failed: 0, totalDocs: 0 };
+          return `<div class="bkp-row" data-id="${_esc(t.id)}">
+            <div class="bkp-status-dot ${dotClass}" title="${_esc(t.lastStatus||'')}"></div>
+            <div class="bkp-info">
+              <div class="bkp-name">${_esc(t.name)} ${modeBadge}${disabledBadge}</div>
+              <div class="bkp-uri">${_esc(t.uriMasked||'')}</div>
+              <div class="bkp-meta">
+                <span>🕒 ${_esc(lastRun)}</span>
+                <span>✅ ${stats.success} / ❌ ${stats.failed}</span>
+                <span>📄 ${Number(stats.totalDocs).toLocaleString()}</span>
+                ${nextSched}
+              </div>
+            </div>
+            <div class="bkp-actions">
+              <button class="bkp-icon-btn run" data-action="run" data-id="${_esc(t.id)}" title="${_t.autoBackupRunNow||'Run Now'}">▶</button>
+              <button class="bkp-icon-btn" data-action="edit" data-id="${_esc(t.id)}" title="${_t.autoBackupEdit||'Edit'}">✏️</button>
+              <button class="bkp-icon-btn del" data-action="del" data-id="${_esc(t.id)}" title="${_t.autoBackupDelete||'Delete'}">🗑</button>
+            </div>
+          </div>`;
+        }).join('');
+
+        list.querySelectorAll('[data-action]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id     = btn.dataset.id;
+            const action = btn.dataset.action;
+            if (action === 'run') {
+              if (!confirm(_t.autoBackupRunConfirm || 'Start a full backup now?')) return;
+              btn.disabled = true;
+              try {
+                const r = await fetch(`/settings/backup/${encodeURIComponent(id)}/run`, { method: 'POST' });
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.error || 'Failed');
+                showSysToast(
+                  `${_t.autoBackupRunDone||'Done'} — ${(d.duration/1000).toFixed(1)}s, ${Number(d.totalDocs||0).toLocaleString()} docs`,
+                  'success'
+                );
+                _loadBackups();
+              } catch (e) { showSysToast(e.message, 'error'); btn.disabled = false; }
+            } else if (action === 'edit') {
+              const tgt = _bkpTargets.find(x => x.id === id);
+              if (tgt) _openModal(tgt);
+            } else if (action === 'del') {
+              if (!confirm(_t.autoBackupDeleteConfirm || 'Delete this backup target?')) return;
+              btn.disabled = true;
+              try {
+                const r = await fetch(`/settings/backup/${encodeURIComponent(id)}`, { method: 'DELETE' });
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.error || 'Failed');
+                showSysToast(_t.autoBackupDeleted||'Deleted', 'success');
+                _loadBackups();
+              } catch (e) { showSysToast(e.message, 'error'); btn.disabled = false; }
+            }
+          });
+        });
+      }
+
+      /* ── Webhook list inside modal ── */
+      function _renderModalWebhooks() {
+        const list = document.getElementById('bkp-wh-list');
+        if (!list) return;
+        if (!_bkpModalWebhooks.length) {
+          list.innerHTML = `<p style="font-size:.72rem;color:var(--muted,#888);">${_t.autoBackupWebhookNone||'No webhooks added'}</p>`;
+          return;
+        }
+        list.innerHTML = _bkpModalWebhooks.map((w, i) =>
+          `<div class="bkp-wh-item">
+            <span class="bkp-wh-url">${_esc(w.masked)}</span>
+            <button type="button" class="bkp-wh-del" data-wi="${i}" title="Remove">✕</button>
+          </div>`
+        ).join('');
+        list.querySelectorAll('.bkp-wh-del').forEach(b => {
+          b.addEventListener('click', () => {
+            _bkpModalWebhooks.splice(+b.dataset.wi, 1);
+            _renderModalWebhooks();
+          });
+        });
+      }
+
+      /* ── Modal: open ── */
+      function _openModal(target) {
+        _bkpEditId = target ? target.id : null;
+        const titleEl = document.getElementById('bkp-modal-title');
+        if (titleEl) titleEl.textContent = target
+          ? (_t.autoBackupEditTitle||'Edit Backup Target')
+          : (_t.autoBackupAddTitle||'Add Backup Target');
+
+        document.getElementById('bkp-name-inp').value = target?.name || '';
+        document.getElementById('bkp-uri-inp').value  = '';
+        const uriInp = document.getElementById('bkp-uri-inp');
+        uriInp.type        = 'password';
+        uriInp.placeholder = target
+          ? (_t.autoBackupUriEditHint || 'Leave blank to keep current URI')
+          : 'mongodb+srv://user:pass@host/db';
+        const revIcon = document.querySelector('#bkp-uri-reveal i');
+        if (revIcon) { revIcon.setAttribute('data-lucide','eye'); lucide.createIcons({nodes:[revIcon]}); }
+
+        document.getElementById('bkp-enabled-toggle').checked = target?.enabled !== false;
+
+        // Mode
+        const modeVal = target?.mode || 'changestream';
+        document.querySelectorAll('input[name="bkp-mode"]').forEach(r => { r.checked = r.value === modeVal; });
+        _toggleIntervalField(modeVal);
+
+        // Schedule preset
+        const sel = document.getElementById('bkp-interval-preset');
+        const cusRow = document.getElementById('bkp-custom-row');
+        if (target?.scheduleMs) {
+          const presets = ['60000','300000','900000','1800000','3600000','21600000','43200000','86400000','604800000','2592000000'];
+          if (presets.includes(String(target.scheduleMs))) {
+            sel.value = String(target.scheduleMs);
+            cusRow.style.display = 'none';
+          } else {
+            sel.value = 'custom';
+            cusRow.style.display = '';
+            document.getElementById('bkp-custom-min').value = Math.round(target.scheduleMs / 60000);
+          }
+        } else {
+          sel.value = '3600000';
+          cusRow.style.display = 'none';
+        }
+
+        // Webhooks
+        _bkpModalWebhooks = (target?.notifyWebhooks || []).map(w => ({
+          masked: w,
+          isNew: false,
+        }));
+        _renderModalWebhooks();
+        document.getElementById('bkp-wh-inp').value = '';
+
+        // Test result
+        const tRes = document.getElementById('bkp-test-result');
+        if (tRes) tRes.style.display = 'none';
+
+        // Show
+        document.getElementById('bkp-modal-backdrop').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('bkp-name-inp').focus();
+      }
+
+      function _closeModal() {
+        const bd = document.getElementById('bkp-modal-backdrop');
+        if (bd) bd.classList.remove('open');
+        document.body.style.overflow = '';
+        _bkpEditId = null;
+        _bkpModalWebhooks = [];
+      }
+
+      function _toggleIntervalField(mode) {
+        const field = document.getElementById('bkp-interval-field');
+        if (field) field.style.display = mode === 'schedule' ? '' : 'none';
+      }
+
+      function _getScheduleMs() {
+        const preset = document.getElementById('bkp-interval-preset').value;
+        if (preset === 'custom') {
+          const mins = parseInt(document.getElementById('bkp-custom-min').value, 10);
+          if (isNaN(mins) || mins < 1 || mins > 43200) return null;
+          return mins * 60000;
+        }
+        return parseInt(preset, 10) || null;
+      }
+
+      /* ── Save target ── */
+      async function _saveModal() {
+        const name    = document.getElementById('bkp-name-inp').value.trim();
+        const uri     = document.getElementById('bkp-uri-inp').value.trim();
+        const mode    = document.querySelector('input[name="bkp-mode"]:checked')?.value || 'changestream';
+        const enabled = document.getElementById('bkp-enabled-toggle').checked;
+
+        if (!name) { showSysToast(_t.autoBackupNameRequired||'Name required', 'error'); return; }
+        if (!_bkpEditId && !uri) { showSysToast(_t.autoBackupUriRequired||'URI required', 'error'); return; }
+        if (uri && !/^mongodb(\+srv)?:\/\//i.test(uri)) {
+          showSysToast(_t.autoBackupUriInvalid||'Invalid MongoDB URI', 'error'); return;
+        }
+
+        let scheduleMs = null;
+        if (mode === 'schedule') {
+          scheduleMs = _getScheduleMs();
+          if (!scheduleMs) { showSysToast(_t.autoBackupIntervalInvalid||'Invalid interval', 'error'); return; }
+        }
+
+        const newWebhooks = _bkpModalWebhooks.filter(w => w.isNew).map(w => w.rawUrl);
+
+        const saveBtn  = document.getElementById('bkp-modal-save');
+        const saveTxt  = document.getElementById('bkp-modal-save-text');
+        const origTxt  = saveTxt?.textContent;
+        saveBtn.disabled = true;
+        if (saveTxt) saveTxt.textContent = _t.saving || 'Saving…';
+
+        try {
+          let url, method, body;
+          if (_bkpEditId) {
+            url    = `/settings/backup/${encodeURIComponent(_bkpEditId)}`;
+            method = 'PUT';
+            body   = { name, mode, enabled, scheduleMs };
+            if (uri) body.uri = uri;
+
+            // Compute webhook changes
+            const tgt = _bkpTargets.find(x => x.id === _bkpEditId);
+            const existingCount = (tgt?.notifyWebhooks || []).length;
+            const keptIndices   = _bkpModalWebhooks.filter(w => !w.isNew).map((_, i) => i); // 0-based in original array
+            const removedIdxs   = [];
+            for (let i = 0; i < existingCount; i++) {
+              if (!keptIndices.includes(i)) removedIdxs.push(i);
+            }
+            if (removedIdxs.length) body.webhooksRemove  = removedIdxs;
+            if (newWebhooks.length) body.webhooksAppend  = newWebhooks;
+          } else {
+            url    = '/settings/backup';
+            method = 'POST';
+            body   = { name, uri, mode, enabled, scheduleMs, notifyWebhooks: newWebhooks };
+          }
+
+          const r = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || 'Failed');
+          showSysToast(_t.autoBackupSaved||'Saved', 'success');
+          _closeModal();
+          _loadBackups();
+        } catch (e) { showSysToast(e.message, 'error'); }
+
+        saveBtn.disabled = false;
+        if (saveTxt) saveTxt.textContent = origTxt;
+      }
+
+      /* ── Load from server ── */
+      async function _loadBackups() {
+        const loading = document.getElementById('bkp-loading');
+        const empty   = document.getElementById('bkp-empty');
+        if (loading) loading.style.display = '';
+        if (empty)   empty.style.display   = 'none';
+        try {
+          const r = await fetch('/settings/backup');
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || 'Failed');
+          _bkpTargets = d.targets || [];
+          _renderList(_bkpTargets);
+        } catch (e) {
+          if (loading) loading.style.display = 'none';
+          if (empty) { empty.textContent = e.message; empty.style.display = ''; }
+        }
+      }
+
+      /* ── Wire events ── */
+      (function _wireBackupEvents() {
+        const addBtn = document.getElementById('bkp-add-btn');
+        if (addBtn) addBtn.addEventListener('click', () => _openModal(null));
+
+        const cancelBtn = document.getElementById('bkp-modal-cancel');
+        if (cancelBtn) cancelBtn.addEventListener('click', _closeModal);
+
+        const backdrop = document.getElementById('bkp-modal-backdrop');
+        if (backdrop) backdrop.addEventListener('click', e => { if (e.target === e.currentTarget) _closeModal(); });
+
+        const saveBtn = document.getElementById('bkp-modal-save');
+        if (saveBtn) saveBtn.addEventListener('click', _saveModal);
+
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape') {
+            const bd = document.getElementById('bkp-modal-backdrop');
+            if (bd && bd.classList.contains('open')) _closeModal();
+          }
+        });
+
+        // URI reveal
+        const revBtn = document.getElementById('bkp-uri-reveal');
+        if (revBtn) revBtn.addEventListener('click', () => {
+          const inp = document.getElementById('bkp-uri-inp');
+          inp.type  = inp.type === 'password' ? 'text' : 'password';
+          const ic  = revBtn.querySelector('i');
+          if (ic) {
+            ic.setAttribute('data-lucide', inp.type === 'password' ? 'eye' : 'eye-off');
+            lucide.createIcons({ nodes: [ic] });
+          }
+        });
+
+        // Mode radio
+        document.querySelectorAll('input[name="bkp-mode"]').forEach(r => {
+          r.addEventListener('change', () => _toggleIntervalField(r.value));
+        });
+
+        // Preset → custom
+        const presetSel = document.getElementById('bkp-interval-preset');
+        if (presetSel) presetSel.addEventListener('change', function() {
+          const cr = document.getElementById('bkp-custom-row');
+          if (cr) cr.style.display = this.value === 'custom' ? '' : 'none';
+        });
+
+        // Add webhook
+        const whAddBtn = document.getElementById('bkp-wh-add-btn');
+        const whInp    = document.getElementById('bkp-wh-inp');
+        function _addWebhook() {
+          const val = (whInp?.value||'').trim();
+          if (!/^https:\/\/discord\.com\/api\/webhooks\/\d+\/.+/.test(val)) {
+            showSysToast(_t.autoBackupWebhookInvalid||'Invalid Discord webhook URL', 'error'); return;
+          }
+          _bkpModalWebhooks.push({
+            masked: val.replace(/(\/api\/webhooks\/\d+\/)(.+)$/, '$1***'),
+            isNew:  true,
+            rawUrl: val,
+          });
+          if (whInp) whInp.value = '';
+          _renderModalWebhooks();
+        }
+        if (whAddBtn) whAddBtn.addEventListener('click', _addWebhook);
+        if (whInp) whInp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); _addWebhook(); } });
+
+        // Test connection
+        const testBtn = document.getElementById('bkp-test-btn');
+        if (testBtn) testBtn.addEventListener('click', async () => {
+          const uri    = (document.getElementById('bkp-uri-inp')?.value || '').trim();
+          const testId = _bkpEditId;
+          if (!uri && !testId) { showSysToast(_t.autoBackupUriRequired||'Enter a URI first', 'error'); return; }
+          if (uri && !/^mongodb(\+srv)?:\/\//i.test(uri)) {
+            showSysToast(_t.autoBackupUriInvalid||'Invalid URI', 'error'); return;
+          }
+          const res = document.getElementById('bkp-test-result');
+          testBtn.disabled = true;
+          const origHtml = testBtn.innerHTML;
+          testBtn.textContent = _t.autoBackupTesting || 'Testing…';
+          if (res) res.style.display = 'none';
+          try {
+            const body = uri ? { uri } : { id: testId };
+            const r = await fetch('/settings/backup/test', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body),
+            });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || 'Failed');
+            if (res) {
+              res.className     = 'bkp-test-result ok';
+              res.textContent   = _tf(_t.autoBackupTestOk || '✅ Connected — {n} collections', { n: d.collections });
+              res.style.display = '';
+            }
+          } catch (e) {
+            if (res) {
+              res.className     = 'bkp-test-result fail';
+              res.textContent   = _tf(_t.autoBackupTestFail || '❌ {msg}', { msg: e.message });
+              res.style.display = '';
+            }
+          }
+          testBtn.disabled = false;
+          testBtn.innerHTML = origHtml;
+        });
+      })();
+
+      /* ── Initial load ── */
+      _loadBackups();
+    })(); // end Auto Backup IIFE
 
     /* ── Profile sidebar ── */
     const bannerSolid = document.querySelector('.prof-banner-solid');
