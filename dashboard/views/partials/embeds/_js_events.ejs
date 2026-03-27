@@ -1,0 +1,591 @@
+﻿       INSPECTOR EVENTS (static bindings)
+       ════════════════════════════════════════ */
+    $inspLabel.addEventListener('input', () => {
+      const s = getSelectedState(); if (!s) return;
+      s.label = $inspLabel.value;
+      const c = document.getElementById('sc_' + selectedStateId);
+      if (c) { const lbl = c.querySelector('.flow-state-lbl'); if (lbl) lbl.textContent = s.label; }
+    });
+    $inspColor.addEventListener('input', () => {
+      const s = getSelectedState(); if (!s) return;
+      s.color = $inspColor.value;
+      document.querySelectorAll('.color-swatch').forEach(el => el.classList.toggle('active', el.dataset.color === s.color));
+      const c = document.getElementById('sc_' + selectedStateId);
+      if (c) { const dot = c.querySelector('.flow-state-dot'); if (dot) dot.style.background = s.color; }
+    });
+    // Color theme swatches
+    document.getElementById('colorSwatches').addEventListener('click', e => {
+      const sw = e.target.closest('.color-swatch'); if (!sw) return;
+      const s = getSelectedState(); if (!s) return;
+      s.color = sw.dataset.color;
+      $inspColor.value = s.color;
+      document.querySelectorAll('.color-swatch').forEach(el => el.classList.toggle('active', el.dataset.color === s.color));
+      const c = document.getElementById('sc_' + selectedStateId);
+      if (c) { const dot = c.querySelector('.flow-state-dot'); if (dot) dot.style.background = s.color; }
+    });
+    document.getElementById('btnDelMulti').addEventListener('click', deleteSelectedState);
+    $inspSetInit.addEventListener('click', () => { if (selectedStateId) setInitialState(selectedStateId); });
+    $inspDelState.addEventListener('click', () => deleteSelectedState());
+    document.getElementById('btnCopyState').addEventListener('click', copySelectedState);
+    document.querySelectorAll('.insp-tab').forEach(tab => tab.addEventListener('click', function () {
+      activeTab = this.dataset.tab;
+      renderActiveTab();
+      lucide.createIcons();
+    }));
+
+    // Preview toggle (starts collapsed — user opens it when needed)
+    document.getElementById('previewToggleBar').addEventListener('click', () => {
+      document.getElementById('previewWrap').classList.toggle('collapsed');
+    });
+    document.getElementById('btnAddState').addEventListener('click', addState);
+    document.getElementById('btnAddStateEmpty').addEventListener('click', addState);
+    document.getElementById('btnAddGroup').addEventListener('click', addGroup);
+    document.getElementById('btnBack').addEventListener('click', closeEditor);
+    document.getElementById('btnUndo').addEventListener('click', undoAction);
+    document.getElementById('btnRedo').addEventListener('click', redoAction);
+    document.getElementById('btnDelGroup').addEventListener('click', deleteSelectedGroup);
+    document.getElementById('inspGroupLabel').addEventListener('input', syncGroupFromDOM);
+    document.getElementById('inspGroupColor').addEventListener('input', syncGroupFromDOM);
+    _initCanvasDelegation();
+    window.addEventListener('beforeunload', e => { if (_isDirty) { e.preventDefault(); e.returnValue = ''; } });
+    document.addEventListener('keydown', e => {
+      if ($builderView.style.display === 'none') return;
+      if ((e.key === 'Delete' || e.key === 'Backspace') && (_multiSel.size > 1 || selectedStateId) && !e.target.matches('input,textarea,select,[contenteditable]')) {
+        e.preventDefault(); deleteSelectedState(); return;
+      }
+      // Arrow-key nudge: move selected state on the canvas (Shift = 50 px, plain = 10 px)
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)
+          && selectedStateId && !e.target.matches('input,textarea,select,[contenteditable]')) {
+        e.preventDefault();
+        const _step = e.shiftKey ? 50 : 10;
+        const _ks   = machine.states[selectedStateId]; if (!_ks) return;
+        const _p    = _ks.position || { x: 80, y: 80 };
+        if      (e.key === 'ArrowLeft')  _p.x = Math.max(0, _p.x - _step);
+        else if (e.key === 'ArrowRight') _p.x += _step;
+        else if (e.key === 'ArrowUp')    _p.y = Math.max(0, _p.y - _step);
+        else if (e.key === 'ArrowDown')  _p.y += _step;
+        _ks.position = _p;
+        const _kc = document.getElementById('sc_' + selectedStateId);
+        if (_kc) { _kc.style.left = _p.x + 'px'; _kc.style.top = _p.y + 'px'; }
+        updateArrows(); scheduleMinimapUpdate(); markDirty(); return;
+      }
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === 'z' && !e.shiftKey)                          { e.preventDefault(); undoAction(); }
+      else if (e.key === 'y' || (e.key === 'z' && e.shiftKey))  { e.preventDefault(); redoAction(); }
+      else if (e.key === 'c' && selectedStateId)                 { e.preventDefault(); copySelectedState(); }
+      else if (e.key === 'v')                                    { e.preventDefault(); pasteState(); }
+    });
+    document.getElementById('btnNewMessage').addEventListener('click', () => openEditor(null));
+    $epTheme.addEventListener('change',   () => { epTheme   = $epTheme.checked; });
+    $multiUser.addEventListener('change', () => { multiUser = $multiUser.checked; });
+
+    /* ── Smart Triggers modal events ── */
+    const $triggersModal = document.getElementById('triggersModal');
+    document.getElementById('btnTriggers').addEventListener('click', () => {
+      if (!machine.triggers) machine.triggers = [];
+      renderTriggersModal();
+      updateTriggersCountBadge();
+      $triggersModal.classList.add('open');
+      lucide.createIcons();
+    });
+    document.getElementById('btnCloseTriggersModal').addEventListener('click', () => {
+      $triggersModal.classList.remove('open');
+      updateTriggersCountBadge();
+    });
+    $triggersModal.addEventListener('click', e => {
+      if (e.target === $triggersModal) $triggersModal.classList.remove('open');
+    });
+    document.getElementById('btnAddTrigger').addEventListener('click', () => {
+      if (!machine.triggers) machine.triggers = [];
+      machine.triggers.push({
+        id: nid('trg'), type: 'cron', enabled: true,
+        schedule: '0 9 * * *', channelOverride: '',
+        targetState: machine.initial || '', actions: ['send_to_channel'],
+      });
+      renderTriggersModal();
+      updateTriggersCountBadge();
+    });
+    document.getElementById('btnSaveTriggers').addEventListener('click', async () => {
+      if (!currentDoc) {
+        toast('<%= t.embeds.jsSaveFirst %>', 'error');
+        return;
+      }
+      const btn = document.getElementById('btnSaveTriggers');
+      btn.disabled = true;
+      const prev = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="loader" style="width:13px;height:13px;"></i> <%= t.embeds.jsSaving %>';
+      try {
+        const result = await api('POST', '/save', {
+          _id:       currentDoc._id,
+          name:      currentDoc.name,
+          channelId: currentDoc.channelId,
+          epTheme,
+          machine:   Object.assign({}, machine, { multiUser: multiUser || undefined }),
+        });
+        toast('<%= t.embeds.jsTriggersSaved %>', 'success');
+        // Sync the local machine triggers so inspector stays up-to-date
+        if (result.data) {
+          currentDoc = result.data;
+          const idx = savedMessages.findIndex(m => m._id === currentDoc._id);
+          if (idx >= 0) savedMessages[idx] = currentDoc;
+        }
+        $triggersModal.classList.remove('open');
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = prev;
+      lucide.createIcons();
+    });
+
+    /* ════════════════════════════════════════
+       SAVE
+       ════════════════════════════════════════ */
+    const $sendModeGroup = document.getElementById('sendModeGroup');
+    const $modeEdit      = document.getElementById('modeEdit');
+    const $modeNew       = document.getElementById('modeNew');
+
+    document.getElementById('btnSave').addEventListener('click', () => {
+      const _valIssues = validateFlow();
+      if (_valIssues.length && !confirm('<%= t.embeds.jsWarnBefore %>\n' + _valIssues.map(x => '• ' + x).join('\n') + '\n\n<%= t.embeds.jsContinueAnyway %>')) return;
+      const isEdit = !!(currentDoc?.messageId);
+      // Update modal title and description based on context
+      document.getElementById('saveModalTitle').textContent = currentDoc
+        ? '<%= t.embeds.jsSaveChanges %>'
+        : '<%= t.embeds.jsNewMessage %>';
+      document.getElementById('saveModalDesc').textContent = currentDoc
+        ? '<%= t.embeds.jsUpdateDesc %>'
+        : '<%= t.embeds.saveModalDesc %>';
+      $modalSave.textContent = isEdit
+        ? '<%= t.embeds.jsSaveAndUpdate %>'
+        : '<%= t.embeds.btnSaveAndSend %>';
+      if (currentDoc) {
+        $modalName.value    = currentDoc.name || '';
+        $modalChannel.value = currentDoc.channelId || '';
+        $modeEdit.checked   = !!currentDoc.messageId;
+        $modeNew.checked    = !currentDoc.messageId;
+      } else {
+        $modalName.value    = '';
+        $modalChannel.value = '';
+        $modeNew.checked    = true;
+      }
+      $sendModeGroup.classList.add('visible');
+      lucide.createIcons();
+      validateModal();
+      $saveModal.classList.add('open');
+    });
+    function validateModal() { $modalSave.disabled = !($modalName.value.trim() && $modalChannel.value); }
+    $modalName.addEventListener('input', validateModal);
+    $modalChannel.addEventListener('change', validateModal);
+    $modalCancel.addEventListener('click', () => $saveModal.classList.remove('open'));
+    $saveModal.addEventListener('click', e => { if (e.target === $saveModal) $saveModal.classList.remove('open'); });
+    $modalSave.addEventListener('click', async () => {
+      $modalSave.disabled = true;
+      $modalSave.textContent = '<%= t.embeds.jsSaving %>';
+      epTheme   = $epTheme.checked;
+      multiUser = $multiUser.checked;
+      const forceNew = $modeNew.checked;
+      // Clone machine to avoid mutating shared state (especially if save fails)
+      const machineCopy = JSON.parse(JSON.stringify(machine));
+      machineCopy.multiUser = multiUser || undefined;
+      const payload = {
+        _id:      currentDoc ? currentDoc._id : undefined,
+        name:     $modalName.value.trim(),
+        channelId:$modalChannel.value,
+        epTheme,
+        machine:  machineCopy,
+        forceNew: forceNew || undefined,
+      };
+      try {
+        const result = await api('POST', '/save', payload);
+        $saveModal.classList.remove('open');
+        toast(L.saved, 'success');
+        clearDirty();
+        if (currentDoc) {
+          const idx = savedMessages.findIndex(m => m._id === currentDoc._id);
+          if (idx >= 0) savedMessages[idx] = result.data;
+          currentDoc = result.data;
+        } else {
+          savedMessages.unshift(result.data);
+          currentDoc = result.data;
+        }
+        $builderTitle.textContent = L.editFlow + ': ' + result.data.name;
+      } catch (e) { toast(e.message, 'error'); }
+      $modalSave.disabled = false;
+      $modalSave.textContent = '<%= t.embeds.btnSaveAndSend %>';
+    });
+
+    /* ════════════════════════════════════════
+       EMOJI PICKER
+       ════════════════════════════════════════ */
+    const GUILD_EMOJIS   = (() => { try { return JSON.parse(document.getElementById('_data_guildEmojis').textContent); } catch(e){ return []; }})();
+    const UNICODE_EMOJIS = ['\uD83D\uDE00','\uD83D\uDE03','\uD83D\uDE04','\uD83D\uDE01','\uD83D\uDE06','\uD83D\uDE05','\uD83D\uDE02','\uD83E\uDD23','\uD83D\uDE0A','\uD83D\uDE07','\uD83D\uDE42','\uD83D\uDE43','\uD83D\uDE09','\uD83D\uDE0C','\uD83D\uDE0D','\uD83E\uDD70','\uD83D\uDE18','\uD83D\uDE17','\uD83D\uDE19','\uD83D\uDE1A','\uD83D\uDE0B','\uD83D\uDE1B','\uD83D\uDE1D','\uD83D\uDE1C','\uD83E\uDD2A','\uD83E\uDD28','\uD83E\uDDD0','\uD83E\uDD13','\uD83D\uDE0E','\uD83E\uDD29','\uD83E\uDD73','\uD83D\uDE0F','\uD83D\uDE12','\uD83D\uDE1E','\uD83D\uDE14','\uD83D\uDE1F','\uD83D\uDE15','\uD83D\uDE41','\uD83D\uDE23','\uD83D\uDE16','\uD83D\uDE2B','\uD83D\uDE29','\uD83E\uDD7A','\uD83D\uDE22','\uD83D\uDE2D','\uD83D\uDE24','\uD83D\uDE20','\uD83D\uDE21','\uD83E\uDD2C','\uD83E\uDD2F','\uD83D\uDE33','\uD83E\uDD75','\uD83E\uDD76','\uD83D\uDE31','\uD83D\uDE28','\uD83D\uDE30','\uD83D\uDE25','\uD83D\uDE13','\uD83E\uDD17','\uD83E\uDD14','\uD83E\uDD2D','\uD83E\uDD2B','\uD83E\uDD25','\uD83D\uDE36','\uD83D\uDE10','\uD83D\uDE11','\uD83D\uDE2C','\uD83D\uDE44','\uD83D\uDE2F','\uD83D\uDE26','\uD83D\uDE27','\uD83D\uDE2E','\uD83D\uDE32','\uD83E\uDD71','\uD83D\uDE34','\uD83E\uDD24','\uD83D\uDE2A','\uD83D\uDE35','\uD83E\uDD10','\uD83E\uDD74','\uD83E\uDD22','\uD83E\uDD2E','\uD83E\uDD27','\uD83D\uDE37','\uD83E\uDD12','\uD83E\uDD15','\uD83E\uDD11','\uD83E\uDD20','\uD83D\uDE08','\uD83D\uDC7F','\uD83D\uDC79','\uD83D\uDC7A','\uD83E\uDD21','\uD83D\uDCA9','\uD83D\uDC7B','\uD83D\uDC80','\uD83D\uDC7D','\uD83D\uDC7E','\uD83E\uDD16','\uD83C\uDF83','\uD83D\uDE3A','\uD83D\uDE38','\uD83D\uDE39','\uD83D\uDE3B','\uD83D\uDE3C','\uD83D\uDE3D','\uD83D\uDE40','\uD83D\uDE3F','\uD83D\uDE3E','\uD83D\uDC4B','\uD83E\uDD1A','\u270B','\uD83E\uDD96','\uD83D\uDC4C','\uD83E\uDD0C','\uD83E\uDD0F','\u270C\uFE0F','\uD83E\uDD1E','\uD83E\uDD1F','\uD83E\uDD18','\uD83E\uDD19','\uD83D\uDC48','\uD83D\uDC49','\uD83D\uDC46','\uD83D\uDC47','\uD83D\uDC4D','\uD83D\uDC4E','\u270A','\uD83D\uDC4A','\uD83E\uDD1B','\uD83E\uDD1C','\uD83D\uDC4F','\uD83D\uDE4C','\uD83D\uDC50','\uD83E\uDD32','\uD83E\uDD1D','\uD83D\uDE4F','\uD83D\uDCAA','\u2764\uFE0F','\uD83E\uDDE1','\uD83D\uDC9B','\uD83D\uDC9A','\uD83D\uDC99','\uD83D\uDC9C','\uD83D\uDDA4','\uD83E\uDD0D','\uD83E\uDD0E','\uD83D\uDC94','\uD83D\uDC95','\uD83D\uDC9E','\uD83D\uDC93','\uD83D\uDC97','\uD83D\uDC96','\uD83D\uDC98','\uD83D\uDC9D'];
+    let _epCallback = null;
+    const _epEl    = document.getElementById('emb-emoji-picker');
+    const _epBody  = document.getElementById('emb-ep-body');
+    const _epSearch= document.getElementById('emb-ep-search');
+    let _epTab = 'unicode';
+
+    // Render the inner HTML of an emoji-trigger button: image for custom, char for unicode, icon for empty
+    function renderEmojiBtn(val) {
+      if (!val) return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+      if (val.startsWith('<')) return '<img src="' + resolveEmojiUrl(val) + '" alt="emoji">';
+      return '<span style="font-size:1rem;line-height:1;">' + val + '</span>';
+    }
+    function resolveEmojiUrl(val) {
+      const m = val.match(/:(\d+)>/); if (!m) return '';
+      return 'https://cdn.discordapp.com/emojis/' + m[1] + '.' + (val.startsWith('<a:') ? 'gif' : 'png') + '?size=32';
+    }
+    function renderEpGrid(filter) {
+      _epBody.innerHTML = '';
+      const grid = document.createElement('div'); grid.className = 'ep-grid';
+      if (_epTab === 'unicode') {
+        const list = filter ? UNICODE_EMOJIS.filter(e => e.includes(filter)) : UNICODE_EMOJIS;
+        list.forEach(em => { const sp = document.createElement('span'); sp.className = 'ep-emoji'; sp.textContent = em; sp.addEventListener('click', () => selectEpEmoji(em)); grid.appendChild(sp); });
+      } else {
+        const list = filter ? GUILD_EMOJIS.filter(e => e.name.toLowerCase().includes(filter.toLowerCase())) : GUILD_EMOJIS;
+        list.forEach(em => {
+          const img = document.createElement('img'); img.className = 'ep-custom';
+          img.src = em.url; img.title = em.name; img.alt = em.name;
+          const id = em.animated ? '<a:' + em.name + ':' + em.id + '>' : '<:' + em.name + ':' + em.id + '>';
+          img.addEventListener('click', () => selectEpEmoji(id));
+          grid.appendChild(img);
+        });
+      }
+      _epBody.appendChild(grid);
+    }
+    function selectEpEmoji(val) { if (_epCallback) _epCallback(val); closeEmbEmojiPicker(); }
+    function openEmbEmojiPicker(anchor, cb) {
+      _epCallback = cb; _epTab = 'unicode'; _epSearch.value = '';
+      _epEl.querySelectorAll('.ep-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'unicode'));
+      renderEpGrid('');
+      _epEl.classList.add('open');
+      const r = anchor.getBoundingClientRect();
+      let left = r.left, top = r.bottom + 6;
+      if (left + 300 > window.innerWidth - 16) left = window.innerWidth - 316;
+      if (top  + 280 > window.innerHeight)     top  = Math.max(8, r.top - 288);
+      _epEl.style.top = top + 'px'; _epEl.style.left = left + 'px';
+      setTimeout(() => _epSearch.focus(), 40);
+    }
+    function closeEmbEmojiPicker() { _epEl.classList.remove('open'); _epCallback = null; }
+    document.getElementById('emb-ep-close').addEventListener('click', closeEmbEmojiPicker);
+    _epSearch.addEventListener('input', () => renderEpGrid(_epSearch.value));
+    _epEl.querySelectorAll('.ep-tab').forEach(tab => tab.addEventListener('click', function () {
+      _epTab = this.dataset.tab;
+      _epEl.querySelectorAll('.ep-tab').forEach(t => t.classList.toggle('active', t === this));
+      renderEpGrid(_epSearch.value);
+    }));
+    document.getElementById('emb-ep-ok').addEventListener('click', () => {
+      const v = document.getElementById('emb-ep-manual').value.trim();
+      if (v) { selectEpEmoji(v); document.getElementById('emb-ep-manual').value = ''; }
+    });
+    document.addEventListener('click', e => { if (!_epEl.contains(e.target) && !e.target.closest('.emoji-trigger')) closeEmbEmojiPicker(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeEmbEmojiPicker();
+        $saveModal.classList.remove('open');
+        $versionsModal.classList.remove('open');
+        $trashModal.classList.remove('open');
+        $triggersModal.classList.remove('open');
+        document.getElementById('tplSaveModal').classList.remove('open');
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's' && document.getElementById('builderView').style.display !== 'none') {
+        e.preventDefault();
+        document.getElementById('btnSave').click();
+      }
+    });
+
+    /* ════════════════════════════════════════
+       FILE UPLOAD (base64 data URL)
+       ════════════════════════════════════════ */
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('.emb-upload'); if (!btn) return;
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
+      document.body.appendChild(inp);
+      inp.click();
+      inp.addEventListener('change', () => {
+        const file = inp.files[0]; if (!file) { document.body.removeChild(inp); return; }
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const idx = btn.dataset.idx;
+          const el  = document.querySelector('.' + btn.dataset.target + '[data-idx="' + idx + '"]');
+          if (el) { el.value = ev.target.result; syncEmbedFromDOM(+idx); renderPreview(); }
+        };
+        reader.readAsDataURL(file);
+        document.body.removeChild(inp);
+      });
+    });
+
+    /* ════════════════════════════════════════
+       TEMPLATES
+       ════════════════════════════════════════ */
+    let savedTemplates = [];
+    let _pendingTplMachine = null;
+
+    function openTemplatesDrawer() {
+      document.getElementById('templatesDrawer').classList.add('open');
+      document.getElementById('tplBackdrop').classList.add('show');
+      document.getElementById('templatesDrawer').removeAttribute('aria-hidden');
+      loadTemplates();
+    }
+    function closeTemplatesDrawer() {
+      document.getElementById('templatesDrawer').classList.remove('open');
+      document.getElementById('tplBackdrop').classList.remove('show');
+      document.getElementById('templatesDrawer').setAttribute('aria-hidden', 'true');
+    }
+    async function loadTemplates() {
+      try {
+        const r = await api('GET', '/templates');
+        savedTemplates = r.data || [];
+        renderTemplates();
+      } catch (e) { toast(e.message || 'Failed to load templates', 'error'); }
+    }
+    function renderTemplates() {
+      const $grid = document.getElementById('tplGrid');
+      if (!savedTemplates.length) {
+        $grid.innerHTML = '<div class="tpl-empty">'
+          + '<div class="tpl-empty-ico"><i data-lucide="layout-template" style="width:24px;height:24px;stroke:currentColor;fill:none;"></i></div>'
+          + '<p style="font-size:.82rem;font-weight:600;margin:0 0 4px;"><%= t.embeds.jsNoTpls %></p>'
+          + '<p style="font-size:.75rem;margin:0;"><%= t.embeds.jsNoTplsDesc %></p>'
+          + '</div>';
+        lucide.createIcons();
+        return;
+      }
+      $grid.innerHTML = savedTemplates.map(function(t) {
+        const sc = t.stateCount || 1;
+        const date = t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '';
+        return '<div class="tpl-card">'
+          + '<div class="tpl-card-top">'
+          + '<span class="tpl-card-name">' + esc(t.name) + '</span>'
+          + '<span class="tpl-card-badge">' + sc + ' state' + (sc === 1 ? '' : 's') + '</span>'
+          + '</div>'
+          + (t.description ? '<p class="tpl-card-desc">' + esc(t.description) + '</p>' : '')
+          + (date ? '<p class="tpl-card-date">' + date + '</p>' : '')
+          + '<div class="tpl-card-acts">'
+          + '<button class="btn btn-primary btn-xs btnTplApply" data-id="' + esc(t._id) + '"><i data-lucide="play" style="width:11px;height:11px;"></i> <%= t.embeds.jsApply %></button>'
+          + '<button class="btn btn-ghost btn-xs btnTplExport" data-id="' + esc(t._id) + '"><i data-lucide="download" style="width:11px;height:11px;"></i> Export</button>'
+          + '<button class="btn btn-danger btn-xs btnTplDel" data-id="' + esc(t._id) + '"><i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+      lucide.createIcons();
+    }
+
+    document.getElementById('tplGrid').addEventListener('click', function(e) {
+      const applyBtn  = e.target.closest('.btnTplApply');
+      const exportBtn = e.target.closest('.btnTplExport');
+      const delBtn    = e.target.closest('.btnTplDel');
+      if (applyBtn) {
+        const t = savedTemplates.find(function(x) { return x._id === applyBtn.dataset.id; });
+        if (!t) return;
+        closeTemplatesDrawer();
+        currentDoc = null; epTheme = false;
+        machine = JSON.parse(JSON.stringify(t.machine));
+        if (!machine.triggers) machine.triggers = [];
+        $builderTitle.textContent = L.newFlow + ': ' + t.name;
+        $epTheme.checked = false;
+        selectedStateId = machine.initial;
+        activeTab = 'embeds';
+        $listView.style.display    = 'none';
+        $builderView.style.display = 'flex';
+        renderCanvas();
+        renderInspector();
+        lucide.createIcons();
+      }
+      if (exportBtn) {
+        const t = savedTemplates.find(function(x) { return x._id === exportBtn.dataset.id; });
+        if (!t) return;
+        const blob = new Blob(
+          [JSON.stringify({ name: t.name, description: t.description, machine: t.machine }, null, 2)],
+          { type: 'application/json' }
+        );
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = t.name.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_').toLowerCase() + '_template.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      }
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        const t  = savedTemplates.find(function(x) { return x._id === id; });
+        if (!t) return;
+        if (!confirm('<%= t.embeds.jsConfirmDelTpl %> ' + t.name + '?')) return;
+        api('DELETE', '/templates/' + id).then(function() {
+          savedTemplates = savedTemplates.filter(function(x) { return x._id !== id; });
+          renderTemplates();
+          toast('<%= t.embeds.jsTplDeleted %>', 'success');
+        }).catch(function(err) { toast(err.message, 'error'); });
+      }
+    });
+
+    document.getElementById('btnOpenTemplates').addEventListener('click', openTemplatesDrawer);
+    document.getElementById('btnCloseTplDrawer').addEventListener('click', closeTemplatesDrawer);
+    document.getElementById('tplBackdrop').addEventListener('click', closeTemplatesDrawer);
+
+    document.getElementById('btnTplImport').addEventListener('click', function() {
+      document.getElementById('tplFileInput').click();
+    });
+    document.getElementById('tplFileInput').addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      const self = this;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          const data = JSON.parse(ev.target.result);
+          const m = data.machine || data;
+          if (!m.states || !m.initial) throw new Error('Missing "states" or "initial"');
+          _pendingTplMachine = m;
+          document.getElementById('tplSaveName').value = data.name || file.name.replace(/\.json$/i, '');
+          document.getElementById('tplSaveDesc').value  = data.description || '';
+          document.getElementById('tplSaveModal').classList.add('open');
+          lucide.createIcons();
+        } catch (err) {
+          toast('<%= t.embeds.jsInvalidJSON %> ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      self.value = '';
+    });
+
+    document.getElementById('btnSaveAsTemplate').addEventListener('click', function() {
+      if (!machine || !machine.initial || !Object.keys(machine.states || {}).length) {
+        toast('<%= t.embeds.jsBuildFirst %>', 'error');
+        return;
+      }
+      _pendingTplMachine = JSON.parse(JSON.stringify(machine));
+      const title = $builderTitle.textContent || '';
+      document.getElementById('tplSaveName').value = title.replace(/^[^:]+:\s*/, '') || '';
+      document.getElementById('tplSaveDesc').value  = '';
+      document.getElementById('tplSaveModal').classList.add('open');
+      lucide.createIcons();
+    });
+
+    document.getElementById('tplSaveCancel').addEventListener('click', function() {
+      document.getElementById('tplSaveModal').classList.remove('open');
+      _pendingTplMachine = null;
+    });
+    document.getElementById('tplSaveModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('open');
+        _pendingTplMachine = null;
+      }
+    });
+
+    document.getElementById('tplSaveConfirm').addEventListener('click', async function() {
+      const name = document.getElementById('tplSaveName').value.trim();
+      if (!name) { document.getElementById('tplSaveName').focus(); return; }
+      const desc = document.getElementById('tplSaveDesc').value.trim();
+      const m    = _pendingTplMachine || JSON.parse(JSON.stringify(machine));
+      this.disabled = true;
+      const origHtml = this.innerHTML;
+      this.textContent = '...';
+      try {
+        const r = await api('POST', '/templates', { name, description: desc, machine: m });
+        savedTemplates.unshift(r.data);
+        renderTemplates();
+        document.getElementById('tplSaveModal').classList.remove('open');
+        _pendingTplMachine = null;
+        toast('<%= t.embeds.jsTplSaved %>', 'success');
+      } catch (e) { toast(e.message, 'error'); }
+      this.disabled = false;
+      this.innerHTML = origHtml;
+      lucide.createIcons();
+    });
+
+    /* ════════════════════════════════════════
+       INIT
+       ════════════════════════════════════════ */
+    renderList();
+    lucide.createIcons();
+
+    // Auto-refresh the message grid when the AI agent saves an embed
+    (function () {
+      if (typeof io === 'undefined') return;
+      const _aiSock = io();
+      _aiSock.emit('join:guild', GUILD_ID);
+      _aiSock.on('ai:embeds_updated', async function (data) {
+        if (data && data.guildId && data.guildId !== GUILD_ID) return;
+        try {
+          const j = await api('GET', '/list');
+          // Replace savedMessages in place so renderList() picks up the new data
+          savedMessages.length = 0;
+          (j.data || j.messages || []).forEach(m => savedMessages.push(m));
+          renderList();
+          lucide.createIcons();
+        } catch (_) { /* silent — user can refresh manually */ }
+      });
+    }());
+
+    // Canvas zoom / pan wiring
+    $flowCanvas.addEventListener('wheel',      _onCanvasWheel,      { passive: false });
+    $flowCanvas.addEventListener('mousedown',  _onCanvasPanStart);
+    $flowCanvas.addEventListener('touchstart', _onCanvasTouchStart, { passive: false });
+    $flowCanvas.addEventListener('touchmove',  _onCanvasTouchMove,  { passive: false });
+    $flowCanvas.addEventListener('touchend',   _onCanvasTouchEnd);
+    document.getElementById('btnZoomIn').addEventListener('click',    () => { _viewScale = Math.min(4, _viewScale * 1.2);  applyCanvasTransform(); });
+    document.getElementById('btnZoomOut').addEventListener('click',   () => { _viewScale = Math.max(0.15, _viewScale / 1.2); applyCanvasTransform(); });
+    document.getElementById('btnZoomReset').addEventListener('click', () => { _viewOX = 0; _viewOY = 0; _viewScale = 1; applyCanvasTransform(); });
+    document.getElementById('btnZoomLock').addEventListener('click', () => {
+      _zoomLocked = !_zoomLocked;
+      const btn = document.getElementById('btnZoomLock');
+      btn.classList.toggle('locked', _zoomLocked);
+      btn.title = _zoomLocked ? 'Unlock zoom' : 'Lock zoom';
+      btn.innerHTML = _zoomLocked
+        ? '<i data-lucide="lock" style="width:11px;height:11px;"></i>'
+        : '<i data-lucide="lock-open" style="width:11px;height:11px;"></i>';
+      lucide.createIcons();
+    });
+    document.getElementById('btnAutoLayout').addEventListener('click', autoLayout);
+    applyCanvasTransform();
+
+    /* ── Standard page JS ── */
+    const openProf  = document.getElementById('open-profile');
+    const closeProf = document.getElementById('close-profile');
+    const profSide  = document.getElementById('prof-sidebar');
+    const profBack  = document.getElementById('prof-backdrop');
+    if (openProf && profSide) {
+      openProf.addEventListener('click', () => { profSide.classList.add('open'); profBack && profBack.classList.add('show'); profSide.removeAttribute('aria-hidden'); });
+      [closeProf, profBack].forEach(el => el && el.addEventListener('click', () => { profSide.classList.remove('open'); profBack && profBack.classList.remove('show'); profSide.setAttribute('aria-hidden', 'true'); }));
+    }
+    const menuToggle  = document.getElementById('menu-toggle');
+    const navOverlay  = document.getElementById('nav-overlay');
+    const navSidebar  = document.querySelector('.nav-sidebar');
+    const mgmtSidebar = document.getElementById('mgmt-sidebar');
+    if (menuToggle) menuToggle.addEventListener('click', () => {
+      if (mgmtSidebar?.classList.contains('open')) { mgmtSidebar.classList.remove('open'); navOverlay?.classList.remove('open'); }
+      else { mgmtSidebar?.classList.add('open'); navOverlay?.classList.add('open'); }
+    });
+    if (navOverlay) navOverlay.addEventListener('click', () => {
+      mgmtSidebar?.classList.remove('open');
+      navSidebar?.classList.remove('open');
+      navOverlay.classList.remove('open');
+    });
+    const copyIdRow = document.getElementById('prof-copy-id');
+    if (copyIdRow) copyIdRow.addEventListener('click', () => {
+      navigator.clipboard.writeText(copyIdRow.dataset.uid || '').catch(() => {});
+      const lbl = document.getElementById('prof-copy-label');
+      if (lbl) { const orig = lbl.textContent; lbl.textContent = '<%= t.embeds.jsCopied %>'; setTimeout(() => lbl.textContent = orig, 1500); }
+    });
+    /* Language switcher */
+    const langSelectEl = document.getElementById('lang-select');
+    if (langSelectEl) {
+      langSelectEl.addEventListener('change', function () {
+        const u = new URL(window.location.href);
+        u.searchParams.set('lang', this.value);
+        window.location.href = u.toString();
+      });
+    }
+    document.querySelectorAll('.mgmt-section-btn').forEach(btn =>
+      btn.addEventListener('click', () => { const body = btn.nextElementSibling; btn.classList.toggle('open'); if (body) body.classList.toggle('open'); }));
+    document.querySelectorAll('.nav-link').forEach(a => a.addEventListener('click', e => {
+      const href = a.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
+      e.preventDefault();
+      const ov = document.getElementById('ov');
+      if (ov) { ov.style.animation = 'pOut .35s cubic-bezier(.4,0,.2,1) forwards'; ov.style.pointerEvents = 'all'; }
+      setTimeout(() => { window.location.href = href; }, 340);
+    }));

@@ -1,0 +1,207 @@
+﻿
+    <!-- \u2550\u2550 LIST VIEW \u2550\u2550 -->
+    <div id="listView">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2><%= t.embeds.heading %></h2>
+          <p><%= t.embeds.desc %></p>
+          <div class="page-header-badge">
+            <i data-lucide="file-code-2" style="width:11px;height:11px;stroke:currentColor;"></i>
+            <%= t.embeds.badge %>
+          </div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-ghost" id="btnOpenTemplates">
+            <i data-lucide="layout-template" style="width:16px;height:16px;"></i>
+            <span class="hide-xs"><%= t.embeds.btnTemplates %></span>
+          </button>
+          <button class="btn btn-ghost" id="btnOpenTrash" title="Recycle Bin">
+            <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+            <span class="hide-xs"><%= t.embeds.btnTrash %></span>
+          </button>
+          <button class="btn btn-primary" id="btnNewMessage">
+            <i data-lucide="plus" style="width:16px;height:16px;"></i>
+            <%= t.embeds.btnNewMsg %>
+          </button>
+        </div>
+      </div>
+
+      <div class="msg-grid" id="msgGrid"></div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-state-icon">
+          <i data-lucide="file-code-2" style="width:28px;height:28px;stroke:currentColor;fill:none;"></i>
+        </div>
+        <h3><%= t.embeds.emptyTitle %></h3>
+        <p><%= t.embeds.emptyDesc %></p>
+      </div>
+    </div>
+
+        <!-- BUILDER VIEW XState Flow -->
+    <div id="builderView" style="display:none;flex-direction:column;height:calc(100dvh - 96px);">
+      <div class="builder-toolbar" style="flex-shrink:0;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" id="btnBack">
+          <i data-lucide="arrow-left" style="width:14px;height:14px;"></i>
+          <span class="hide-xs"><%= t.embeds.btnBack %></span>
+        </button>
+        <h3 id="builderTitle" style="flex:1;font-size:.95rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= t.embeds.jsNewFlow %></h3>
+        <div class="toggle-wrap" title="Ephemeral Theme: when enabled all component interactions update the same shared embed state instead of per-user state">
+          <span style="font-size:.76rem;color:var(--muted);" class="hide-xs"><%= t.embeds.builderEpTheme %></span>
+          <label class="toggle"><input type="checkbox" id="epThemeToggle"><span class="toggle-slider"></span></label>
+        </div>
+        <div clas
+        <button class="btn btn-ghost btn-sm" id="btnAddGroup" title="Add a labeled region to group states visually">
+          <i data-lucide="square-dashed" style="width:14px;height:14px;"></i> <span class="hide-xs"><%= t.embeds.builderGroup %></span>
+        </button>s="toggle-wrap" title="Each user gets their own independent flow state">
+          <span style="font-size:.76rem;color:var(--muted);" class="hide-xs"><%= t.embeds.builderMultiUser %></span>
+          <label class="toggle"><input type="checkbox" id="multiUserToggle"><span class="toggle-slider"></span></label>
+        </div>
+        <button class="btn btn-ghost btn-sm icon-only" id="btnUndo" title="Undo (Ctrl+Z)" disabled>
+          <i data-lucide="undo-2" style="width:14px;height:14px;"></i>
+        </button>
+        <button class="btn btn-ghost btn-sm icon-only" id="btnRedo" title="Redo (Ctrl+Y)" disabled>
+          <i data-lucide="redo-2" style="width:14px;height:14px;"></i>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btnAddState">
+          <i data-lucide="plus" style="width:14px;height:14px;"></i> <span class="hide-xs"><%= t.embeds.btnAddState %></span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btnTriggers" style="position:relative;">
+          <i data-lucide="zap" style="width:14px;height:14px;"></i> <span class="hide-xs"><%= t.embeds.btnTriggers %></span>
+          <span id="trgCountBadge" class="trg-count-badge" style="display:none;">0</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btnSaveAsTemplate" title="<%= t.embeds.btnSaveAsTemplate %>">
+          <i data-lucide="layout-template" style="width:14px;height:14px;"></i>
+          <span class="hide-xs"><%= t.embeds.btnTemplate %></span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btnVersionHistory" title="Version History" style="position:relative;">
+          <i data-lucide="history" style="width:14px;height:14px;"></i>
+          <span class="hide-xs"><%= t.embeds.btnHistory %></span>
+          <span id="verCountBadge" class="trg-count-badge" style="display:none;">0</span>
+        </button>
+        <button class="btn btn-primary btn-sm" id="btnSave">
+          <i data-lucide="save" style="width:14px;height:14px;"></i> <span class="hide-xs"><%= t.embeds.btnSaveAndSend %></span>
+        </button>
+      </div>
+      <div class="flow-body" style="flex:1;min-height:0;margin-top:12px;">
+        <div class="flow-canvas-wrap">
+          <div class="canvas-toolbar">
+            <span class="canvas-tool-lbl"><%= t.embeds.builderFlowCanvas %></span>
+            <span class="state-count-badge" id="stateCountBadge">0 <%= t.embeds.builderStates %></span>
+            <div class="canvas-zoom-controls">
+              <button class="canvas-zoom-btn" id="btnZoomOut" title="Zoom out"><i data-lucide="minus" style="width:11px;height:11px;"></i></button>
+              <span class="canvas-zoom-lbl" id="zoomLabel">100%</span>
+              <button class="canvas-zoom-btn" id="btnZoomIn" title="Zoom in"><i data-lucide="plus" style="width:11px;height:11px;"></i></button>
+              <button class="canvas-zoom-btn wide" id="btnZoomReset" title="Reset view">FIT</button>
+              <button class="canvas-zoom-btn" id="btnZoomLock" title="Lock zoom"><i data-lucide="lock-open" style="width:11px;height:11px;"></i></button>
+              <button class="canvas-zoom-btn wide" id="btnAutoLayout" title="Auto layout"><i data-lucide="layout-dashboard" style="width:11px;height:11px;"></i></button>
+            </div>
+          </div>
+          <div class="flow-canvas" id="flowCanvas">
+            <canvas class="flow-minimap" id="flowMinimap" width="160" height="96"></canvas>
+            <div class="canvas-body" id="canvasBody">
+              <svg class="flow-svg" id="flowSvg">
+                <defs>
+                  <marker id="arrowHead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                    <polygon points="0 0, 8 3, 0 6" fill="rgba(124,58,237,.75)"/>
+                  </marker>
+                </defs>
+              </svg>
+              <div id="flowStates"></div>
+              <div class="canvas-empty" id="canvasEmpty">
+                <div class="canvas-empty-ico"><i data-lucide="git-branch" style="width:26px;height:26px;stroke:currentColor;fill:none;"></i></div>
+                <p style="font-size:.82rem;font-weight:600;"><%= t.embeds.builderNoStates %></p>
+                <p style="font-size:.74rem;"><%= t.embeds.builderNoStatesDesc %></p>
+                <button class="btn btn-primary btn-sm" id="btnAddStateEmpty" style="margin-top:4px;">
+                  <i data-lucide="plus" style="width:13px;height:13px;"></i> <%= t.embeds.btnAddFirstState %>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-inspector" id="flowInspector">
+          <div class="insp-empty" id="inspEmpty">
+            <div class="insp-empty-ico"><i data-lucide="mouse-pointer-click" style="width:24px;height:24px;stroke:currentColor;fill:none;"></i></div>
+            <p style="font-size:.82rem;font-weight:600;"><%= t.embeds.builderSelectState %></p>
+            <p style="font-size:.73rem;"><%= t.embeds.builderSelectStateDesc %></p>
+          </div>
+          <div class="insp-content" id="inspContent" style="display:none;">
+            <div class="insp-hd">
+              <div class="insp-hd-r1">
+                <input class="insp-label" id="inspLabel" placeholder="<%= t.embeds.builderStateName %>" maxlength="60">
+                <div class="color-theme-wrap">
+                  <div class="color-swatches" id="colorSwatches">
+                    <span class="color-swatch" data-color="#7c3aed" title="Default" style="background:#7c3aed"></span>
+                    <span class="color-swatch" data-color="#22c55e" title="Success" style="background:#22c55e"></span>
+                    <span class="color-swatch" data-color="#ef4444" title="Error" style="background:#ef4444"></span>
+                    <span class="color-swatch" data-color="#f59e0b" title="Warning" style="background:#f59e0b"></span>
+                    <span class="color-swatch" data-color="#0ea5e9" title="Info" style="background:#0ea5e9"></span>
+                    <span class="color-swatch" data-color="#ec4899" title="Event" style="background:#ec4899"></span>
+                    <span class="color-swatch" data-color="#64748b" title="Neutral" style="background:#64748b"></span>
+                  </div>
+                  <input type="color" class="insp-color-inp" id="inspColor" value="#7c3aed" title="Custom color">
+                </div>
+              </div>
+              <div class="insp-hd-r2">
+                <span class="insp-init-badge" id="inspInitBadge"><%= t.embeds.builderInitial %></span>
+                <button class="insp-set-init" id="inspSetInit"><%= t.embeds.builderSetInitial %></button>
+                <button class="insp-set-init" id="btnCopyState" title="Copy State (Ctrl+C)" style="color:var(--purple-l);"><i data-lucide="copy" style="width:11px;height:11px;"></i></button>
+                <button class="insp-del" id="inspDelState"><%= t.embeds.btnDelete %></button>
+              </div>
+            </div>
+            <div class="insp-tabs">
+              <button class="insp-tab active" data-tab="embeds"><%= t.embeds.tabEmbeds %></button>
+              <button class="insp-tab" data-tab="components"><%= t.embeds.tabComponents %></button>
+              <button class="insp-tab" data-tab="transitions"><%= t.embeds.tabTransitions %></button>
+              <button class="insp-tab" data-tab="permissions"><i data-lucide="shield" style="width:10px;height:10px;vertical-align:middle;margin-right:2px;"></i><%= t.embeds.tabPerms %></button>
+            </div>
+            <div class="insp-scroll">
+              <div class="insp-panel active" id="panelEmbeds" data-panel="embeds"></div>
+              <div class="insp-panel" id="panelComponents" data-panel="components"></div>
+              <div class="insp-panel" id="panelTransitions" data-panel="transitions"></div>
+              <div class="insp-panel" id="panelPermissions" data-panel="permissions"></div>
+            </div>
+            <div class="flow-preview-wrap collapsed" id="previewWrap">
+              <div class="preview-toggle-bar" id="previewToggleBar">
+                <svg class="preview-toggle-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+                <span class="preview-toggle-label"><%= t.embeds.builderPreview %></span>
+              </div>
+              <div class="preview-body">
+                <div class="preview-panel">
+                  <div class="preview-msg">
+                    <div class="preview-avatar" id="prevAvatar">B</div>
+                    <div class="preview-content">
+                      <div class="preview-author" id="prevAuthor">Bot <span class="bot-tag">BOT</span></div>
+                      <div id="prevEmbeds"></div>
+                      <div class="preview-comps" id="prevComps"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Multi-state selection panel -->
+          <div id="multiSelPanel">
+            <div class="multi-sel-ico">&#xFE0F;&#x2694;</div>
+            <div class="multi-sel-lbl" id="multiSelLbl">2 <%= t.embeds.jsMultiSelSelected %></div>
+            <div class="multi-sel-hint"><%- t.embeds.jsMultiSelHint %></div>
+            <button class="btn btn-danger btn-sm" id="btnDelMulti"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> <%= t.embeds.btnDeleteAllSelected %></button>
+          </div>
+          <!-- Group region inspector (shown when a group is selected instead of state inspector) -->
+          <div id="inspGroupContent" style="display:none;flex-direction:column;padding:16px;gap:12px;">
+            <div style="display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:2px;">
+              <i data-lucide="square-dashed" style="width:15px;height:15px;color:var(--purple-l);flex-shrink:0;"></i>
+              <span style="font-size:.82rem;font-weight:700;flex:1;color:var(--white);"><%= t.embeds.builderGroupRegion %></span>
+              <button class="insp-del" id="btnDelGroup"><%= t.embeds.btnDelete %></button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="font-size:.72rem;color:var(--muted);min-width:42px;flex-shrink:0;"><%= t.embeds.builderLabel %></label>
+              <input class="insp-label" id="inspGroupLabel" placeholder="<%= t.embeds.builderGroupName %>" maxlength="40" style="font-size:.8rem;">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="font-size:.72rem;color:var(--muted);min-width:42px;flex-shrink:0;"><%= t.embeds.builderColor %></label>
+              <input type="color" class="insp-color-inp" id="inspGroupColor" value="#7c3aed">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+

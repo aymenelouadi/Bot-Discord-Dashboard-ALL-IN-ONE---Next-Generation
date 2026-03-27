@@ -1,0 +1,669 @@
+﻿       DIRTY / HISTORY / COPY/PASTE / VALIDATION
+       ════════════════════════════════════════ */
+    function markDirty() {
+      _isDirty = true;
+      $builderView.classList.add('has-unsaved');
+    }
+    function clearDirty() {
+      _isDirty = false;
+      $builderView.classList.remove('has-unsaved');
+    }
+    const MAX_HISTORY = 30;
+    function pushHistory() {
+      _undoStack.push(JSON.stringify(machine));
+      if (_undoStack.length > MAX_HISTORY) _undoStack.shift();
+      _redoStack.length = 0;
+      _updateUndoButtons();
+      // Persist so history survives page navigation within the same browser tab
+      if (currentDoc?._id) try { sessionStorage.setItem('_us_' + currentDoc._id, JSON.stringify(_undoStack)); } catch (_) {}
+    }
+    function _updateUndoButtons() {
+      const bu = document.getElementById('btnUndo');
+      const br = document.getElementById('btnRedo');
+      if (bu) bu.disabled = !_undoStack.length;
+      if (br) br.disabled = !_redoStack.length;
+    }
+    function undoAction() {
+      if (!_undoStack.length) return;
+      _redoStack.push(JSON.stringify(machine));
+      machine = JSON.parse(_undoStack.pop());
+      if (!machine.states[selectedStateId]) selectedStateId = machine.initial;
+      renderCanvas(); renderInspector(); lucide.createIcons();
+      _updateUndoButtons();
+    }
+    function redoAction() {
+      if (!_redoStack.length) return;
+      _undoStack.push(JSON.stringify(machine));
+      machine = JSON.parse(_redoStack.pop());
+      if (!machine.states[selectedStateId]) selectedStateId = machine.initial;
+      renderCanvas(); renderInspector(); lucide.createIcons();
+      _updateUndoButtons();
+    }
+    function copySelectedState() {
+      const s = getSelectedState(); if (!s) return;
+      _copiedState = JSON.parse(JSON.stringify(s));
+      toast('<%= t.embeds.jsStateCopied %>', 'success');
+    }
+    function pasteState() {
+      if (!_copiedState) return toast('<%= t.embeds.jsNothingToPaste %>', 'error');
+      pushHistory();
+      const sid = nid('state');
+      machine.states[sid] = JSON.parse(JSON.stringify(_copiedState));
+      machine.states[sid].id    = sid;
+      machine.states[sid].label = (_copiedState.label || 'State') + ' (copy)';
+      machine.states[sid].position = {
+        x: (_copiedState.position?.x || 80) + 30,
+        y: (_copiedState.position?.y || 80) + 30,
+      };
+      machine.states[sid].on = {};
+      selectedStateId = sid;
+      renderCanvas(); renderInspector(); lucide.createIcons();
+      markDirty();
+    }
+    function panToState(sid) {
+      const s = machine.states[sid]; if (!s) return;
+      const pos = s.position || { x: 80, y: 80 };
+      const rect = $flowCanvas.getBoundingClientRect();
+      _viewOX = rect.width  / 2 - (pos.x + 120) * _viewScale;
+      _viewOY = rect.height / 2 - (pos.y +  55) * _viewScale;
+      applyCanvasTransform();
+    }
+    function validateFlow() {
+      const issues = [];
+      for (const [sid, s] of Object.entries(machine.states)) {
+        for (const tr of Object.values(s.on || {})) {
+          if (tr.target && tr.target !== sid && !machine.states[tr.target])
+            issues.push('<%= t.embeds.jsStateErrPre %> "' + esc(s.label || sid) + '" <%= t.embeds.jsStateErrPost %>');
+        }
+      }
+      return issues;
+    }
+    // ── Minimap ──────────────────────────────
+    let _minimapRaf = null;
+    function scheduleMinimapUpdate() {
+      if (_minimapRaf) return;
+      _minimapRaf = requestAnimationFrame(() => { _minimapRaf = null; updateMinimap(); });
+    }
+    function updateMinimap() {
+      const $mm = document.getElementById('flowMinimap');
+      if (!$mm) return;
+      const ids = Object.keys(machine.states);
+      if (ids.length < 2) { $mm.style.opacity = '0'; return; }
+      $mm.style.opacity = '1';
+      const ctx = $mm.getContext('2d');
+      const W = $mm.width, H = $mm.height;
+      ctx.clearRect(0, 0, W, H);
+      const STATE_W = 246, STATE_H = 100;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const sid of ids) {
+        const p = machine.states[sid].position || { x: 80, y: 80 };
+        if (p.x < minX)           minX = p.x;
+        if (p.y < minY)           minY = p.y;
+        if (p.x + STATE_W > maxX) maxX = p.x + STATE_W;
+        if (p.y + STATE_H > maxY) maxY = p.y + STATE_H;
+      }
+      const PAD = 20;
+      minX -= PAD; minY -= PAD; maxX += PAD; maxY += PAD;
+      const bw = maxX - minX, bh = maxY - minY;
+      if (bw <= 0 || bh <= 0) return;
+      const scale = Math.min(W / bw, H / bh);
+      // Draw states
+      for (const sid of ids) {
+        const s = machine.states[sid];
+        const p = s.position || { x: 80, y: 80 };
+        const c = s.color || '#7c3aed';
+        const x = (p.x - minX) * scale, y = (p.y - minY) * scale;
+        const w = Math.max(STATE_W * scale, 3), h = Math.max(STATE_H * scale, 3);
+        ctx.fillStyle = c + '44';
+        ctx.strokeStyle = (_multiSel.has(sid) || selectedStateId === sid)
+          ? 'rgba(255,255,255,.85)' : c + 'bb';
+        ctx.lineWidth = selectedStateId === sid ? 1.5 : 0.8;
+        ctx.beginPath(); ctx.rect(x, y, w, h); ctx.fill(); ctx.stroke();
+      }
+      // Draw arrows
+      ctx.strokeStyle = 'rgba(124,58,237,.4)'; ctx.lineWidth = 0.7;
+      for (const [fromId, s] of Object.entries(machine.states)) {
+        for (const tr of Object.values(s.on || {})) {
+          if (!tr.target || !machine.states[tr.target]) continue;
+          const fp = s.position || { x: 80, y: 80 };
+          const tp = machine.states[tr.target].position || { x: 80, y: 80 };
+          ctx.beginPath();
+          ctx.moveTo((fp.x + STATE_W - minX) * scale, (fp.y + STATE_H / 2 - minY) * scale);
+          ctx.lineTo((tp.x           - minX) * scale, (tp.y + STATE_H / 2 - minY) * scale);
+          ctx.stroke();
+        }
+      }
+      // Draw viewport rectangle
+      const rect = $flowCanvas.getBoundingClientRect();
+      const vx = (-_viewOX / _viewScale - minX) * scale;
+      const vy = (-_viewOY / _viewScale - minY) * scale;
+      const vw = (rect.width  / _viewScale) * scale;
+      const vh = (rect.height / _viewScale) * scale;
+      ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1;
+      ctx.strokeRect(vx, vy, Math.min(W, vw), Math.min(H, vh));
+    }
+    function _initCanvasDelegation() {
+      // Delegated click: select state / make-initial / delete
+      $flowStates.addEventListener('click', e => {
+        const card = e.target.closest('.flow-state'); if (!card) return;
+        const sid = card.dataset.sid;
+        if (e.target.closest('.state-act-btn.make-init')) { e.stopPropagation(); setInitialState(sid); return; }
+        if (e.target.closest('.state-act-btn.del'))       { e.stopPropagation(); selectedStateId = sid; deleteSelectedState(); return; }
+        if (!e.target.closest('.state-act-btn')) {
+          if (e.ctrlKey || e.metaKey) {
+            // Toggle in multi-selection
+            e.stopPropagation();
+            if (_multiSel.has(sid)) { _multiSel.delete(sid); } else { _multiSel.add(sid); }
+            if (selectedStateId && _multiSel.size > 0 && !_multiSel.has(selectedStateId))
+              _multiSel.add(selectedStateId); // keep primary in set
+            if (_multiSel.size === 1) { const only = [..._multiSel][0]; _multiSel.clear(); selectState(only); return; }
+            if (_multiSel.size === 0) return;
+            selectedStateId = sid; selectedGroupId = null;
+            renderCanvas(); renderInspector(); lucide.createIcons();
+          } else {
+            _multiSel.clear();
+            selectState(sid);
+          }
+        }
+      });
+      // Delegated click: group select / delete
+      $flowStates.addEventListener('click', e => {
+        const grp = e.target.closest('.flow-group'); if (!grp) return;
+        if (e.target.closest('.flow-state')) return; // state on top — ignore
+        const gid = grp.dataset.gid;
+        if (e.target.closest('.flow-group-del')) { e.stopPropagation(); selectedGroupId = gid; deleteSelectedGroup(); return; }
+        selectedGroupId = gid; selectedStateId = null;
+        renderGroupInspector();
+        // Highlight selected group
+        document.querySelectorAll('.flow-group').forEach(g => g.classList.toggle('selected', g.dataset.gid === gid));
+      });
+      // Delegated mousedown: drag header / connect port
+      $flowStates.addEventListener('mousedown', e => {
+        const card = e.target.closest('.flow-state'); if (!card) return;
+        const sid = card.dataset.sid;
+        if (e.target.closest('.sc-port'))          { e.stopPropagation(); e.preventDefault(); startConnecting(e, sid); return; }
+        if (e.target.closest('.flow-state-header')) startDrag(e, card, sid);
+      });
+      // Delegated mousedown: group drag / resize
+      $flowStates.addEventListener('mousedown', e => {
+        const grp = e.target.closest('.flow-group'); if (!grp) return;
+        if (e.target.closest('.flow-state')) return; // state on top
+        const gid = grp.dataset.gid;
+        if (e.button !== 0) return;
+        if (e.target.closest('.flow-group-del')) return;
+        if (e.target.closest('.flow-group-resize')) { startGroupDrag(e, gid, true); return; }
+        if (e.target.closest('.flow-group-header')) startGroupDrag(e, gid, false);
+      });
+      // Touchstart: must be non-passive so startDrag can call preventDefault
+      $flowStates.addEventListener('touchstart', e => {
+        const hd = e.target.closest('.flow-state-header'); if (!hd) return;
+        const card = hd.closest('.flow-state'); if (!card) return;
+        startDrag(e, card, card.dataset.sid);
+      }, { passive: false });
+    }
+
+    /* ── Group Region Functions ── */
+    function groupDivHTML(g) {
+      const c  = g.color || '#7c3aed';
+      const bg = c + '18'; // 8-digit hex for ~9% opacity background
+      const isSel = selectedGroupId === g.id;
+      return '<div class="flow-group' + (isSel ? ' selected' : '') + '" data-gid="' + esc(g.id) + '" id="grp_' + esc(g.id) + '"'
+        + ' style="left:' + (g.x || 80) + 'px;top:' + (g.y || 80) + 'px;width:' + (g.w || 320) + 'px;height:' + (g.h || 220) + 'px;'
+        + 'border-color:' + esc(c) + ';background:' + esc(bg) + ';color:' + esc(c) + ';">'
+        + '<div class="flow-group-header">'
+        + '<i data-lucide="grip-vertical" style="width:11px;height:11px;flex-shrink:0;opacity:.5;"></i>'
+        + '<span class="flow-group-lbl">' + esc(g.label || 'Group') + '</span>'
+        + '<button class="flow-group-del" data-gid="' + esc(g.id) + '" title="Delete group" tabindex="-1">'
+        + '<i data-lucide="x" style="width:10px;height:10px;"></i></button>'
+        + '</div>'
+        + '<div class="flow-group-resize" data-gid="' + esc(g.id) + '"></div>'
+        + '</div>';
+    }
+    function addGroup() {
+      pushHistory();
+      if (!machine.groups) machine.groups = [];
+      const id = nid('grp');
+      const palette = ['#7c3aed','#0ea5e9','#22c55e','#f59e0b','#ef4444','#ec4899'];
+      const c = palette[machine.groups.length % palette.length];
+      machine.groups.push({
+        id, label: 'Group ' + (machine.groups.length + 1), color: c,
+        x: 60 + machine.groups.length * 20,
+        y: 60 + machine.groups.length * 20,
+        w: 320, h: 220,
+      });
+      selectedGroupId = id; selectedStateId = null;
+      renderCanvas(); renderGroupInspector(); lucide.createIcons();
+      markDirty();
+    }
+    function deleteSelectedGroup() {
+      if (!selectedGroupId) return;
+      pushHistory();
+      machine.groups = (machine.groups || []).filter(g => g.id !== selectedGroupId);
+      selectedGroupId = null;
+      renderCanvas(); renderGroupInspector(); lucide.createIcons();
+      markDirty();
+    }
+    function syncGroupFromDOM() {
+      if (!selectedGroupId) return;
+      const g = (machine.groups || []).find(gg => gg.id === selectedGroupId);
+      if (!g) return;
+      g.label = document.getElementById('inspGroupLabel').value;
+      g.color = document.getElementById('inspGroupColor').value;
+      // Update only the group element's style and label without full re-render
+      const el = document.getElementById('grp_' + selectedGroupId);
+      if (el) {
+        const c = g.color || '#7c3aed';
+        el.style.borderColor = c;
+        el.style.color       = c;
+        el.style.background  = c + '18';
+        const lbl = el.querySelector('.flow-group-lbl');
+        if (lbl) lbl.textContent = g.label || 'Group';
+      }
+      markDirty();
+    }
+    function renderGroupInspector() {
+      const $ig = document.getElementById('inspGroupContent');
+      if (!$ig) return;
+      if (selectedGroupId) {
+        const g = (machine.groups || []).find(gg => gg.id === selectedGroupId);
+        if (!g) { selectedGroupId = null; renderGroupInspector(); return; }
+        $inspEmpty.style.display   = 'none';
+        $inspContent.style.display = 'none';
+        $ig.style.display = 'flex';
+        document.getElementById('inspGroupLabel').value = g.label || '';
+        document.getElementById('inspGroupColor').value = g.color || '#7c3aed';
+      } else {
+        $ig.style.display = 'none';
+      }
+    }
+    function startGroupDrag(e, gid, isResize) {
+      e.preventDefault(); e.stopPropagation();
+      const g = (machine.groups || []).find(gg => gg.id === gid); if (!g) return;
+      selectedGroupId = gid; selectedStateId = null;
+      renderGroupInspector();
+      document.querySelectorAll('.flow-group').forEach(el => el.classList.toggle('selected', el.dataset.gid === gid));
+      const pt = _canvasXY(_getXY(e));
+      _groupDrag = {
+        gid, isResize,
+        ox: pt.x - (g.x || 80), oy: pt.y - (g.y || 80),
+        iw: g.w || 320, ih: g.h || 220,
+        sx: pt.x, sy: pt.y,
+      };
+      document.addEventListener('mousemove', onGroupDragMove);
+      document.addEventListener('mouseup',   onGroupDragEnd, { once: true });
+    }
+    function onGroupDragMove(e) {
+      if (!_groupDrag) return;
+      e.preventDefault();
+      const g = (machine.groups || []).find(gg => gg.id === _groupDrag.gid); if (!g) return;
+      const el = document.getElementById('grp_' + _groupDrag.gid); if (!el) return;
+      const pt = _canvasXY(_getXY(e));
+      if (_groupDrag.isResize) {
+        g.w = Math.max(100, _groupDrag.iw + (pt.x - _groupDrag.sx));
+        g.h = Math.max(70,  _groupDrag.ih + (pt.y - _groupDrag.sy));
+        el.style.width  = g.w + 'px';
+        el.style.height = g.h + 'px';
+      } else {
+        g.x = Math.max(0, pt.x - _groupDrag.ox);
+        g.y = Math.max(0, pt.y - _groupDrag.oy);
+        el.style.left = g.x + 'px';
+        el.style.top  = g.y + 'px';
+      }
+    }
+    function onGroupDragEnd() {
+      if (_groupDrag) markDirty();
+      _groupDrag = null;
+      document.removeEventListener('mousemove', onGroupDragMove);
+    }
+
+    /* ════════════════════════════════════════
+       CANVAS
+       ════════════════════════════════════════ */
+    function renderCanvas() {
+      const ids = Object.keys(machine.states);
+      $stateCountBadge.textContent = ids.length + ' ' + L.builderStates;
+      $canvasEmpty.style.display   = ids.length ? 'none' : '';
+      // Groups render first (lower z-index 1) then state cards (z-index 10)
+      $flowStates.innerHTML = (machine.groups || []).map(g => groupDivHTML(g)).join('')
+        + ids.map(sid => stateCardHTML(sid)).join('');
+      updateArrows();
+      scheduleMinimapUpdate();
+    }
+
+    function stateCardHTML(sid) {
+      const s        = machine.states[sid];
+      const isInit   = machine.initial === sid;
+      const isSel    = selectedStateId === sid;
+      const on       = s.on || {};
+      const trCount  = Object.keys(on).length;
+      const embCount = (s.embeds || []).length;
+      const cmpCount = (s.components || []).length;
+      const pos      = s.position || { x: 80, y: 80 };
+      let cls = 'flow-state';
+      if (isSel)                cls += ' selected';
+      if (isInit)               cls += ' is-initial';
+      if (_multiSel.has(sid))   cls += ' multi-sel';
+
+      const trRows = Object.entries(on).slice(0, 3).map(([eid, tr]) => {
+        const toLbl = machine.states[tr.target]?.label || tr.target || '?';
+        return '<div class="state-tr">'
+          + '<span class="state-tr-from">' + esc(eid.length > 14 ? eid.slice(0,12) + '\u2026' : eid) + '</span>'
+          + '<span class="state-tr-arrow">\u2192</span>'
+          + '<span class="state-tr-to">' + esc(toLbl) + '</span>'
+          + '</div>';
+      }).join('');
+      const moreRow = trCount > 3
+        ? '<div style="font-size:.62rem;color:var(--muted);padding:2px 6px;">+' + (trCount-3) + ' more</div>'
+        : '';
+
+      return '<div class="' + cls + '" data-sid="' + esc(sid) + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;" id="sc_' + sid + '">'
+        + '<div class="flow-state-header">'
+        + '<span class="flow-state-grip"><i data-lucide="grip-vertical" style="width:13px;height:13px;"></i></span>'
+        + '<span class="flow-state-dot" style="background:' + esc(s.color || '#7c3aed') + '"></span>'
+        + '<span class="flow-state-lbl">' + esc(s.label || sid) + '</span>'
+        + (isInit ? '<span class="flow-state-init-badge">INIT</span>' : '')
+        + '<div class="state-act-btns">'
+        + (!isInit ? '<button class="state-act-btn make-init" title="Set as initial"><i data-lucide="flag" style="width:11px;height:11px;"></i></button>' : '')
+        + '<button class="state-act-btn del" title="Delete"><i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>'
+        + '</div></div>'
+        + '<div class="flow-state-body">'
+        + '<div class="state-meta">'
+        + '<span class="state-tag">' + embCount + ' embed' + (embCount!==1?'s':'') + '</span>'
+        + '<span class="state-tag">' + cmpCount + ' comp' + (cmpCount!==1?'s':'') + '</span>'
+        + (trCount ? '<span class="state-tag" style="color:var(--purple-l);border-color:rgba(124,58,237,.2);">' + trCount + ' tr</span>' : '')
+        + '</div>'
+        + (trCount ? '<div class="state-transitions">' + trRows + moreRow + '</div>' : '')
+        + '</div>'
+        + '<div class="sc-port" data-port="' + esc(sid) + '" title="Drag to connect"></div>'
+        + '</div>';
+    }
+
+    function updateArrows() {
+      // Build the desired arrows keyed by "fromId__evKey" for diffing
+      const desired = new Map();
+      for (const [fromId, s] of Object.entries(machine.states)) {
+        for (const [evKey, tr] of Object.entries(s.on || {})) {
+          if (!tr.target || !machine.states[tr.target]) continue;
+          const fromEl = document.getElementById('sc_' + fromId);
+          const toEl   = document.getElementById('sc_' + tr.target);
+          if (!fromEl || !toEl) continue;
+          const fp = s.position || { x: 80, y: 80 };
+          const tp = machine.states[tr.target].position || { x: 80, y: 80 };
+          const fh = fromEl.offsetHeight || 100, th = toEl.offsetHeight || 100;
+          const x1 = fp.x + 246, y1 = fp.y + fh / 2;
+          const x2 = tp.x,       y2 = tp.y + th / 2;
+          const cx = (x1 + x2) / 2;
+          const d   = `M ${x1} ${y1} C ${cx} ${y1} ${cx} ${y2} ${x2} ${y2}`;
+          const lbl = evKey.length > 16 ? evKey.slice(0, 14) + '\u2026' : evKey;
+          desired.set(fromId + '__' + evKey, { d, lbl, lx: (x1 + x2) / 2, ly: (y1 + y2) / 2 - 5 });
+        }
+      }
+      // Remove stale arrows that no longer exist in the machine
+      $flowSvg.querySelectorAll('[data-ak]').forEach(el => {
+        if (!desired.has(el.dataset.ak)) el.remove();
+      });
+      // Create or update only the arrows that changed (skips DOM writes when nothing moved)
+      for (const [key, { d, lbl, lx, ly }] of desired) {
+        const ek = CSS.escape(key);
+        let p = $flowSvg.querySelector(`.flow-arrow[data-ak="${ek}"]`);
+        if (!p) {
+          p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          p.setAttribute('class', 'flow-arrow'); p.dataset.ak = key;
+          $flowSvg.appendChild(p);
+        }
+        if (p.getAttribute('d') !== d) p.setAttribute('d', d);
+        let t = $flowSvg.querySelector(`.flow-arrow-lbl[data-ak="${ek}"]`);
+        if (!t) {
+          t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          t.setAttribute('class', 'flow-arrow-lbl'); t.dataset.ak = key;
+          $flowSvg.appendChild(t);
+        }
+        if (+t.getAttribute('x') !== lx) t.setAttribute('x', lx);
+        if (+t.getAttribute('y') !== ly) t.setAttribute('y', ly);
+        if (t.textContent !== lbl) t.textContent = lbl;
+      }
+    }
+
+    let _drag = null, _connecting = null;
+    let _viewOX = 0, _viewOY = 0, _viewScale = 1;
+    let _canvasPan = null, _pinch = null;
+    let _zoomLocked = false;
+
+    function _getXY(e) {
+      if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      return { x: e.clientX, y: e.clientY };
+    }
+    function _canvasXY(pt) {
+      const rect = $flowCanvas.getBoundingClientRect();
+      return { x: (pt.x - rect.left - _viewOX) / _viewScale, y: (pt.y - rect.top - _viewOY) / _viewScale };
+    }
+    function applyCanvasTransform() {
+      $canvasBody.style.transformOrigin = '0 0';
+      $canvasBody.style.transform = 'translate(' + _viewOX + 'px,' + _viewOY + 'px) scale(' + _viewScale + ')';
+      const lbl = document.getElementById('zoomLabel');
+      if (lbl) lbl.textContent = Math.round(_viewScale * 100) + '%';
+      scheduleMinimapUpdate();
+    }
+
+    // State card drag
+    function startDrag(e, card, sid) {
+      if (e.touches && e.touches.length >= 2) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const pos = machine.states[sid].position || { x: 0, y: 0 };
+      const cpt = _canvasXY(_getXY(e));
+      const isMulti = _multiSel.size > 1 && _multiSel.has(sid);
+      _drag = {
+        sid, ox: cpt.x - pos.x, oy: cpt.y - pos.y,
+        multiBase: isMulti
+          ? Object.fromEntries([..._multiSel].map(id => {
+              const p = machine.states[id]?.position || { x: 0, y: 0 };
+              return [id, { x: p.x, y: p.y }];
+            }))
+          : null,
+      };
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup',   onDragEnd, { once: true });
+      document.addEventListener('touchmove', onDragMove, { passive: false });
+      document.addEventListener('touchend',  onDragEnd, { once: true });
+    }
+    function onDragMove(e) {
+      if (!_drag) return;
+      e.preventDefault();
+      const s = machine.states[_drag.sid]; if (!s) return;
+      const cpt = _canvasXY(_getXY(e));
+      const newX = Math.max(0, cpt.x - _drag.ox);
+      const newY = Math.max(0, cpt.y - _drag.oy);
+      if (_drag.multiBase) {
+        const dx = newX - _drag.multiBase[_drag.sid].x;
+        const dy = newY - _drag.multiBase[_drag.sid].y;
+        for (const [id, base] of Object.entries(_drag.multiBase)) {
+          const ss = machine.states[id]; if (!ss) continue;
+          ss.position = { x: Math.max(0, base.x + dx), y: Math.max(0, base.y + dy) };
+          const c = document.getElementById('sc_' + id);
+          if (c) { c.style.left = ss.position.x + 'px'; c.style.top = ss.position.y + 'px'; }
+        }
+      } else {
+        s.position = { x: newX, y: newY };
+        const card = document.getElementById('sc_' + _drag.sid);
+        if (card) { card.style.left = s.position.x + 'px'; card.style.top = s.position.y + 'px'; }
+      }
+      updateArrows();
+      scheduleMinimapUpdate();
+    }
+    function onDragEnd() {
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('touchmove', onDragMove);
+      if (_drag) markDirty();
+      _drag = null;
+    }
+
+    // Canvas pan — mouse
+    function _onCanvasPanStart(e) {
+      if (e.button !== 0 || e.target.closest('.flow-state') || e.target.closest('.canvas-toolbar')) return;
+      e.preventDefault();
+      _canvasPan = { sx: e.clientX - _viewOX, sy: e.clientY - _viewOY };
+      $flowCanvas.classList.add('panning');
+      document.addEventListener('mousemove', _onCanvasPanMove);
+      document.addEventListener('mouseup',   _onCanvasPanEnd, { once: true });
+    }
+    function _onCanvasPanMove(e) {
+      if (!_canvasPan) return;
+      _viewOX = e.clientX - _canvasPan.sx;
+      _viewOY = e.clientY - _canvasPan.sy;
+      applyCanvasTransform();
+    }
+    function _onCanvasPanEnd() {
+      document.removeEventListener('mousemove', _onCanvasPanMove);
+      _canvasPan = null;
+      $flowCanvas.classList.remove('panning');
+    }
+
+    // Canvas zoom — wheel
+    function _onCanvasWheel(e) {
+      e.preventDefault();
+      if (_zoomLocked) {
+        _viewOX -= e.deltaX || 0;
+        _viewOY -= e.deltaY || 0;
+        applyCanvasTransform();
+        return;
+      }
+      const dir = e.deltaY < 0 ? 1 : -1;
+      const newScale = Math.max(0.15, Math.min(4, _viewScale * (dir > 0 ? 1.1 : 1 / 1.1)));
+      const rect = $flowCanvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      _viewOX = mx - (mx - _viewOX) * (newScale / _viewScale);
+      _viewOY = my - (my - _viewOY) * (newScale / _viewScale);
+      _viewScale = newScale;
+      applyCanvasTransform();
+    }
+
+    // Canvas pinch — touch
+    function _getPinchDist(t) {
+      const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    function _onCanvasTouchStart(e) {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        _canvasPan = null;
+        _pinch = { dist: _getPinchDist(e.touches), scale: _viewScale, ox: _viewOX, oy: _viewOY,
+                   cx: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                   cy: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+      } else if (e.touches.length === 1 && !e.target.closest('.flow-state')) {
+        _canvasPan = { sx: e.touches[0].clientX - _viewOX, sy: e.touches[0].clientY - _viewOY };
+      }
+    }
+    function _onCanvasTouchMove(e) {
+      if (e.touches.length === 2 && _pinch) {
+        e.preventDefault();
+        const dist = _getPinchDist(e.touches);
+        const newScale = Math.max(0.15, Math.min(4, _pinch.scale * (dist / _pinch.dist)));
+        const rect = $flowCanvas.getBoundingClientRect();
+        const cxNow = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+        const cyNow = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+        const pivotX = _pinch.cx - rect.left, pivotY = _pinch.cy - rect.top;
+        _viewOX = cxNow - (pivotX - _pinch.ox) * (newScale / _pinch.scale);
+        _viewOY = cyNow - (pivotY - _pinch.oy) * (newScale / _pinch.scale);
+        _viewScale = newScale;
+        applyCanvasTransform();
+      } else if (e.touches.length === 1 && _canvasPan && !_drag) {
+        e.preventDefault();
+        _viewOX = e.touches[0].clientX - _canvasPan.sx;
+        _viewOY = e.touches[0].clientY - _canvasPan.sy;
+        applyCanvasTransform();
+      }
+    }
+    function _onCanvasTouchEnd(e) {
+      if (e.touches.length < 2) _pinch = null;
+      if (e.touches.length === 0) _canvasPan = null;
+    }
+
+    // ─── Drag-to-Connect ──────────────────────────────────────────────────────
+    function startConnecting(e, fromId) {
+      const fromEl = document.getElementById('sc_' + fromId);
+      if (!fromEl) return;
+      const fp = machine.states[fromId].position || { x: 80, y: 80 };
+      const fh = fromEl.offsetHeight || 100;
+      const sx = fp.x + 246, sy = fp.y + fh / 2;
+      const gLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      gLine.setAttribute('class', 'ghost-conn-line');
+      gLine.setAttribute('id', 'ghostConnLine');
+      $flowSvg.appendChild(gLine);
+      _connecting = { fromId, sx, sy, line: gLine };
+      _updateGhostLine(e.clientX, e.clientY);
+      document.addEventListener('mousemove', _onConnectMove);
+      document.addEventListener('mouseup',   _onConnectEnd, { once: true });
+    }
+    function _updateGhostLine(cx, cy) {
+      if (!_connecting) return;
+      const rect = $flowCanvas.getBoundingClientRect();
+      const ex = (cx - rect.left - _viewOX) / _viewScale;
+      const ey = (cy - rect.top  - _viewOY) / _viewScale;
+      const { sx, sy } = _connecting;
+      const midX = (sx + ex) / 2;
+      _connecting.line.setAttribute('d', `M ${sx} ${sy} C ${midX} ${sy} ${midX} ${ey} ${ex} ${ey}`);
+    }
+    function _onConnectMove(e) { _updateGhostLine(e.clientX, e.clientY); }
+    function _onConnectEnd(e) {
+      document.removeEventListener('mousemove', _onConnectMove);
+      if (!_connecting) return;
+      _connecting.line.remove();
+      const fromId = _connecting.fromId;
+      _connecting = null;
+      const toCard = e.target.closest('.flow-state');
+      if (!toCard || !toCard.dataset.sid) return;
+      const toId = toCard.dataset.sid;
+      if (toId === fromId) return;
+      const fs = machine.states[fromId];
+      if (!fs.on) fs.on = {};
+      fs.on['e_' + Date.now()] = { target: toId, actions: [{ type: 'update_content' }] };
+      pushHistory(); markDirty();
+      renderTransitionsPanel();
+      updateArrows();
+      renderCanvas();
+      lucide.createIcons();
+      toast('Transition added', 'success');
+    }
+
+    // ─── Auto-Layout ─────────────────────────────────────────────────────────
+    function autoLayout() {
+      const ids = Object.keys(machine.states);
+      if (!ids.length) return;
+      const levelMap = {};
+      const visited  = new Set();
+      const startId  = (machine.initial && machine.states[machine.initial]) ? machine.initial : ids[0];
+      const queue    = [{ id: startId, level: 0 }];
+      visited.add(startId);
+      while (queue.length) {
+        const { id, level } = queue.shift();
+        if (!levelMap[level]) levelMap[level] = [];
+        levelMap[level].push(id);
+        for (const tr of Object.values(machine.states[id].on || {})) {
+          if (tr.target && machine.states[tr.target] && !visited.has(tr.target)) {
+            visited.add(tr.target);
+            queue.push({ id: tr.target, level: level + 1 });
+          }
+        }
+      }
+      // Orphan states (unreachable) go in an extra column
+      const orphans = ids.filter(id => !visited.has(id));
+      if (orphans.length) {
+        const nextCol = Object.keys(levelMap).length;
+        levelMap[nextCol] = orphans;
+      }
+      const COL_W = 290, ROW_H = 160, PAD_X = 60, PAD_Y = 60;
+      for (const [col, colIds] of Object.entries(levelMap)) {
+        colIds.forEach((sid, row) => {
+          machine.states[sid].position = { x: PAD_X + parseInt(col) * COL_W, y: PAD_Y + row * ROW_H };
+        });
+      }
+      renderCanvas();
+      updateArrows();
+      lucide.createIcons();
+      markDirty(); toast('<%= t.embeds.jsAutoLayout %>', 'success');
+    }
+
+    /* ════════════════════════════════════════
+       INSPECTOR
+       ════════════════════════════════════════ */

@@ -1,0 +1,1216 @@
+﻿    function renderInspector() {
+      // Hide group inspector whenever a state is being inspected
+      const $ig = document.getElementById('inspGroupContent');
+      const $ms = document.getElementById('multiSelPanel');
+      if ($ig) $ig.style.display = 'none';
+      selectedGroupId = null;
+      // Multi-selection panel
+      if (_multiSel.size > 1) {
+        $inspEmpty.style.display   = 'none';
+        $inspContent.style.display = 'none';
+        if ($ms) {
+          $ms.style.display = 'flex';
+          const lbl = document.getElementById('multiSelLbl');
+          if (lbl) lbl.textContent = _multiSel.size + ' <%= t.embeds.jsMultiSelSelected %>';
+        }
+        return;
+      }
+      if ($ms) $ms.style.display = 'none';
+      const s = getSelectedState();
+      if (!s) { $inspEmpty.style.display = ''; $inspContent.style.display = 'none'; return; }
+      $inspEmpty.style.display    = 'none';
+      $inspContent.style.display  = 'flex';
+      $inspLabel.value  = s.label || '';
+      $inspColor.value  = s.color || '#7c3aed';
+      // Sync active color swatch
+      document.querySelectorAll('.color-swatch').forEach(sw => {
+        sw.classList.toggle('active', sw.dataset.color === (s.color || '#7c3aed'));
+      });
+      const isInit = machine.initial === selectedStateId;
+      $inspInitBadge.style.display = isInit ? '' : 'none';
+      $inspSetInit.style.display   = isInit ? 'none' : '';
+      renderActiveTab();
+      renderPreview();
+    }
+
+    function renderActiveTab() {
+      document.querySelectorAll('.insp-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === activeTab));
+      document.querySelectorAll('.insp-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === activeTab));
+      if      (activeTab === 'embeds')      renderEmbedsPanel();
+      else if (activeTab === 'components')  renderComponentsPanel();
+      else if (activeTab === 'transitions') renderTransitionsPanel();
+      else if (activeTab === 'permissions') renderPermissionsPanel();
+    }
+
+    /* ────────────────── Embeds Panel ────────────────── */
+    function renderEmbedsPanel() {
+      const s = getSelectedState(); if (!s) return;
+      const embeds = s.embeds || [];
+      let html = embeds.length
+        ? embeds.map((emb, i) => {
+            const col = emb.color || '#5865f2';
+            return '<div class="embed-item" data-idx="' + i + '" style="padding-left:16px;">'
+              + '<div class="embed-color-bar" style="background:' + esc(col) + '"></div>'
+              + '<div class="embed-item-header">'
+              + '<span class="embed-drag"><i data-lucide="grip-vertical" style="width:14px;height:14px;"></i></span>'
+              + '<span class="embed-title-lbl"><%= t.embeds.embPrefix %> #' + (i+1) + (emb.title ? ' \u2014 ' + esc(emb.title.slice(0,24)) : '') + '</span>'
+              + '<button class="embed-col-btn embed-collapse-btn" data-idx="' + i + '"><i data-lucide="chevron-up" style="width:14px;height:14px;"></i></button>'
+              + '<button class="embed-rem-btn embed-remove-btn" data-idx="' + i + '"><i data-lucide="x" style="width:14px;height:14px;"></i></button>'
+              + '</div>'
+              + '<div class="embed-item-body" id="embedBody' + i + '">' + embedForm(emb, i) + '</div>'
+              + '</div>';
+          }).join('')
+        : '<p style="font-size:.78rem;color:var(--muted);margin-bottom:10px;"><%= t.embeds.jsNoEmbeds %></p>';
+      html += '<button class="btn btn-ghost btn-xs" id="btnAddEmbed" style="margin-top:6px;">'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> '
+        + '<%= t.embeds.jsAddEmbed %></button>';
+      $panelEmbeds.innerHTML = html;
+      lucide.createIcons();
+      bindEmbedEvents();
+      document.getElementById('btnAddEmbed').addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        if (!ss.embeds) ss.embeds = [];
+        ss.embeds.push({ id: nid('emb'), title: '', description: '', color: '#5865f2', url: '', timestamp: false,
+          author: { name: '', iconUrl: '', url: '' }, footer: { text: '', iconUrl: '' },
+          thumbnail: '', image: '', fields: [] });
+        renderEmbedsPanel(); lucide.createIcons();
+      });
+    }
+
+    function embedForm(emb, i) {
+      return ''
+        + '<div class="form-row">'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldTitle %></label>'
+        + '<input class="form-input emb-title" data-idx="' + i + '" value="' + esc(emb.title||'') + '" maxlength="256" placeholder="<%= t.embeds.embFldEmbedTitle %>"></div>'
+        + '<div class="form-group" style="max-width:70px;"><label class="form-label"><%= t.embeds.embFldColor %></label>'
+        + '<div class="form-color-wrap"><input type="color" class="form-color emb-color" data-idx="' + i + '" value="' + (emb.color||'#5865f2') + '"></div></div>'
+        + '</div>'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldDesc %></label>'
+        + '<textarea class="form-textarea emb-desc" data-idx="' + i + '" maxlength="4096" placeholder="<%= t.embeds.embFldDescPh %>" style="min-height:70px;">' + esc(emb.description||'') + '</textarea></div>'
+        + '<div class="form-row">'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldAuthorName %></label>'
+        + '<input class="form-input emb-author-name" data-idx="' + i + '" value="' + esc(emb.author?.name||'') + '" placeholder="<%= t.embeds.embFldAuthorPh %>"></div>'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldAuthorIcon %></label>'
+        + '<div class="url-upload-wrap"><input class="form-input emb-author-icon" data-idx="' + i + '" data-field="author-icon" value="' + esc(emb.author?.iconUrl||'') + '" placeholder="https://...">'
+        + '<button type="button" class="upload-btn emb-upload" data-idx="' + i + '" data-field="author-icon" data-target="emb-author-icon"><i data-lucide="upload" style="width:12px;height:12px;"></i></button></div></div>'
+        + '</div>'
+        + '<div class="form-row">'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldFooterText %></label>'
+        + '<input class="form-input emb-footer-text" data-idx="' + i + '" value="' + esc(emb.footer?.text||'') + '" placeholder="<%= t.embeds.embFldFooterPh %>"></div>'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldFooterIcon %></label>'
+        + '<div class="url-upload-wrap"><input class="form-input emb-footer-icon" data-idx="' + i + '" data-field="footer-icon" value="' + esc(emb.footer?.iconUrl||'') + '" placeholder="https://...">'
+        + '<button type="button" class="upload-btn emb-upload" data-idx="' + i + '" data-field="footer-icon" data-target="emb-footer-icon"><i data-lucide="upload" style="width:12px;height:12px;"></i></button></div></div>'
+        + '</div>'
+        + '<div class="form-row">'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldThumbnail %></label>'
+        + '<div class="url-upload-wrap"><input class="form-input emb-thumb" data-idx="' + i + '" value="' + esc(emb.thumbnail||'') + '" placeholder="https://...">'
+        + '<button type="button" class="upload-btn emb-upload" data-idx="' + i + '" data-field="thumbnail" data-target="emb-thumb"><i data-lucide="upload" style="width:12px;height:12px;"></i></button></div></div>'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldImage %></label>'
+        + '<div class="url-upload-wrap"><input class="form-input emb-image" data-idx="' + i + '" value="' + esc(emb.image||'') + '" placeholder="https://...">'
+        + '<button type="button" class="upload-btn emb-upload" data-idx="' + i + '" data-field="image" data-target="emb-image"><i data-lucide="upload" style="width:12px;height:12px;"></i></button></div></div>'
+        + '</div>'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.embFldUrl %></label>'
+        + '<input class="form-input emb-url" data-idx="' + i + '" value="' + esc(emb.url||'') + '" placeholder="https://..."></div>'
+        + '<label class="form-checkbox"><input type="checkbox" class="emb-timestamp" data-idx="' + i + '"' + (emb.timestamp?' checked':'') + '> <%= t.embeds.embFldTimestamp %></label>'
+        + '<div class="form-group" style="margin-top:10px;"><label class="form-label">' + '<%= t.embeds.jsFields %>' + '</label>'
+        + '<div class="fields-list" id="fields' + i + '">' + (emb.fields||[]).map((f,fi) => fieldItem(i,fi,f)).join('') + '</div>'
+        + '<button class="btn btn-ghost btn-xs btnAddField" data-idx="' + i + '" style="margin-top:6px;">'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + '<%= t.embeds.jsAddField %>' + '</button>'
+        + '</div>';
+    }
+
+    function fieldItem(ei, fi, f) {
+      return '<div class="field-item" data-ei="' + ei + '" data-fi="' + fi + '">'
+        + '<div><div class="form-group" style="margin-bottom:6px;">'
+        + '<input class="form-input field-name" data-ei="' + ei + '" data-fi="' + fi + '" value="' + esc(f.name||'') + '" placeholder="<%= t.embeds.embFldFName %>"></div>'
+        + '<div class="form-group" style="margin-bottom:6px;">'
+        + '<input class="form-input field-value" data-ei="' + ei + '" data-fi="' + fi + '" value="' + esc(f.value||'') + '" placeholder="<%= t.embeds.embFldFValue %>"></div>'
+        + '<label class="form-checkbox" style="font-size:.74rem;">'
+        + '<input type="checkbox" class="field-inline" data-ei="' + ei + '" data-fi="' + fi + '"' + (f.inline?' checked':'') + '> <%= t.embeds.embFldInline %></label></div>'
+        + '<button class="field-remove" data-ei="' + ei + '" data-fi="' + fi + '">'
+        + '<i data-lucide="x" style="width:12px;height:12px;"></i></button>'
+        + '</div>';
+    }
+
+    function bindEmbedEvents() {
+      const s = getSelectedState(); if (!s) return;
+      document.querySelectorAll('.emb-title,.emb-desc,.emb-color,.emb-author-name,.emb-author-icon,.emb-footer-text,.emb-footer-icon,.emb-thumb,.emb-image,.emb-url').forEach(el =>
+        el.addEventListener('input', () => { syncEmbedFromDOM(+el.dataset.idx); renderPreview(); }));
+      document.querySelectorAll('.emb-timestamp').forEach(el =>
+        el.addEventListener('change', () => { syncEmbedFromDOM(+el.dataset.idx); renderPreview(); }));
+      document.querySelectorAll('.field-name,.field-value').forEach(el =>
+        el.addEventListener('input', () => { syncFieldFromDOM(+el.dataset.ei, +el.dataset.fi); renderPreview(); }));
+      document.querySelectorAll('.field-inline').forEach(el =>
+        el.addEventListener('change', () => { syncFieldFromDOM(+el.dataset.ei, +el.dataset.fi); renderPreview(); }));
+      document.querySelectorAll('.embed-remove-btn').forEach(b =>
+        b.addEventListener('click', () => {
+          const ss = getSelectedState(); if (!ss) return;
+          ss.embeds.splice(+b.dataset.idx, 1);
+          renderEmbedsPanel(); lucide.createIcons(); renderPreview(); renderCanvas();
+        }));
+      document.querySelectorAll('.embed-collapse-btn').forEach(b =>
+        b.addEventListener('click', () => {
+          const body = document.getElementById('embedBody' + b.dataset.idx);
+          if (body) body.classList.toggle('collapsed');
+        }));
+      document.querySelectorAll('.btnAddField').forEach(b =>
+        b.addEventListener('click', () => {
+          const idx = +b.dataset.idx;
+          const ss = getSelectedState(); if (!ss) return;
+          if (!ss.embeds[idx].fields) ss.embeds[idx].fields = [];
+          if (ss.embeds[idx].fields.length >= 25) return;
+          ss.embeds[idx].fields.push({ name: '', value: '', inline: false });
+          renderEmbedsPanel(); lucide.createIcons();
+        }));
+      document.querySelectorAll('.field-remove').forEach(b =>
+        b.addEventListener('click', () => {
+          const ss = getSelectedState(); if (!ss) return;
+          ss.embeds[+b.dataset.ei].fields.splice(+b.dataset.fi, 1);
+          renderEmbedsPanel(); lucide.createIcons();
+        }));
+    }
+
+    function syncEmbedFromDOM(i) {
+      const s = getSelectedState(); if (!s) return;
+      const emb = s.embeds[i]; if (!emb) return;
+      const q = sel => document.querySelector(sel + '[data-idx="' + i + '"]');
+      emb.title       = (q('.emb-title')?.value || '').slice(0, 256);
+      emb.description = (q('.emb-desc')?.value  || '').slice(0, 4096);
+      emb.color       = q('.emb-color')?.value || '';
+      emb.author      = { name: q('.emb-author-name')?.value||'', iconUrl: q('.emb-author-icon')?.value||'', url: '' };
+      emb.footer      = { text: q('.emb-footer-text')?.value||'', iconUrl: q('.emb-footer-icon')?.value||'' };
+      emb.thumbnail   = q('.emb-thumb')?.value  || '';
+      emb.image       = q('.emb-image')?.value  || '';
+      emb.url         = q('.emb-url')?.value    || '';
+      emb.timestamp   = q('.emb-timestamp')?.checked || false;
+      markDirty();
+    }
+    function syncFieldFromDOM(ei, fi) {
+      const s = getSelectedState(); if (!s) return;
+      const f = s.embeds[ei]?.fields?.[fi]; if (!f) return;
+      const q = sel => document.querySelector(sel + '[data-ei="'+ei+'"][data-fi="'+fi+'"]');
+      f.name   = q('.field-name')?.value   || '';
+      f.value  = q('.field-value')?.value  || '';
+      f.inline = q('.field-inline')?.checked || false;
+      markDirty();
+    }
+
+    /* ────────────────── Components Panel ────────────────── */
+    function renderComponentsPanel() {
+      const s = getSelectedState(); if (!s) return;
+      const comps = s.components || [];
+      let html = comps.map((row, ri) => {
+        if (row.type === 'buttons') return buttonRowHTML(row, ri);
+        if (row.type === 'select')  return selectRowHTML(row, ri);
+        return '';
+      }).join('');
+      html += '<div style="display:flex;gap:8px;margin-top:8px;">'
+        + '<button class="btn btn-ghost btn-xs" id="btnAddBtnRow">'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> '
+        + '<%= t.embeds.jsAddButtons %></button>'
+        + '<button class="btn btn-ghost btn-xs" id="btnAddSelRow">'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> '
+        + '<%= t.embeds.jsAddSelect %></button>'
+        + '</div>';
+      $panelComponents.innerHTML = html;
+      lucide.createIcons();
+      bindCompEvents();
+      document.getElementById('btnAddBtnRow').addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        if (!ss.components) ss.components = [];
+        if (ss.components.length >= 5) return toast('Max 5 rows', 'error');
+        const cid = nid('btn');
+        ss.components.push({ id: nid('row'), type: 'buttons', buttons: [{ customId: cid, label: '<%= t.embeds.jsButton %>', style: 'Primary', emoji: '', url: '', disabled: false }], select: null });
+        renderComponentsPanel(); lucide.createIcons();
+      });
+      document.getElementById('btnAddSelRow').addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        if (!ss.components) ss.components = [];
+        if (ss.components.length >= 5) return toast('Max 5 rows', 'error');
+        const cid = nid('sel'), ocid = nid('opt');
+        ss.components.push({ id: nid('row'), type: 'select', buttons: [], select: { customId: cid, placeholder: 'Select an option\u2026', minValues: 1, maxValues: 1, disabled: false, options: [{ customId: ocid, label: '<%= t.embeds.jsOption %>', value: ocid, description: '', emoji: '', default: false }] } });
+        renderComponentsPanel(); lucide.createIcons();
+      });
+    }
+
+    function buttonRowHTML(row, ri) {
+      return '<div class="comp-row" data-ri="' + ri + '">'
+        + '<div class="comp-row-header"><span class="comp-type-badge btn-type"><i data-lucide="layout-grid" style="width:10px;height:10px;"></i> <%= t.embeds.compBadgeBtns %></span>'
+        + '<span class="comp-row-lbl"><%= t.embeds.compRowLbl %> #' + (ri + 1) + '</span>'
+        + '<button class="comp-rem-btn comp-remove-row" data-ri="' + ri + '"><i data-lucide="x" style="width:14px;height:14px;"></i></button></div>'
+        + (row.buttons || []).map((b, bi) => ''
+          + '<div class="btn-item" data-ri="' + ri + '" data-bi="' + bi + '">'
+          + '<div class="form-group" style="margin-bottom:0;flex:1;min-width:0;">'
+          + '<input class="form-input btn-label" data-ri="' + ri + '" data-bi="' + bi + '" value="' + esc(b.label||'') + '" placeholder="<%= t.embeds.compLabelPh %>"></div>'
+          + '<select class="form-select btn-style" data-ri="' + ri + '" data-bi="' + bi + '" style="width:100px;flex-shrink:0;">'
+          + ['Primary','Secondary','Success','Danger','Link'].map(ss => '<option value="' + ss + '"' + (b.style===ss?' selected':'') + '>' + ss + '</option>').join('')
+          + '</select>'
+          + '<button type="button" class="emoji-trigger btn-emoji-pick" data-ri="' + ri + '" data-bi="' + bi + '" data-val="' + esc(b.emoji||'') + '" title="Emoji">'
+          + renderEmojiBtn(b.emoji) + '</button>'
+          + '<input type="hidden" class="btn-emoji" data-ri="' + ri + '" data-bi="' + bi + '" value="' + esc(b.emoji||'') + '">'
+          + (b.style === 'Link' ? '<input class="form-input btn-url" data-ri="'+ri+'" data-bi="'+bi+'" value="'+esc(b.url||'')+'" placeholder="URL" style="max-width:120px;">' : '')
+          + '<button class="btn-remove-btn" data-ri="' + ri + '" data-bi="' + bi + '">'
+          + '<i data-lucide="x" style="width:12px;height:12px;"></i></button>'
+          + '</div>').join('')
+        + '<button class="btn btn-ghost btn-xs btnAddBtn" data-ri="' + ri + '" style="margin-top:6px;">'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + '<%= t.embeds.jsButton %>' + '</button>'
+        + '</div>';
+    }
+
+    function selectRowHTML(row, ri) {
+      const sel = row.select || {};
+      return '<div class="comp-row" data-ri="' + ri + '">'
+        + '<div class="comp-row-header"><span class="comp-type-badge sel-type"><i data-lucide="chevrons-up-down" style="width:10px;height:10px;"></i> <%= t.embeds.compBadgeSel %></span>'
+        + '<span class="comp-row-lbl"><%= t.embeds.compRowLbl %> #' + (ri + 1) + '</span>'
+        + '<button class="comp-rem-btn comp-remove-row" data-ri="' + ri + '"><i data-lucide="x" style="width:14px;height:14px;"></i></button></div>'
+        + '<div class="form-group"><label class="form-label"><%= t.embeds.compSelectLabel %></label>'
+        + '<input class="form-input sel-placeholder" data-ri="' + ri + '" value="' + esc(sel.placeholder||'') + '" placeholder="Select an option\u2026"></div>'
+        + (sel.options || []).map((o, oi) => ''
+          + '<div class="select-opt-item" data-ri="' + ri + '" data-oi="' + oi + '">'
+          + '<div class="form-group" style="margin-bottom:0;flex:1;min-width:0;">'
+          + '<input class="form-input opt-label" data-ri="' + ri + '" data-oi="' + oi + '" value="' + esc(o.label||'') + '" placeholder="<%= t.embeds.compLabelPh %>"></div>'
+          + '<div class="form-group" style="margin-bottom:0;flex:1;min-width:0;">'
+          + '<input class="form-input opt-desc" data-ri="' + ri + '" data-oi="' + oi + '" value="' + esc(o.description||'') + '" placeholder="<%= t.embeds.compOptDescPh %>"></div>'
+          + '<button type="button" class="emoji-trigger opt-emoji-pick" data-ri="' + ri + '" data-oi="' + oi + '" data-val="' + esc(o.emoji||'') + '" title="Emoji">'
+          + renderEmojiBtn(o.emoji) + '</button>'
+          + '<input type="hidden" class="opt-emoji" data-ri="' + ri + '" data-oi="' + oi + '" value="' + esc(o.emoji||'') + '">'
+          + '<button class="opt-remove" data-ri="'+ri+'" data-oi="'+oi+'"><i data-lucide="x" style="width:12px;height:12px;"></i></button>'
+          + '</div>').join('')
+        + '<button class="btn btn-ghost btn-xs btnAddOpt" data-ri="' + ri + '" style="margin-top:6px;">'
+        + '<i data-lucide="plus" style="width:12px;height:12px;"></i> ' + '<%= t.embeds.jsOption %>' + '</button>'
+        + '</div>';
+    }
+
+    function bindCompEvents() {
+      document.querySelectorAll('.comp-remove-row').forEach(b => b.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        ss.components.splice(+b.dataset.ri, 1);
+        renderComponentsPanel(); lucide.createIcons(); renderPreview();
+      }));
+      document.querySelectorAll('.btn-label,.btn-url').forEach(el =>
+        el.addEventListener('input', () => { syncBtnFromDOM(+el.dataset.ri, +el.dataset.bi); renderPreview(); }));
+      document.querySelectorAll('.btn-style').forEach(el =>
+        el.addEventListener('change', () => { syncBtnFromDOM(+el.dataset.ri, +el.dataset.bi); renderComponentsPanel(); lucide.createIcons(); }));
+      document.querySelectorAll('.btn-remove-btn').forEach(b => b.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        ss.components[+b.dataset.ri].buttons.splice(+b.dataset.bi, 1);
+        renderComponentsPanel(); lucide.createIcons();
+      }));
+      document.querySelectorAll('.btnAddBtn').forEach(b => b.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        const ri = +b.dataset.ri;
+        if ((ss.components[ri].buttons || []).length >= 5) return;
+        const cid = nid('btn');
+        ss.components[ri].buttons.push({ customId: cid, label: '<%= t.embeds.jsButton %>', style: 'Primary', emoji: '', url: '', disabled: false });
+        renderComponentsPanel(); lucide.createIcons();
+      }));
+      document.querySelectorAll('.sel-placeholder').forEach(el => el.addEventListener('input', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        if (ss.components[+el.dataset.ri]?.select) ss.components[+el.dataset.ri].select.placeholder = el.value;
+        renderPreview();
+      }));
+      document.querySelectorAll('.opt-label,.opt-desc').forEach(el =>
+        el.addEventListener('input', () => { syncOptFromDOM(+el.dataset.ri, +el.dataset.oi); renderPreview(); }));
+      document.querySelectorAll('.opt-remove').forEach(b => b.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        ss.components[+b.dataset.ri].select.options.splice(+b.dataset.oi, 1);
+        renderComponentsPanel(); lucide.createIcons();
+      }));
+      document.querySelectorAll('.btnAddOpt').forEach(b => b.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        const ri = +b.dataset.ri;
+        const sel = ss.components[ri].select;
+        if ((sel.options || []).length >= 25) return;
+        const cid = nid('opt');
+        sel.options.push({ customId: cid, label: '<%= t.embeds.jsOption %>', value: cid, description: '', emoji: '', default: false });
+        renderComponentsPanel(); lucide.createIcons();
+      }));
+      // Emoji – buttons
+      document.querySelectorAll('.btn-emoji-pick').forEach(el => el.addEventListener('click', e => {
+        e.stopPropagation();
+        openEmbEmojiPicker(el, val => {
+          el.dataset.val = val;
+          el.innerHTML   = renderEmojiBtn(val);
+          const hid = document.querySelector('.btn-emoji[data-ri="'+el.dataset.ri+'"][data-bi="'+el.dataset.bi+'"]');
+          if (hid) { hid.value = val; syncBtnFromDOM(+el.dataset.ri, +el.dataset.bi); renderPreview(); }
+        });
+      }));
+      // Emoji – options
+      document.querySelectorAll('.opt-emoji-pick').forEach(el => el.addEventListener('click', e => {
+        e.stopPropagation();
+        openEmbEmojiPicker(el, val => {
+          el.dataset.val = val;
+          el.innerHTML   = renderEmojiBtn(val);
+          const hid = document.querySelector('.opt-emoji[data-ri="'+el.dataset.ri+'"][data-oi="'+el.dataset.oi+'"]');
+          if (hid) { hid.value = val; syncOptFromDOM(+el.dataset.ri, +el.dataset.oi); renderPreview(); }
+        });
+      }));
+    }
+
+    function syncBtnFromDOM(ri, bi) {
+      const s = getSelectedState(); if (!s) return;
+      const btn = s.components[ri]?.buttons?.[bi]; if (!btn) return;
+      const q = sel => document.querySelector(sel + '[data-ri="'+ri+'"][data-bi="'+bi+'"]');
+      btn.label = q('.btn-label')?.value || 'Button';
+      btn.style = q('.btn-style')?.value || 'Primary';
+      btn.emoji = q('.btn-emoji')?.value || '';
+      const u = q('.btn-url'); if (u) btn.url = u.value;
+    }
+    function syncOptFromDOM(ri, oi) {
+      const s = getSelectedState(); if (!s) return;
+      const opt = s.components[ri]?.select?.options?.[oi]; if (!opt) return;
+      const q = sel => document.querySelector(sel + '[data-ri="'+ri+'"][data-oi="'+oi+'"]');
+      opt.label       = q('.opt-label')?.value || 'Option';
+      opt.description = q('.opt-desc')?.value  || '';
+      opt.emoji       = q('.opt-emoji')?.value || '';
+    }
+
+    /* ────────────────── Transitions Panel ────────────────── */
+    // ── Action definitions: type → { label, params[] } ─────────────────────
+    const ACTION_DEFS = {
+      update_content:    { label: '<%= t.embeds.actUpdateContent %>',    params: [] },
+      replace_embeds:    { label: '<%= t.embeds.actReplaceEmbeds %>',    params: [] },
+      append_embeds:     { label: '<%= t.embeds.actAppendEmbeds %>',     params: [] },
+      update_components: { label: '<%= t.embeds.actUpdateComponents %>', params: [] },
+      disable_component: { label: '<%= t.embeds.actDisableBtn %>',       params: [
+        { key: 'customId', label: '<%= t.embeds.actParamCustomId %>',  type: 'text',   placeholder: 'Leave blank = clicked button' },
+      ]},
+      enable_component:  { label: '<%= t.embeds.actEnableBtn %>',        params: [
+        { key: 'customId', label: '<%= t.embeds.actParamCustomId %>',  type: 'text',   placeholder: 'Button custom ID' },
+      ]},
+      hide_component:    { label: '<%= t.embeds.actHideComponent %>',    params: [
+        { key: 'customId', label: '<%= t.embeds.actParamCustomId %>',  type: 'text',   placeholder: 'Button / select custom ID' },
+        { key: 'duration', label: '<%= t.embeds.actParamRestoreMs %>', type: 'number', placeholder: '5000  (0 = permanent)' },
+      ]},
+      send_ephemeral:    { label: '<%= t.embeds.actSendEphemeral %>',    params: [] },
+      send_to_channel:   { label: '<%= t.embeds.actSendToChannel %>',   params: [
+        { key: 'channelId', label: '<%= t.embeds.actParamChannelId %>', type: 'text', placeholder: 'Channel ID' },
+      ]},
+
+      // ── DM / Channel fork ────────────────────────────────────────────────
+      open_dm:           { label: '📨 <%= t.embeds.actOpenDm %>',   params: [
+        { key: 'confirmMessage',  label: '<%= t.embeds.actParamConfirmMsg %>',     type: 'text',   placeholder: '📬 Check your DMs to continue!' },
+        { key: 'failMessage',     label: '<%= t.embeds.actParamDmBlockedMsg %>',   type: 'text', placeholder: '❌ Please enable DMs first.' },
+        { key: 'timeout',         label: '<%= t.embeds.actParamFlowTimeout %>',    type: 'number', placeholder: '600000' },
+        { key: 'returnAction',    label: '<%= t.embeds.actParamOnCompleteType %>', type: 'text',   placeholder: 'add_role | edit_origin_message | send_to_origin' },
+        { key: 'returnRoleId',    label: '<%= t.embeds.actParamOnCompleteRole %>', type: 'role' },
+        { key: 'returnChannelId', label: '<%= t.embeds.actParamOnCompleteCh %>',   type: 'text',   placeholder: 'Channel ID (if returnAction = send_to_channel)' },
+      ]},
+      open_channel_flow: { label: '↗ <%= t.embeds.actOpenChannelFlow %>', params: [
+        { key: 'channelId',       label: '<%= t.embeds.actParamChannelId %>',      type: 'text',   placeholder: 'Channel to forward the flow to' },
+        { key: 'mention',         label: '<%= t.embeds.actParamMentionUser %>',    type: 'text',   placeholder: 'leave blank to mention' },
+        { key: 'timeout',         label: '<%= t.embeds.actParamFlowTimeout %>',    type: 'number', placeholder: '600000' },
+        { key: 'returnAction',    label: '<%= t.embeds.actParamOnCompleteType %>', type: 'text',   placeholder: 'add_role | edit_origin_message | send_to_origin' },
+        { key: 'returnRoleId',    label: '<%= t.embeds.actParamOnCompleteRole %>', type: 'role' },
+      ]},
+
+      // ── Origin-aware actions (for states inside a DM / channel flow) ─────
+      complete_flow:       { label: '✅ <%= t.embeds.actCompleteFlow %>',       params: [] },
+      send_to_origin:      { label: '↩ <%= t.embeds.actSendToOrigin %>',        params: [] },
+      edit_origin_message: { label: '✏️ <%= t.embeds.actEditOrigin %>',         params: [] },
+
+      // ── Role management ──────────────────────────────────────────────────
+      add_role:    { label: '🔑 <%= t.embeds.actAddRole %>',    params: [
+        { key: 'roleId', label: '<%= t.embeds.actParamRoleToAdd %>',    type: 'role' },
+      ]},
+      remove_role: { label: '🗑 <%= t.embeds.actRemoveRole %>', params: [
+        { key: 'roleId', label: '<%= t.embeds.actParamRoleToRemove %>', type: 'role' },
+      ]},
+
+      // ── Advanced Role Automation (conditions + anti-abuse + smart logic) ──
+      role_toggle: { label: '🔄 <%= t.embeds.actToggleRole %>', params: [
+        { key: 'roleId',          label: '<%= t.embeds.actParamRole %>',              type: 'role' },
+        { key: 'feedbackMessage', label: '<%= t.embeds.actParamFeedbackMsg %>',       type: 'text',   placeholder: '✅ Role updated!' },
+        { key: 'addedMessage',    label: '<%= t.embeds.actParamWhenAdded %>',         type: 'text',   placeholder: '✅ Role granted!' },
+        { key: 'removedMessage',  label: '<%= t.embeds.actParamWhenRemoved %>',       type: 'text',   placeholder: '❌ Role removed.' },
+        { key: 'hasRole',         label: '<%= t.embeds.actParamRequiredRoleHave %>',  type: 'role' },
+        { key: 'missingRole',     label: '<%= t.embeds.actParamBlockedRoleMust %>',   type: 'role' },
+        { key: 'minLevel',        label: '<%= t.embeds.actParamMinLevelReq %>',       type: 'number', placeholder: '5' },
+        { key: 'minXp',           label: '<%= t.embeds.actParamMinXpReq %>',          type: 'number', placeholder: '500' },
+        { key: 'denyMessage',     label: '<%= t.embeds.actParamDenyMsg %>',           type: 'text',   placeholder: '🚫 You do not meet the requirements.' },
+        { key: 'abuse_cooldown',  label: '<%= t.embeds.actParamCooldown %>',          type: 'number', placeholder: '10' },
+        { key: 'abuse_maxUses',   label: '<%= t.embeds.actParamMaxUses %>',           type: 'number', placeholder: '0' },
+      ]},
+      role_exclusive: { label: '🎯 <%= t.embeds.actExclusiveRole %>', params: [
+        { key: 'roleId',         label: '<%= t.embeds.actParamRoleAssign %>',    type: 'role' },
+        { key: 'groupRoles',     label: '<%= t.embeds.actParamSiblingRoles %>', type: 'roles' },
+        { key: 'hasRole',        label: '<%= t.embeds.actParamRequiredRole %>', type: 'role' },
+        { key: 'missingRole',    label: '<%= t.embeds.actParamBlockedRole %>',  type: 'role' },
+        { key: 'minLevel',       label: '<%= t.embeds.actParamMinLevelReq %>',  type: 'number' },
+        { key: 'denyMessage',    label: '<%= t.embeds.actParamDenyMsg %>',      type: 'text' },
+        { key: 'abuse_cooldown', label: '<%= t.embeds.actParamCooldown %>',     type: 'number', placeholder: '10' },
+        { key: 'abuse_maxUses',  label: '<%= t.embeds.actParamMaxUses %>',      type: 'number', placeholder: '0' },
+      ]},
+      role_temp: { label: '⏳ <%= t.embeds.actTempRole %>', params: [
+        { key: 'roleId',         label: '<%= t.embeds.actParamRole %>',           type: 'role' },
+        { key: 'duration',       label: '<%= t.embeds.actParamDuration %>',       type: 'number', placeholder: '3600000  (= 1 hour)' },
+        { key: 'confirmMessage', label: '<%= t.embeds.actParamConfirmExpiry %>',  type: 'text',   placeholder: '✅ Granted until [expiry]!' },
+        { key: 'hasRole',        label: '<%= t.embeds.actParamRequiredRole %>',   type: 'role' },
+        { key: 'missingRole',    label: '<%= t.embeds.actParamBlockedRole %>',    type: 'role' },
+        { key: 'minLevel',       label: '<%= t.embeds.actParamMinLevelReq %>',    type: 'number' },
+        { key: 'denyMessage',    label: '<%= t.embeds.actParamDenyMsg %>',        type: 'text' },
+        { key: 'abuse_cooldown', label: '<%= t.embeds.actParamCooldown %>',       type: 'number', placeholder: '60' },
+        { key: 'abuse_maxUses',  label: '<%= t.embeds.actParamMaxUses %>',        type: 'number', placeholder: '1' },
+      ]},
+      role_conditional: { label: '📋 <%= t.embeds.actConditionalRole %>', params: [
+        { key: 'roleId',         label: '<%= t.embeds.actParamRole %>',          type: 'role' },
+        { key: 'operator',       label: '<%= t.embeds.actParamOperator %>',      type: 'text',   placeholder: 'add' },
+        { key: 'hasRole',        label: '<%= t.embeds.actParamRequiredRole %>', type: 'role' },
+        { key: 'missingRole',    label: '<%= t.embeds.actParamBlockedRole %>',  type: 'role' },
+        { key: 'hasAllRoles',    label: '<%= t.embeds.actParamHasAll %>',       type: 'roles' },
+        { key: 'hasAnyRole',     label: '<%= t.embeds.actParamHasAny %>',       type: 'roles' },
+        { key: 'minLevel',       label: '<%= t.embeds.actParamMinLevel %>',     type: 'number' },
+        { key: 'minXp',          label: '<%= t.embeds.actParamMinXp %>',        type: 'number' },
+        { key: 'denyMessage',    label: '<%= t.embeds.actParamDenyMsg %>',      type: 'text' },
+        { key: 'abuse_cooldown', label: '<%= t.embeds.actParamCooldown %>',     type: 'number' },
+        { key: 'abuse_maxUses',  label: '<%= t.embeds.actParamMaxUsesShort %>', type: 'number' },
+      ]},
+      role_check_branch: { label: '🔀 <%= t.embeds.actRoleBranch %>', params: [
+        { key: 'thenTarget',     label: '<%= t.embeds.actParamThenTarget %>',    type: 'text',   placeholder: 'state_id' },
+        { key: 'elseTarget',     label: '<%= t.embeds.actParamElseTarget %>',    type: 'text',   placeholder: 'state_id (optional)' },
+        { key: 'hasRole',        label: '<%= t.embeds.actParamMustHaveRole %>',  type: 'role' },
+        { key: 'missingRole',    label: '<%= t.embeds.actParamMustNotRole %>',   type: 'role' },
+        { key: 'hasAllRoles',    label: '<%= t.embeds.actParamHasAll %>',        type: 'roles' },
+        { key: 'hasAnyRole',     label: '<%= t.embeds.actParamHasAny %>',        type: 'roles' },
+        { key: 'minLevel',       label: '<%= t.embeds.actParamMinTotalLvl %>',   type: 'number' },
+        { key: 'minTextLevel',   label: '<%= t.embeds.actParamMinTextLvl %>',    type: 'number' },
+        { key: 'minVoiceLevel',  label: '<%= t.embeds.actParamMinVoiceLvl %>',   type: 'number' },
+        { key: 'minXp',          label: '<%= t.embeds.actParamMinXp %>',         type: 'number' },
+        { key: 'minMessages',    label: '<%= t.embeds.actParamMinMessages %>',   type: 'number' },
+      ]},
+      grant_xp: { label: '⭐ <%= t.embeds.actGrantXp %>', params: [
+        { key: 'xp',    label: '<%= t.embeds.actParamXpAmount %>', type: 'number', placeholder: '50' },
+        { key: 'track', label: '<%= t.embeds.actParamXpTrack %>',  type: 'text',   placeholder: 'text' },
+      ]},
+
+      // ── Dynamic pipeline actions ─────────────────────────────────────────
+      role_sequence: { label: '⛓ <%= t.embeds.actRoleSequence %>', params: [
+        { key: 'actions',         label: '<%= t.embeds.actParamSubActions %>',     type: 'textarea', placeholder: '[{"type":"role_temp","roleId":"...","duration":3600000},{"type":"grant_xp","xp":50}]' },
+        { key: 'feedbackMessage', label: '<%= t.embeds.actParamFeedbackAfter %>', type: 'text',     placeholder: '✅ Done!' },
+      ]},
+      fire_webhook: { label: '🌐 <%= t.embeds.actFireWebhook %>', params: [
+        { key: 'url',            label: '<%= t.embeds.actParamWebhookUrl %>',     type: 'text',     placeholder: 'https://your-server.com/webhook' },
+        { key: 'payload',        label: '<%= t.embeds.actParamJsonPayload %>',    type: 'textarea', placeholder: '{"userId":"{{member.id}}","guild":"{{guild.name}}","level":{{level}}}' },
+        { key: 'successMessage', label: '<%= t.embeds.actParamSuccessMsg %>',     type: 'text',     placeholder: '✅ Webhook sent!' },
+        { key: 'failMessage',    label: '<%= t.embeds.actParamFailMsg %>',        type: 'text',     placeholder: '❌ Webhook failed.' },
+      ]},
+
+      // ── Direct DM (no flow tracking) ─────────────────────────────────────
+      send_dm_message: { label: '💬 <%= t.embeds.actSendDmMsg %>', params: [] },
+
+      delay:             { label: '<%= t.embeds.actDelay %>',              params: [
+        { key: 'ms', label: '<%= t.embeds.actParamMs %>', type: 'number', placeholder: 'e.g. 2000' },
+      ]},
+    };
+
+    /* Lucide icon name for each action type */
+    const ACTION_ICONS = {
+      update_content:     'refresh-cw',      replace_embeds:      'image',
+      append_embeds:      'layers',           update_components:   'layout-dashboard',
+      disable_component:  'toggle-left',      enable_component:    'toggle-right',
+      hide_component:     'eye-off',          send_ephemeral:      'message-circle',
+      send_to_channel:    'send',             open_dm:             'mail',
+      open_channel_flow:  'corner-right-up',  complete_flow:       'check-circle',
+      send_to_origin:     'corner-left-down', edit_origin_message: 'pencil',
+      add_role:           'user-plus',        remove_role:         'user-minus',
+      role_toggle:        'repeat-2',         role_exclusive:      'target',
+      role_temp:          'clock',            role_conditional:    'list-checks',
+      role_check_branch:  'git-branch',       grant_xp:            'star',
+      role_sequence:      'link-2',           fire_webhook:        'globe',
+      send_dm_message:    'message-square',   delay:               'timer',
+    };
+    // Strip leading emoji / special chars from a label for clean display
+    function _stripEmoji(s) { return s.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2B00}-\u{2BFF}✅↗↩]+\s*/u, '').replace(/^[^\w\s]+\s*/, '').trim() || s; }
+    // Shared role icon helper: unicode emoji → span, custom icon → img, else → colored dot
+    function _ri(r) {
+      if (!r) return '<span class="tr-role-dot" style="background:#5b5ea6;"></span>';
+      if (r.unicodeEmoji) return '<span style="font-size:12px;line-height:1;flex-shrink:0;">' + esc(r.unicodeEmoji) + '</span>';
+      if (r.icon) return '<img src="' + esc(r.icon) + '" style="width:13px;height:13px;border-radius:3px;object-fit:cover;flex-shrink:0;" loading="lazy">';
+      const c = (r.color && r.color !== '#000000') ? r.color : '#5b5ea6';
+      return '<span class="tr-role-dot" style="background:' + esc(c) + ';"></span>';
+    }
+    // Register document-level click once to close open pickers
+    if (!window.__trPickerListenerAdded) {
+      window.__trPickerListenerAdded = true;
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.tr-type-picker.open').forEach(p => p.classList.remove('open'));
+        document.querySelectorAll('.tr-role-picker-wrap.open').forEach(p => p.classList.remove('open'));
+      });
+    }
+
+    /* ────────────────── Smart Trigger Definitions ────────────────── */
+    const TRIGGER_TYPE_DEFS = {
+      cron:         { label: '<%= t.embeds.trgScheduled %>',   icon: 'clock',          params: [
+        { key: 'schedule',       label: '<%= t.embeds.trgParamCronExpr %>',    type: 'text',    placeholder: '0 9 * * *  (min hr dom mon dow)' },
+        { key: 'channelOverride',label: '<%= t.embeds.trgParamChOverride %>', type: 'channel' },
+      ]},
+      member_join:  { label: '<%= t.embeds.trgMemberJoin %>',  icon: 'user-plus',      params: [] },
+      member_leave: { label: '<%= t.embeds.trgMemberLeave %>', icon: 'user-minus',     params: [] },
+      role_add:     { label: '<%= t.embeds.trgRoleAdded %>',   icon: 'shield-check',   params: [
+        { key: 'roleId', label: '<%= t.embeds.actParamRole %>', type: 'role' },
+      ]},
+      role_remove:  { label: '<%= t.embeds.trgRoleRemoved %>', icon: 'shield-off',     params: [
+        { key: 'roleId', label: '<%= t.embeds.actParamRole %>', type: 'role' },
+      ]},
+      message:      { label: '<%= t.embeds.trgMsgKeyword %>',  icon: 'message-circle', params: [
+        { key: 'pattern',  label: '<%= t.embeds.trgParamKeyword %>',    type: 'text',    placeholder: 'buy' },
+        { key: 'isRegex',  label: '<%= t.embeds.trgParamIsRegex %>',    type: 'checkbox' },
+        { key: 'channelId',label: '<%= t.embeds.trgParamInChannel %>', type: 'channel'  },
+      ]},
+    };
+
+    const TRIGGER_ACTION_DEFS = {
+      edit_message:    { label: '<%= t.embeds.trgActEditMsg %>' },
+      send_to_channel: { label: '<%= t.embeds.trgActSendCh %>' },
+      send_dm:         { label: '<%= t.embeds.trgActDm %>' },
+      send_reply:      { label: '<%= t.embeds.trgActReply %>' },
+    };
+
+    function getStateTriggers(stateId) {
+      const s = machine.states[stateId]; if (!s) return [];
+      const out = [];
+      for (const row of (s.components || [])) {
+        if (row.type === 'buttons')
+          for (const b of (row.buttons || []))
+            if (b.customId) out.push({ id: b.customId, label: b.label || 'Button' });
+        if (row.type === 'select')
+          for (const o of (row.select?.options || []))
+            if (o.customId) out.push({ id: o.customId, label: o.label || 'Option' });
+      }
+      return out;
+    }
+
+    function renderTransitionsPanel() {
+      const s = getSelectedState(); if (!s) return;
+      if (!s.on) s.on = {};
+      // Normalize action arrays to objects for backward compat
+      for (const tr of Object.values(s.on)) {
+        if (!tr.actions) tr.actions = [];
+        tr.actions = tr.actions.map(a => typeof a === 'string' ? { type: a } : a);
+      }
+      const on          = s.on;
+      const otherStates = Object.keys(machine.states).filter(id => id !== selectedStateId);
+      // Include current state as a "(self)" self-loop option at the top of the list
+      const selfLabel   = esc((machine.states[selectedStateId]?.label || selectedStateId) + ' (self)');
+      const stateOpts   = '<option value="' + esc(selectedStateId) + '">' + selfLabel + '</option>'
+        + otherStates.map(id =>
+          '<option value="' + esc(id) + '">' + esc(machine.states[id].label || id) + '</option>').join('');
+      const triggers  = getStateTriggers(selectedStateId);
+      const usedIds   = Object.keys(on);
+      const available = triggers.filter(t => !usedIds.includes(t.id));
+
+      // Render param inputs for one pipeline step
+      function stepParamHTML(tid, step, idx) {
+        const def = ACTION_DEFS[step.type];
+        if (!def || !def.params.length) return '';
+        return '<div class="tr-step-params">' + def.params.map(p => {
+          const val   = (step[p.key] !== undefined && step[p.key] !== null) ? step[p.key] : '';
+          const attrD = ' data-tid="' + esc(tid) + '" data-idx="' + idx + '" data-key="' + esc(p.key) + '"';
+          let inputHtml;
+          if (p.type === 'role' || p.type === 'roles') {
+            const isMulti  = p.type === 'roles';
+            const selIds   = val ? String(val).split(',').map(v => v.trim()).filter(Boolean) : [];
+            const optsHtml = guildRoles.map(r => {
+              const act = selIds.includes(r.id) ? ' active' : '';
+              return '<div class="tr-role-opt' + act + '" data-roleid="' + esc(r.id) + '">'
+                + _ri(r)
+                + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(r.name) + '</span>'
+                + (act ? '<i data-lucide="check" style="width:10px;height:10px;flex-shrink:0;opacity:.8;"></i>' : '')
+                + '</div>';
+            }).join('');
+            let pillInner;
+            if (isMulti) {
+              const tagsHtml = selIds.map(id => {
+                const r = guildRoles.find(x => x.id === id);
+                return '<span class="tr-role-tag" data-roleid="' + esc(id) + '">'
+                  + _ri(r)
+                  + esc(r ? r.name : id)
+                  + '<span class="tr-role-tag-x" data-roleid="' + esc(id) + '">\xd7</span></span>';
+              }).join('');
+              pillInner = '<div class="tr-role-tags">' + (tagsHtml || '<span style="opacity:.4;font-size:.71rem;"><%= t.embeds.trSelectRoles %></span>') + '</div>'
+                + '<i data-lucide="chevron-down" style="width:11px;height:11px;margin-left:4px;flex-shrink:0;opacity:.4;"></i>';
+            } else {
+              const sr = guildRoles.find(r => r.id === String(val));
+              pillInner = (sr
+                ? _ri(sr) + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">' + esc(sr.name) + '</span>'
+                : '<i data-lucide="shield" style="width:12px;height:12px;opacity:.35;flex-shrink:0;"></i><span style="flex:1;opacity:.4;font-size:.71rem;"><%= t.embeds.trSelectRole %></span>')
+                + '<i data-lucide="chevron-down" style="width:11px;height:11px;flex-shrink:0;opacity:.4;"></i>';
+            }
+            inputHtml =
+              '<div class="tr-role-picker-wrap' + (isMulti ? ' multi' : '') + '" data-ptid="' + esc(tid) + '" data-pidx="' + idx + '" data-pkey="' + esc(p.key) + '">'
+              + '<input type="hidden" class="tr-param-input"' + attrD + ' value="' + esc(String(val)) + '">'
+              + '<div class="tr-role-pill">' + pillInner + '</div>'
+              + '<div class="tr-role-drop">'
+              + '<input class="tr-role-search" type="text" placeholder="<%= t.embeds.trSearchRoles %>">'
+              + '<div class="tr-role-list">' + (guildRoles.length ? optsHtml : '<div style="padding:6px 8px;font-size:.72rem;opacity:.5;"><%= t.embeds.trNoRoles %></div>') + '</div>'
+              + '</div>'
+              + '</div>';
+          } else if (p.type === 'textarea') {
+            inputHtml = '<textarea class="form-input tr-param-input"'
+              + ' placeholder="' + esc(p.placeholder || '') + '"'
+              + attrD
+              + ' style="min-height:70px;font-size:.72rem;width:100%;resize:vertical;">' + esc(String(val)) + '</textarea>';
+          } else {
+            inputHtml = '<input class="form-input tr-param-input" type="' + esc(p.type || 'text') + '"'
+              + ' placeholder="' + esc(p.placeholder || '') + '"'
+              + ' value="' + esc(String(val)) + '"'
+              + attrD + '>';
+          }
+          return '<div class="tr-step-param">'
+            + '<label>' + esc(p.label) + '</label>'
+            + inputHtml
+            + '</div>';
+        }).join('') + '</div>';
+      }
+
+      // Render one pipeline step card
+      function stepHTML(tid, step, idx) {
+        const curDef  = ACTION_DEFS[step.type] || { label: step.type, params: [] };
+        const curIcon = ACTION_ICONS[step.type] || 'zap';
+        const curLbl  = _stripEmoji(curDef.label);
+        const optItems = Object.entries(ACTION_DEFS).map(([k, v]) =>
+          '<div class="tr-type-opt' + (step.type === k ? ' active' : '') + '" data-value="' + esc(k) + '">'
+          + '<i data-lucide="' + esc(ACTION_ICONS[k] || 'zap') + '" style="width:13px;height:13px;flex-shrink:0;"></i>'
+          + '<span>' + esc(_stripEmoji(v.label)) + '</span>'
+          + '</div>'
+        ).join('');
+        return '<div class="tr-step" data-idx="' + idx + '">'
+          + '<div class="tr-step-hd">'
+          + '<div class="tr-type-picker" data-tid="' + esc(tid) + '" data-idx="' + idx + '">'
+          + '<div class="tr-type-selected">'
+          + '<i data-lucide="' + esc(curIcon) + '" style="width:13px;height:13px;flex-shrink:0;"></i>'
+          + '<span class="tr-type-lbl">' + esc(curLbl) + '</span>'
+          + '<i data-lucide="chevron-down" style="width:11px;height:11px;margin-left:auto;flex-shrink:0;opacity:.5;"></i>'
+          + '</div>'
+          + '<div class="tr-type-menu">' + optItems + '</div>'
+          + '</div>'
+          + '<button class="state-act-btn del tr-step-del" data-tid="' + esc(tid) + '" data-idx="' + idx + '" title="Remove step">'
+          + '<i data-lucide="x" style="width:10px;height:10px;"></i></button>'
+          + '</div>'
+          + stepParamHTML(tid, step, idx)
+          + '</div>';
+      }
+
+      let html = '';
+      if (!usedIds.length)
+        html += '<p style="font-size:.78rem;color:var(--muted);margin-bottom:10px;"><%= t.embeds.jsNoTransitions %></p>';
+
+      html += usedIds.map(tid => {
+        const tr         = on[tid];
+        const steps      = tr.actions || [];
+        const pipeHtml   = steps.map((step, idx) => stepHTML(tid, step, idx)).join('');
+        return '<div class="tr-item" data-tid="' + esc(tid) + '">'
+          + '<div class="tr-item-hd">'
+          + '<span class="tr-badge" title="' + esc(tid) + '">' + esc(tid.length > 18 ? tid.slice(0, 16) + '\u2026' : tid) + '</span>'
+          + '<svg style="width:14px;height:14px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="rgba(203,194,255,.5)" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'
+          + '<select class="form-select tr-target-sel" data-tid="' + esc(tid) + '" style="flex:1;">'
+          + '<option value="">\u2014 <%= t.embeds.trTargetState %> \u2014</option>' + stateOpts + '</select>'
+          + '<button class="state-act-btn del tr-remove-btn" data-tid="' + esc(tid) + '" title="Remove transition">'
+          + '<i data-lucide="x" style="width:11px;height:11px;"></i></button>'
+          + '</div>'
+          + '<div class="tr-pipeline">'
+          + pipeHtml
+          + '<button class="btn btn-xs tr-step-add" data-tid="' + esc(tid) + '" style="margin-top:6px;font-size:.71rem;background:rgba(124,58,237,.08);border:1px dashed rgba(124,58,237,.25);color:var(--purple-l);border-radius:7px;padding:4px 10px;width:100%;justify-content:center;">'
+          + '<i data-lucide="plus" style="width:11px;height:11px;"></i> <%= t.embeds.trAddStep %></button>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+
+      if (available.length) {
+        html += '<div style="display:flex;gap:7px;align-items:center;margin-top:10px;padding:10px;background:rgba(124,58,237,.04);border:1px dashed rgba(124,58,237,.2);border-radius:9px;">'
+          + '<select class="form-select" id="trNewTrigger" style="flex:1;">'
+          + '<option value="">\u2014 <%= t.embeds.trPickTrigger %> \u2014</option>'
+          + available.map(t => '<option value="' + esc(t.id) + '">' + esc(t.label) + '</option>').join('')
+          + '</select>'
+          + '<button class="btn btn-primary btn-xs" id="trAddBtn">'
+          + '<i data-lucide="plus" style="width:12px;height:12px;"></i> <%= t.embeds.trAdd %></button>'
+          + '</div>';
+      } else if (!triggers.length) {
+        html += '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,.03);border-radius:9px;font-size:.76rem;color:var(--muted);">'
+          + '<%= t.embeds.jsAddButtonsFirst %></div>';
+      } else {
+        html += '<p style="font-size:.74rem;color:var(--muted);margin-top:8px;">'
+          + '<%= t.embeds.jsAllTriggersHaveTransitions %></p>';
+      }
+
+      $panelTransitions.innerHTML = html;
+      lucide.createIcons();
+
+      // Set selected targets
+      usedIds.forEach(tid => {
+        const sel = $panelTransitions.querySelector('.tr-target-sel[data-tid="' + tid + '"]');
+        if (sel && on[tid].target) sel.value = on[tid].target;
+      });
+
+      // Target state change
+      $panelTransitions.querySelectorAll('.tr-target-sel').forEach(sel => sel.addEventListener('change', () => {
+        const ss = getSelectedState(); if (!ss?.on) return;
+        if (!ss.on[sel.dataset.tid]) ss.on[sel.dataset.tid] = { target: '', actions: [] };
+        ss.on[sel.dataset.tid].target = sel.value;
+        updateArrows(); renderCanvas();
+      }));
+
+      // Custom type picker — toggle open on header click
+      $panelTransitions.querySelectorAll('.tr-type-selected').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const picker = btn.closest('.tr-type-picker');
+        const isOpen = picker.classList.contains('open');
+        $panelTransitions.querySelectorAll('.tr-type-picker.open').forEach(p => p.classList.remove('open'));
+        if (!isOpen) { picker.classList.add('open'); lucide.createIcons(); }
+      }));
+      // Custom type picker — option click → reset action type and re-render
+      $panelTransitions.querySelectorAll('.tr-type-opt').forEach(opt => opt.addEventListener('click', e => {
+        e.stopPropagation();
+        const picker = opt.closest('.tr-type-picker');
+        const { tid, idx } = picker.dataset;
+        const ss = getSelectedState(); if (!ss?.on) return;
+        const acts = ss.on[tid]?.actions;
+        if (!acts?.[+idx]) return;
+        acts[+idx] = { type: opt.dataset.value };
+        renderTransitionsPanel();
+      }));
+
+      // Param input change
+      $panelTransitions.querySelectorAll('.tr-param-input').forEach(inp => inp.addEventListener('input', () => {
+        const ss = getSelectedState(); if (!ss?.on) return;
+        const { tid, idx, key } = inp.dataset;
+        if (!tid || idx === undefined || !key) return;
+        const acts = ss.on[tid]?.actions;
+        if (!acts?.[+idx]) return;
+        acts[+idx][key] = inp.type === 'number' ? (parseInt(inp.value) || 0) : inp.value;
+      }));
+
+      // Role picker — open / close
+      $panelTransitions.querySelectorAll('.tr-role-pill').forEach(pill => pill.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap   = pill.closest('.tr-role-picker-wrap');
+        const isOpen = wrap.classList.contains('open');
+        $panelTransitions.querySelectorAll('.tr-role-picker-wrap.open').forEach(w => w.classList.remove('open'));
+        if (!isOpen) {
+          wrap.classList.add('open'); lucide.createIcons();
+          const s = wrap.querySelector('.tr-role-search');
+          if (s) { s.value = ''; s.focus(); wrap.querySelectorAll('.tr-role-opt').forEach(o => o.style.display = ''); }
+        }
+      }));
+      // Role picker — search filter
+      $panelTransitions.querySelectorAll('.tr-role-search').forEach(inp => {
+        inp.addEventListener('click',   e => e.stopPropagation());
+        inp.addEventListener('keydown', e => e.stopPropagation());
+        inp.addEventListener('input',   e => {
+          e.stopPropagation();
+          const q = inp.value.toLowerCase();
+          inp.closest('.tr-role-drop').querySelectorAll('.tr-role-opt').forEach(opt => {
+            const name = opt.querySelector('span')?.textContent || '';
+            opt.style.display = name.toLowerCase().includes(q) ? '' : 'none';
+          });
+        });
+      });
+      // Role picker — option click (single: close; multi: stay open & toggle)
+      $panelTransitions.querySelectorAll('.tr-role-opt').forEach(opt => opt.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap    = opt.closest('.tr-role-picker-wrap');
+        const isMulti = wrap.classList.contains('multi');
+        const hidden  = wrap.querySelector('.tr-param-input');
+        const rid     = opt.dataset.roleid;
+        if (isMulti) {
+          const cur = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+          const i   = cur.indexOf(rid);
+          if (i === -1) cur.push(rid); else cur.splice(i, 1);
+          hidden.value = cur.join(',');
+          _rolePickerReopen = { ptid: wrap.dataset.ptid, pidx: wrap.dataset.pidx, pkey: wrap.dataset.pkey };
+        } else {
+          hidden.value = rid;
+        }
+        hidden.dispatchEvent(new Event('input'));
+        renderTransitionsPanel();
+      }));
+      // Multi-role — remove tag via × button
+      $panelTransitions.querySelectorAll('.tr-role-tag-x').forEach(x => x.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap   = x.closest('.tr-role-picker-wrap');
+        const hidden = wrap.querySelector('.tr-param-input');
+        const rid    = x.dataset.roleid;
+        const cur    = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+        const i      = cur.indexOf(rid);
+        if (i !== -1) cur.splice(i, 1);
+        hidden.value = cur.join(',');
+        hidden.dispatchEvent(new Event('input'));
+        renderTransitionsPanel();
+      }));
+      // Re-open multi-role picker after re-render (keeps dropdown open while selecting multiple roles)
+      if (_rolePickerReopen) {
+        const rr = _rolePickerReopen; _rolePickerReopen = null;
+        const rp = [...$panelTransitions.querySelectorAll('.tr-role-picker-wrap')]
+          .find(w => w.dataset.ptid === rr.ptid && w.dataset.pidx === rr.pidx && w.dataset.pkey === rr.pkey);
+        if (rp) { rp.classList.add('open'); lucide.createIcons(); const s = rp.querySelector('.tr-role-search'); if (s) s.focus(); }
+      }
+
+      // Remove step
+      $panelTransitions.querySelectorAll('.tr-step-del').forEach(btn => btn.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss?.on) return;
+        const acts = ss.on[btn.dataset.tid]?.actions; if (!acts) return;
+        acts.splice(+btn.dataset.idx, 1);
+        renderTransitionsPanel();
+      }));
+
+      // Add step
+      $panelTransitions.querySelectorAll('.tr-step-add').forEach(btn => btn.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss?.on) return;
+        if (!ss.on[btn.dataset.tid]) return;
+        if (!ss.on[btn.dataset.tid].actions) ss.on[btn.dataset.tid].actions = [];
+        ss.on[btn.dataset.tid].actions.push({ type: 'update_content' });
+        renderTransitionsPanel();
+      }));
+
+      // Remove transition
+      $panelTransitions.querySelectorAll('.tr-remove-btn').forEach(b => b.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss?.on) return;
+        delete ss.on[b.dataset.tid];
+        renderTransitionsPanel(); updateArrows(); renderCanvas();
+      }));
+
+      // Add new transition
+      const addBtn = document.getElementById('trAddBtn');
+      if (addBtn) addBtn.addEventListener('click', () => {
+        const ss = getSelectedState(); if (!ss) return;
+        if (!ss.on) ss.on = {};
+        const trigSel = document.getElementById('trNewTrigger');
+        if (!trigSel?.value) return toast('Select a trigger component first', 'error');
+        ss.on[trigSel.value] = { target: otherStates[0] || selectedStateId, actions: [{ type: 'update_content' }] };
+        renderTransitionsPanel(); updateArrows(); renderCanvas();
+      });
+    }
+
+    /* ────────────────── Permissions Panel ────────────────── */
+    function renderPermissionsPanel() {
+      const s = getSelectedState(); if (!s) return;
+      if (!s.permissions) s.permissions = { allowedRoles: [], cooldown: 0, denyMessage: '' };
+      const perms = s.permissions;
+      const activeCnt = (perms.allowedRoles || []).length;
+
+      const rolesHtml = guildRoles.length
+        ? guildRoles.map(r => {
+            const checked = (perms.allowedRoles || []).includes(r.id) ? ' checked' : '';
+            const col = (!r.color || r.color === '#000000') ? '#99aab5' : r.color;
+            return '<label class="perm-role-pill">'
+              + '<input type="checkbox" class="perm-role-cb" data-rid="' + esc(r.id) + '"' + checked + '>'
+              + '<span class="perm-role-dot" style="background:' + esc(col) + ';"></span>'
+              + esc(r.name) + '</label>';
+          }).join('')
+        : '<p class="perm-no-roles"><%= t.embeds.jsNoRoles %></p>';
+
+      $panelPermissions.innerHTML =
+        '<div class="perm-section">'
+        + '<div class="perm-section-hd"><i data-lucide="shield" style="width:13px;height:13px;"></i>&nbsp;'
+        + '<%= t.embeds.jsAllowedRoles %></div>'
+        + '<p class="perm-desc">'
+        + '<%= t.embeds.jsPermDesc %>'
+        + '</p>'
+        + '<div class="perm-roles-grid">' + rolesHtml + '</div>'
+        + (activeCnt
+           ? '<div class="perm-active-badge"><i data-lucide="lock" style="width:10px;height:10px;"></i>&nbsp;'
+             + activeCnt + ' role' + (activeCnt > 1 ? 's' : '') + ' required</div>'
+           : '')
+        + '</div>'
+
+        + '<div class="perm-section">'
+        + '<div class="perm-section-hd"><i data-lucide="timer" style="width:13px;height:13px;"></i>&nbsp;Cooldown</div>'
+        + '<p class="perm-desc"><%= t.embeds.jsCooldownDesc %></p>'
+        + '<div style="display:flex;align-items:center;gap:8px;">'
+        + '<input type="number" class="form-input" id="permCooldown" min="0" max="86400" value="'
+        + (perms.cooldown || 0) + '" style="width:88px;">'
+        + '<span style="font-size:.76rem;color:var(--muted);"><%= t.embeds.jsSeconds %></span>'
+        + '</div>'
+        + '</div>'
+
+        + '<div class="perm-section">'
+        + '<div class="perm-section-hd"><i data-lucide="message-square-x" style="width:13px;height:13px;"></i>&nbsp;'
+        + '<%= t.embeds.jsDenyMessage %></div>'
+        + '<input class="form-input" id="permDenyMsg" value="' + esc(perms.denyMessage || '')
+        + '" placeholder="<%= t.embeds.jsDenyPlaceholder %>">'
+        + '<p style="font-size:.71rem;color:var(--muted);margin-top:4px;"><%= t.embeds.jsDenyMessageDesc %></p>'
+        + '</div>';
+
+      lucide.createIcons();
+
+      $panelPermissions.querySelectorAll('.perm-role-cb').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const ss = getSelectedState(); if (!ss) return;
+          if (!ss.permissions) ss.permissions = { allowedRoles: [], cooldown: 0, denyMessage: '' };
+          const rid = cb.dataset.rid;
+          if (cb.checked) {
+            if (!ss.permissions.allowedRoles.includes(rid)) ss.permissions.allowedRoles.push(rid);
+          } else {
+            ss.permissions.allowedRoles = ss.permissions.allowedRoles.filter(r => r !== rid);
+          }
+          renderPermissionsPanel();
+        });
+      });
+
+      document.getElementById('permCooldown').addEventListener('change', function() {
+        const ss = getSelectedState(); if (!ss) return;
+        if (!ss.permissions) ss.permissions = { allowedRoles: [], cooldown: 0, denyMessage: '' };
+        ss.permissions.cooldown = Math.max(0, parseInt(this.value) || 0);
+      });
+
+      document.getElementById('permDenyMsg').addEventListener('input', function() {
+        const ss = getSelectedState(); if (!ss) return;
+        if (!ss.permissions) ss.permissions = { allowedRoles: [], cooldown: 0, denyMessage: '' };
+        ss.permissions.denyMessage = this.value;
+      });
+    }
+
+    /* ────────────────── Smart Triggers Panel ────────────────── */
+    function updateTriggersCountBadge() {
+      const n = (machine.triggers || []).length;
+      const b = document.getElementById('trgCountBadge');
+      if (b) { b.textContent = n; b.style.display = n ? '' : 'none'; }
+    }
+
+    function renderTriggersModal() {
+      const triggers = machine.triggers || [];
+      const channelOptHtml = '<option value="">\u2014 <%= t.embeds.trgAllChannels %> \u2014</option>'
+        + guildChannels.map(c => '<option value="' + esc(c.id) + '">#' + esc(c.name) + '</option>').join('');
+      const stateOptHtml = '<option value="">\u2014 <%= t.embeds.trgInitialState %> \u2014</option>'
+        + Object.keys(machine.states).map(id =>
+            '<option value="' + esc(id) + '">' + esc(machine.states[id]?.label || id) + '</option>').join('');
+      const actOptHtml = Object.entries(TRIGGER_ACTION_DEFS)
+        .map(([k, v]) => '<option value="' + esc(k) + '">' + esc(v.label) + '</option>').join('');
+      const typeOptHtml = Object.entries(TRIGGER_TYPE_DEFS)
+        .map(([k, v]) => '<option value="' + esc(k) + '">' + esc(v.label) + '</option>').join('');
+      const $body = document.getElementById('triggersModalBody');
+      if (!triggers.length) {
+        $body.innerHTML = '<div style="text-align:center;padding:28px 16px;color:var(--muted);font-size:.82rem;">'
+          + '<svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 12px;width:30px;height:30px;opacity:.3;stroke:currentColor;fill:none;stroke-width:2;" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+          + 'No smart triggers yet. Click <strong><%= t.embeds.trAdd %></strong> to start automating.</div>';
+        return;
+      }
+      $body.innerHTML = '<div class="trg-list">' + triggers.map((tr, i) => {
+        const def = TRIGGER_TYPE_DEFS[tr.type] || TRIGGER_TYPE_DEFS.cron;
+        const paramsHtml = def.params.map(p => {
+          const val = tr[p.key] !== undefined ? tr[p.key] : '';
+          let inp = '';
+          if (p.type === 'checkbox') {
+            inp = '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding-top:2px;">'
+              + '<input type="checkbox" class="trg-cb-inp" data-ti="' + i + '" data-key="' + esc(p.key) + '"'
+              + (val ? ' checked' : '') + ' style="width:13px;height:13px;accent-color:var(--purple);cursor:pointer;">'
+              + '<span style="font-size:.72rem;color:var(--white);">' + esc(p.label) + '</span></label>';
+          } else if (p.type === 'channel') {
+            inp = '<select class="form-select trg-ch-inp" data-ti="' + i + '" data-key="' + esc(p.key) + '" style="font-size:.72rem;">'
+              + channelOptHtml + '</select>';
+          } else if (p.type === 'role' || p.type === 'roles') {
+            const isMulti  = p.type === 'roles';
+            const selIds   = val ? String(val).split(',').map(v => v.trim()).filter(Boolean) : [];
+            const optsHtml = guildRoles.map(r => {
+              const act = selIds.includes(r.id) ? ' active' : '';
+              return '<div class="tr-role-opt' + act + '" data-roleid="' + esc(r.id) + '">'
+                + _ri(r)
+                + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(r.name) + '</span>'
+                + (act ? '<i data-lucide="check" style="width:10px;height:10px;flex-shrink:0;opacity:.8;"></i>' : '')
+                + '</div>';
+            }).join('');
+            let pillInner;
+            if (isMulti) {
+              const tagsHtml = selIds.map(id => {
+                const r = guildRoles.find(x => x.id === id);
+                return '<span class="tr-role-tag" data-roleid="' + esc(id) + '">'
+                  + _ri(r)
+                  + esc(r ? r.name : id)
+                  + '<span class="tr-role-tag-x" data-roleid="' + esc(id) + '">\xd7</span></span>';
+              }).join('');
+              pillInner = '<div class="tr-role-tags">' + (tagsHtml || '<span style="opacity:.4;font-size:.71rem;"><%= t.embeds.trSelectRoles %></span>') + '</div>'
+                + '<i data-lucide="chevron-down" style="width:11px;height:11px;margin-left:4px;flex-shrink:0;opacity:.4;"></i>';
+            } else {
+              const sr = guildRoles.find(r => r.id === String(val));
+              pillInner = (sr
+                ? _ri(sr) + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">' + esc(sr.name) + '</span>'
+                : '<i data-lucide="shield" style="width:12px;height:12px;opacity:.35;flex-shrink:0;"></i><span style="flex:1;opacity:.4;font-size:.71rem;"><%= t.embeds.trSelectRole %></span>')
+                + '<i data-lucide="chevron-down" style="width:11px;height:11px;flex-shrink:0;opacity:.4;"></i>';
+            }
+            inp = '<div class="tr-role-picker-wrap trg-role-wrap' + (isMulti ? ' multi' : '') + '" data-pti="' + i + '" data-pkey="' + esc(p.key) + '">'
+              + '<input type="hidden" class="trg-role-inp" data-ti="' + i + '" data-key="' + esc(p.key) + '" value="' + esc(String(val)) + '">'
+              + '<div class="tr-role-pill">' + pillInner + '</div>'
+              + '<div class="tr-role-drop">'
+              + '<input class="tr-role-search" type="text" placeholder="<%= t.embeds.trSearchRoles %>">'
+              + '<div class="tr-role-list">' + (guildRoles.length ? optsHtml : '<div style="padding:6px 8px;font-size:.72rem;opacity:.5;"><%= t.embeds.trNoRoles %></div>') + '</div>'
+              + '</div>'
+              + '</div>';
+          } else {
+            inp = '<input class="form-input trg-txt-inp" data-ti="' + i + '" data-key="' + esc(p.key) + '"'
+              + ' type="text" value="' + esc(String(val)) + '" placeholder="' + esc(p.placeholder || '') + '"'
+              + ' style="font-size:.72rem;">';
+          }
+          return '<div class="trg-param-field">'
+            + (p.type !== 'checkbox' ? '<span class="trg-param-label">' + esc(p.label) + '</span>' : '')
+            + inp + '</div>';
+        }).join('');
+        return '<div class="trg-item">'
+          + '<div class="trg-item-hd">'
+          + '<label class="trg-toggle"><input type="checkbox" class="trg-enabled-inp" data-ti="' + i + '"'
+          + (tr.enabled !== false ? ' checked' : '') + '><span class="trg-toggle-slider"></span></label>'
+          + '<select class="form-select trg-type-inp" data-ti="' + i + '" style="flex:1;font-size:.72rem;">'
+          + typeOptHtml + '</select>'
+          + '<button class="state-act-btn del trg-del-btn" data-ti="' + i + '" style="flex-shrink:0;" title="Delete">'
+          + '<i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>'
+          + '</div>'
+          + (def.params.length ? '<div class="trg-params">' + paramsHtml + '</div>' : '')
+          + '<div class="trg-params">'
+          + '<div class="trg-param-field"><span class="trg-param-label"><%= t.embeds.trgTargetState %></span>'
+          + '<select class="form-select trg-state-inp" data-ti="' + i + '" style="font-size:.72rem;">'
+          + stateOptHtml + '</select></div>'
+          + '<div class="trg-param-field"><span class="trg-param-label"><%= t.embeds.trgAction %></span>'
+          + '<select class="form-select trg-act-inp" data-ti="' + i + '" style="font-size:.72rem;">'
+          + actOptHtml + '</select></div>'
+          + '</div></div>';
+      }).join('') + '</div>';
+      lucide.createIcons();
+      // Post-render: set select values (can't pre-select via innerHTML)
+      triggers.forEach((tr, i) => {
+        const tyS = document.querySelector('.trg-type-inp[data-ti="' + i + '"]');  if (tyS) tyS.value = tr.type || 'cron';
+        const stS = document.querySelector('.trg-state-inp[data-ti="' + i + '"]'); if (stS && tr.targetState) stS.value = tr.targetState;
+        const acS = document.querySelector('.trg-act-inp[data-ti="' + i + '"]');
+        if (acS) {
+          const av = (tr.actions || []).map(a => typeof a === 'string' ? a : a?.type).filter(Boolean)[0] || 'send_to_channel';
+          acS.value = av;
+        }
+        document.querySelectorAll('.trg-ch-inp[data-ti="' + i + '"]').forEach(s => { if (tr[s.dataset.key]) s.value = tr[s.dataset.key]; });
+      });
+      // Events
+      document.querySelectorAll('.trg-enabled-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti].enabled = el.checked; }));
+      document.querySelectorAll('.trg-type-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti].type = el.value; renderTriggersModal(); }));
+      document.querySelectorAll('.trg-txt-inp').forEach(el => el.addEventListener('input', () => { machine.triggers[+el.dataset.ti][el.dataset.key] = el.value; }));
+      document.querySelectorAll('.trg-ch-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti][el.dataset.key] = el.value; }));
+      document.querySelectorAll('.trg-cb-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti][el.dataset.key] = el.checked; }));
+      // Role picker events (triggers modal)
+      document.querySelectorAll('.trg-role-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti][el.dataset.key] = el.value; }));
+      $body.querySelectorAll('.trg-role-wrap .tr-role-pill').forEach(pill => pill.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap   = pill.closest('.trg-role-wrap');
+        const isOpen = wrap.classList.contains('open');
+        $body.querySelectorAll('.trg-role-wrap.open').forEach(w => w.classList.remove('open'));
+        if (!isOpen) {
+          wrap.classList.add('open'); lucide.createIcons();
+          const s = wrap.querySelector('.tr-role-search');
+          if (s) { s.value = ''; s.focus(); wrap.querySelectorAll('.tr-role-opt').forEach(o => o.style.display = ''); }
+        }
+      }));
+      $body.querySelectorAll('.trg-role-wrap .tr-role-search').forEach(inp => {
+        inp.addEventListener('click',   e => e.stopPropagation());
+        inp.addEventListener('keydown', e => e.stopPropagation());
+        inp.addEventListener('input',   e => {
+          e.stopPropagation();
+          const q = inp.value.toLowerCase();
+          inp.closest('.tr-role-drop').querySelectorAll('.tr-role-opt').forEach(opt => {
+            const name = opt.querySelector('span')?.textContent || '';
+            opt.style.display = name.toLowerCase().includes(q) ? '' : 'none';
+          });
+        });
+      });
+      $body.querySelectorAll('.trg-role-wrap .tr-role-opt').forEach(opt => opt.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap    = opt.closest('.trg-role-wrap');
+        const isMulti = wrap.classList.contains('multi');
+        const hidden  = wrap.querySelector('.trg-role-inp');
+        const rid     = opt.dataset.roleid;
+        if (isMulti) {
+          const cur = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+          const ii  = cur.indexOf(rid);
+          if (ii === -1) cur.push(rid); else cur.splice(ii, 1);
+          hidden.value = cur.join(',');
+          _trgRolePickerReopen = { pti: wrap.dataset.pti, pkey: wrap.dataset.pkey };
+        } else {
+          hidden.value = rid;
+        }
+        hidden.dispatchEvent(new Event('change'));
+        renderTriggersModal();
+      }));
+      $body.querySelectorAll('.trg-role-wrap .tr-role-tag-x').forEach(x => x.addEventListener('click', e => {
+        e.stopPropagation();
+        const wrap   = x.closest('.trg-role-wrap');
+        const hidden = wrap.querySelector('.trg-role-inp');
+        const rid    = x.dataset.roleid;
+        const cur    = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+        const ii     = cur.indexOf(rid);
+        if (ii !== -1) cur.splice(ii, 1);
+        hidden.value = cur.join(',');
+        hidden.dispatchEvent(new Event('change'));
+        renderTriggersModal();
+      }));
+      if (_trgRolePickerReopen) {
+        const rr = _trgRolePickerReopen; _trgRolePickerReopen = null;
+        const rp = [...$body.querySelectorAll('.trg-role-wrap')]
+          .find(w => w.dataset.pti === rr.pti && w.dataset.pkey === rr.pkey);
+        if (rp) { rp.classList.add('open'); lucide.createIcons(); const s = rp.querySelector('.tr-role-search'); if (s) s.focus(); }
+      }
+      document.querySelectorAll('.trg-state-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti].targetState = el.value; }));
+      document.querySelectorAll('.trg-act-inp').forEach(el => el.addEventListener('change', () => { machine.triggers[+el.dataset.ti].actions = [el.value]; }));
+      document.querySelectorAll('.trg-del-btn').forEach(btn => btn.addEventListener('click', () => {
+        machine.triggers.splice(+btn.dataset.ti, 1);
+        renderTriggersModal();
+        updateTriggersCountBadge();
+      }));
+    }
+
+    /* ────────────────── Preview ────────────────── */
+    const _botInfo = (() => { try { return JSON.parse(document.getElementById('_data_botInfo').textContent); } catch (e) { return {}; } })();
+    function renderPreview() {
+      const s          = getSelectedState();
+      const embeds     = s?.embeds     || [];
+      const components = s?.components || [];
+      // Bot avatar / name
+      if (_botInfo.avatar)
+        $prevAvatar.innerHTML = '<img src="' + _botInfo.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.textContent=\'' + esc((_botInfo.username||'B')[0]) + '\'">';
+      else
+        $prevAvatar.textContent = (_botInfo.username || 'Bot')[0].toUpperCase();
+      $prevAuthor.innerHTML = '<span style="font-weight:700;color:#f2f3f5;">' + esc(_botInfo.username || 'Bot') + '</span> <span class="bot-tag">BOT</span>';
+      // Embeds
+      $prevEmbeds.innerHTML = embeds.map(emb => {
+        const col = emb.color || '#5865f2';
+        let h = '<div class="preview-embed" style="border-left-color:' + esc(col) + ';">';
+        if (emb.author?.name) {
+          h += '<div class="preview-embed-author">';
+          if (emb.author.iconUrl) h += '<img src="' + esc(emb.author.iconUrl) + '" onerror="this.style.display=\'none\'">';
+          h += esc(emb.author.name) + '</div>';
+        }
+        if (emb.thumbnail) h += '<img class="preview-embed-thumb" src="' + esc(emb.thumbnail) + '" onerror="this.style.display=\'none\'">';
+        if (emb.title)     h += '<div class="preview-embed-title">' + (emb.url ? '<a href="'+esc(emb.url)+'" style="color:#00a8fc;text-decoration:none;">'+esc(emb.title)+'</a>' : esc(emb.title)) + '</div>';
+        if (emb.description) h += '<div class="preview-embed-desc">' + esc(emb.description) + '</div>';
+        if (emb.fields?.length) {
+          h += '<div class="preview-embed-fields">';
+          emb.fields.forEach(f => {
+            h += '<div class="preview-embed-field ' + (f.inline ? 'inline' : 'full') + '">'
+              + '<div class="preview-embed-field-name">'  + esc(f.name  || '\u200b') + '</div>'
+              + '<div class="preview-embed-field-value">' + esc(f.value || '\u200b') + '</div></div>';
+          });
+          h += '</div>';
+        }
+        if (emb.image) h += '<img class="preview-embed-img" src="' + esc(emb.image) + '" onerror="this.style.display=\'none\'">';
+        if (emb.footer?.text || emb.timestamp) {
+          h += '<div class="preview-embed-footer">';
+          if (emb.footer?.iconUrl) h += '<img src="' + esc(emb.footer.iconUrl) + '" onerror="this.style.display=\'none\'">';
+          const parts = [];
+          if (emb.footer?.text) parts.push(esc(emb.footer.text));
+          if (emb.timestamp)    parts.push(new Date().toLocaleDateString());
+          h += parts.join(' \u2022 ') + '</div>';
+        }
+        h += '</div>';
+        return h;
+      }).join('');
+      // Components
+      $prevComps.innerHTML = components.map(row => {
+        if (row.type === 'buttons')
+          return '<div class="preview-action-row">' + (row.buttons||[]).map(b => {
+            const cls = { Primary:'st-primary', Secondary:'st-secondary', Success:'st-success', Danger:'st-danger', Link:'st-link' }[b.style] || 'st-primary';
+            return '<button class="preview-btn ' + cls + '">' + (b.emoji ? esc(b.emoji) + ' ' : '') + esc(b.label || 'Button') + '</button>';
+          }).join('') + '</div>';
+        if (row.type === 'select') {
+          const sel = row.select || {};
+          return '<select class="preview-select"><option>' + esc(sel.placeholder || 'Select an option\u2026') + '</option>'
+            + (sel.options||[]).map(o => '<option>' + (o.emoji ? esc(o.emoji)+' ' : '') + esc(o.label||'Option') + '</option>').join('')
+            + '</select>';
+        }
+        return '';
+      }).join('');
+    }
+
+    /* ════════════════════════════════════════

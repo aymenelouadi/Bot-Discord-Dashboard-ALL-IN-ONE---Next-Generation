@@ -1,0 +1,489 @@
+﻿       GLOBALS
+       ════════════════════════════════════════ */
+    const GUILD_ID = '<%= guildId %>';
+    const API_BASE = '/dashboard/' + GUILD_ID + '/embeds/api';
+    const L = {
+      newFlow:    '<%= t.embeds.jsNewFlow %>',
+      editFlow:   '<%= t.embeds.jsEditFlow %>',
+      saved:      '<%= t.embeds.jsSaved %>',
+      deleted:    '<%= t.embeds.jsDeleted %>',
+      confirmDel: '<%= t.embeds.jsConfirmDel %>',
+      builderStates: '<%= t.embeds.builderStates %>',
+    };
+
+    /* ════════════════════════════════════════
+       STATE
+       ════════════════════════════════════════ */
+    let currentDoc      = null;
+    let machine         = { initial: null, states: {} };
+    let epTheme         = false;
+    let multiUser       = false;
+    let selectedStateId = null;
+    let activeTab        = 'embeds';
+    let uid              = 0;
+    let _rolePickerReopen = null;
+    let _trgRolePickerReopen = null;
+    let _isDirty     = false;
+    let _copiedState = null;
+    const _undoStack = [];
+    const _redoStack = [];
+    let selectedGroupId = null;
+    let _groupDrag      = null;
+    const _multiSel     = new Set(); // multi-state selection
+    function nid(p) { return p + '_' + (++uid); }
+
+    /* ════════════════════════════════════════
+       DOM REFS
+       ════════════════════════════════════════ */
+    const $listView       = document.getElementById('listView');
+    const $builderView    = document.getElementById('builderView');
+    const $msgGrid        = document.getElementById('msgGrid');
+    const $emptyState     = document.getElementById('emptyState');
+    const $builderTitle   = document.getElementById('builderTitle');
+    const $epTheme        = document.getElementById('epThemeToggle');
+    const $multiUser      = document.getElementById('multiUserToggle');
+    const $toast          = document.getElementById('toast');
+    const $flowStates     = document.getElementById('flowStates');
+    const $flowSvg        = document.getElementById('flowSvg');
+    const $flowCanvas     = document.getElementById('flowCanvas');
+    const $canvasBody     = document.getElementById('canvasBody');
+    const $canvasEmpty    = document.getElementById('canvasEmpty');
+    const $stateCountBadge= document.getElementById('stateCountBadge');
+    const $inspEmpty      = document.getElementById('inspEmpty');
+    const $inspContent    = document.getElementById('inspContent');
+    const $inspLabel      = document.getElementById('inspLabel');
+    const $inspColor      = document.getElementById('inspColor');
+    const $inspInitBadge  = document.getElementById('inspInitBadge');
+    const $inspSetInit    = document.getElementById('inspSetInit');
+    const $inspDelState   = document.getElementById('inspDelState');
+    const $panelEmbeds    = document.getElementById('panelEmbeds');
+    const $panelComponents= document.getElementById('panelComponents');
+    const $panelTransitions=document.getElementById('panelTransitions');
+    const $panelPermissions=document.getElementById('panelPermissions');
+    const $prevAvatar     = document.getElementById('prevAvatar');
+    const $prevAuthor     = document.getElementById('prevAuthor');
+    const $prevEmbeds     = document.getElementById('prevEmbeds');
+    const $prevComps      = document.getElementById('prevComps');
+    const $saveModal      = document.getElementById('saveModal');
+    const $modalName      = document.getElementById('modalName');
+    const $modalChannel   = document.getElementById('modalChannel');
+    const $modalSave      = document.getElementById('modalSave');
+    const $modalCancel    = document.getElementById('modalCancel');
+
+    /* ════════════════════════════════════════
+       HELPERS
+       ════════════════════════════════════════ */
+    function toast(msg, type) {
+      $toast.textContent = msg;
+      $toast.className = 'toast show ' + (type || '');
+      clearTimeout($toast._t);
+      $toast._t = setTimeout(() => ($toast.className = 'toast'), 3000);
+    }
+    async function api(method, p, body) {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const r = await fetch(API_BASE + p, opts);
+      const ct = r.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        // Server returned HTML (e.g. session expired → login redirect, or 404 page)
+        const text = await r.text();
+        if (r.status === 401 || r.status === 403) throw new Error('<%= t.embeds.jsSessionExpired %>');
+        throw new Error('<%= t.embeds.jsServerError %>' + ' (' + r.status + ')');
+      }
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Request failed');
+      return j;
+    }
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = String(s ?? '');
+      return d.innerHTML;
+    }
+
+    /* ════════════════════════════════════════
+       LIST VIEW
+       ════════════════════════════════════════ */
+    const savedMessages = JSON.parse(document.getElementById('_data_embedMessages').textContent);
+    const guildChannels = JSON.parse(document.getElementById('_data_guildChannels').textContent);
+    const guildRoles    = JSON.parse(document.getElementById('_data_guildRoles').textContent);
+
+    function _renderCard(m) {
+      const ch      = guildChannels.find(c => c.id === m.channelId);
+      const chName  = ch ? '#' + esc(ch.name) : (m.channelId || '\u2014');
+      const stCount = m.machine?.states ? Object.keys(m.machine.states).length : 0;
+      const date    = m.updatedAt ? new Date(m.updatedAt).toLocaleDateString() : '';
+      const el = document.createElement('div');
+      el.className = 'msg-card'; el.dataset.id = m._id;
+      el.innerHTML = '<div class="msg-card-top"><span class="msg-card-name">' + esc(m.name) + '</span>'
+        + '<span class="msg-card-channel"><i data-lucide="hash" style="width:12px;height:12px;"></i> ' + chName + '</span></div>'
+        + '<div class="msg-card-meta">'
+        + (stCount ? '<span class="msg-card-tag">' + stCount + ' state' + (stCount !== 1 ? 's' : '') + '</span>' : '')
+        + (m.epTheme          ? '<span class="msg-card-tag ep" title="Ephemeral Theme enabled">EP Theme</span>' : '')
+        + (m.machine?.multiUser ? '<span class="msg-card-tag" style="color:#38bdf8;border-color:rgba(56,189,248,.25);background:rgba(56,189,248,.08);" title="Each user has their own flow state">\uD83D\uDC65 Multi-User</span>' : '')
+        + (m.messageId        ? '<span class="msg-card-tag" style="color:var(--green);">\u2713 Sent</span>' : '')
+        + '</div>'
+        + '<div class="msg-card-actions">'
+        + '<button class="btn btn-ghost btn-xs btnEditMsg" data-id="' + m._id + '">'
+        + '<i data-lucide="pencil" style="width:12px;height:12px;"></i> '
+        + '<%= t.embeds.jsEdit %></button>'
+        + '<button class="btn btn-ghost btn-xs btnDupMsg" data-id="' + m._id + '" title="<%= t.embeds.jsDuplicate %>">'
+        + '<i data-lucide="copy-plus" style="width:12px;height:12px;"></i></button>'
+        + '<button class="btn btn-danger btn-xs btnDelMsg" data-id="' + m._id + '">'
+        + '<i data-lucide="trash-2" style="width:12px;height:12px;"></i></button>'
+        + '</div>'
+        + '<div class="msg-card-date">' + date + '</div>';
+      el.querySelector('.btnEditMsg').addEventListener('click', e => { e.stopPropagation(); openEditor(m._id); });
+      el.querySelector('.btnDupMsg').addEventListener('click', e => { e.stopPropagation(); duplicateMessage(m._id); });
+      el.querySelector('.btnDelMsg').addEventListener('click', e => { e.stopPropagation(); deleteMessage(m._id); });
+      el.addEventListener('click', () => openEditor(el.dataset.id));
+      lucide.createIcons({ nodes: [el] });
+      return el;
+    }
+    function renderList() {
+      const msgs = savedMessages;
+      if (!msgs.length) { $msgGrid.innerHTML = ''; $emptyState.style.display = 'flex'; return; }
+      $emptyState.style.display = 'none';
+      const _frag = document.createDocumentFragment();
+      msgs.forEach(m => _frag.appendChild(_renderCard(m)));
+      $msgGrid.innerHTML = '';
+      $msgGrid.appendChild(_frag);
+    }
+
+    async function deleteMessage(id) {
+      if (!confirm(L.confirmDel)) return;
+      try {
+        await api('DELETE', '/' + id);
+        const idx = savedMessages.findIndex(m => m._id === id);
+        if (idx >= 0) savedMessages.splice(idx, 1);
+        const _delEl = $msgGrid.querySelector('.msg-card[data-id="' + id + '"]');
+        if (_delEl) _delEl.remove();
+        if (!savedMessages.length) { $msgGrid.innerHTML = ''; $emptyState.style.display = 'flex'; }
+        toast('Moved to Trash (restore within 30 days)', 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    async function duplicateMessage(id) {
+      const doc = savedMessages.find(m => m._id === id);
+      if (!doc) return;
+      try {
+        const res = await api('POST', '/save', {
+          name:      (doc.name || 'Flow') + ' (Copy)',
+          channelId: doc.channelId,
+          epTheme:   !!doc.epTheme,
+          machine:   JSON.parse(JSON.stringify(doc.machine || {})),
+        });
+        if (res.data) {
+          savedMessages.push(res.data);
+          $emptyState.style.display = 'none';
+          $msgGrid.appendChild(_renderCard(res.data));
+          toast('<%= t.embeds.jsDuplicatedFlow %>', 'success');
+        }
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    /* ════════════════════════════════════════
+       VERSIONS MODAL
+       ════════════════════════════════════════ */
+    const $versionsModal  = document.getElementById('versionsModal');
+    const $verList        = document.getElementById('verList');
+    const $verDocName     = document.getElementById('verDocName');
+    const $verSnapshotLbl = document.getElementById('verSnapshotLabel');
+    let   _verDocId       = null;
+
+    function fmtDate(d) {
+      if (!d) return '';
+      const dt = new Date(d);
+      return dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function openVersionHistory() {
+      if (!currentDoc?._id) return toast('Save the flow first', 'error');
+      _verDocId = currentDoc._id;
+      $verDocName.textContent = currentDoc.name || '';
+      $verSnapshotLbl.value   = '';
+      $versionsModal.classList.add('open');
+      await refreshVersionList();
+    }
+
+    async function refreshVersionList() {
+      $verList.innerHTML = '<div class="ver-empty">Loading…</div>';
+      try {
+        const j = await api('GET', '/' + _verDocId + '/versions');
+        const vers = j.data || [];
+        // Update badge on History button
+        const $verBadge = document.getElementById('verCountBadge');
+        if ($verBadge) { $verBadge.textContent = vers.length; $verBadge.style.display = vers.length ? '' : 'none'; }
+        if (!vers.length) { $verList.innerHTML = '<div class="ver-empty">No versions yet &mdash; save the flow to create the first snapshot.</div>'; return; }
+        $verList.innerHTML = vers.map(v => {
+          const tag = v.autoSave
+            ? '<span class="ver-auto-tag">auto</span>'
+            : '<span class="ver-manual-tag">manual</span>';
+          const lbl = v.label ? '<span style="font-size:.7rem;color:var(--purple-l);"> &mdash; ' + esc(v.label) + '</span>' : '';
+          return '<div class="ver-item" data-vid="' + esc(v._id) + '">'
+            + '<span class="ver-badge">v' + v.version + '</span>'
+            + '<div class="ver-info">'
+            + '<div class="ver-name">' + esc(v.machineName || 'Snapshot') + lbl + '</div>'
+            + '<div class="ver-date">' + fmtDate(v.createdAt) + ' &mdash; ' + (v.savedBy ? 'by ' + esc(v.savedBy) : 'system') + '</div>'
+            + '</div>'
+            + tag
+            + '<button class="btn btn-ghost btn-xs btnVerRollback" data-vid="' + esc(v._id) + '" data-vnum="' + v.version + '" title="Rollback to this version">'
+            + '<i data-lucide="rotate-ccw" style="width:12px;height:12px;"></i> Restore</button>'
+            + '<button class="btn btn-danger btn-xs btnVerDel" data-vid="' + esc(v._id) + '" title="Delete this version" style="width:26px;height:26px;padding:0;flex-shrink:0;">'
+            + '<i data-lucide="x" style="width:11px;height:11px;"></i></button>'
+            + '</div>';
+        }).join('');
+        lucide.createIcons();
+        $verList.querySelectorAll('.btnVerRollback').forEach(btn => btn.addEventListener('click', async () => {
+          if (!confirm('Rollback to v' + btn.dataset.vnum + '? The current state will be auto-saved as a new snapshot first.')) return;
+          try {
+            const res = await api('POST', '/' + _verDocId + '/versions/' + btn.dataset.vid + '/rollback');
+            // Apply the rolled-back machine into the current editor
+            machine = JSON.parse(JSON.stringify(res.data.machine));
+            const idx = savedMessages.findIndex(m => m._id === _verDocId);
+            if (idx >= 0) savedMessages[idx] = res.data;
+            currentDoc = res.data;
+            renderCanvas(); updateArrows(); renderInspector(); lucide.createIcons();
+            $versionsModal.classList.remove('open');
+            toast('Rolled back to v' + btn.dataset.vnum, 'success');
+          } catch (e) { toast(e.message, 'error'); }
+        }));
+        $verList.querySelectorAll('.btnVerDel').forEach(btn => btn.addEventListener('click', async () => {
+          if (!confirm('Delete this version snapshot? This cannot be undone.')) return;
+          try {
+            await api('DELETE', '/' + _verDocId + '/versions/' + btn.dataset.vid);
+            await refreshVersionList();
+            toast('Version deleted', 'success');
+          } catch (e) { toast(e.message, 'error'); }
+        }));
+      } catch (e) { $verList.innerHTML = '<div class="ver-empty">Failed to load: ' + esc(e.message) + '</div>'; }
+    }
+
+    document.getElementById('btnVerClose').addEventListener('click', () => $versionsModal.classList.remove('open'));
+    $versionsModal.addEventListener('click', e => { if (e.target === $versionsModal) $versionsModal.classList.remove('open'); });
+    document.getElementById('btnCreateSnapshot').addEventListener('click', async () => {
+      if (!_verDocId) return;
+      try {
+        await api('POST', '/' + _verDocId + '/versions', { label: $verSnapshotLbl.value.trim() });
+        $verSnapshotLbl.value = '';
+        await refreshVersionList();
+        toast('Snapshot created', 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    });
+    document.getElementById('btnVersionHistory').addEventListener('click', openVersionHistory);
+
+    /* ════════════════════════════════════════
+       TRASH MODAL
+       ════════════════════════════════════════ */
+    const $trashModal = document.getElementById('trashModal');
+    const $trashList  = document.getElementById('trashList');
+
+    async function openTrash() {
+      $trashModal.classList.add('open');
+      await refreshTrashList();
+    }
+
+    async function refreshTrashList() {
+      $trashList.innerHTML = '<div class="ver-empty">Loading…</div>';
+      try {
+        const j = await api('GET', '/trash');
+        const items = j.data || [];
+        if (!items.length) { $trashList.innerHTML = '<div class="ver-empty" style="padding:36px;">Trash is empty. Deleted flows appear here for 30 days.</div>'; return; }
+        $trashList.innerHTML = items.map(item => {
+          const remainMs = item.expiresAt ? new Date(item.expiresAt) - Date.now() : 0;
+          const remainDays = remainMs > 0 ? Math.ceil(remainMs / 86400000) : 0;
+          const expTxt = remainDays > 0 ? remainDays + 'd left' : 'Expiring soon';
+          return '<div class="trash-item" data-tid="' + esc(item._id) + '">'
+            + '<div style="display:flex;flex-direction:column;flex:1;min-width:0;">'
+            + '<span class="trash-item-name">' + esc(item.name) + '</span>'
+            + '<span class="trash-item-meta">Deleted ' + fmtDate(item.createdAt) + (item.deletedBy ? ' &mdash; by ' + esc(item.deletedBy) : '') + '</span>'
+            + '</div>'
+            + '<span class="trash-expiry"><i data-lucide="timer" style="width:10px;height:10px;vertical-align:middle;"></i> ' + expTxt + '</span>'
+            + '<button class="btn btn-ghost btn-xs btnTrashRestore" data-tid="' + esc(item._id) + '" style="flex-shrink:0;">'
+            + '<i data-lucide="archive-restore" style="width:12px;height:12px;"></i> Restore</button>'
+            + '<button class="btn btn-danger btn-xs btnTrashDel" data-tid="' + esc(item._id) + '" title="Permanently delete" style="width:26px;height:26px;padding:0;flex-shrink:0;">'
+            + '<i data-lucide="x" style="width:11px;height:11px;"></i></button>'
+            + '</div>';
+        }).join('');
+        lucide.createIcons();
+        $trashList.querySelectorAll('.btnTrashRestore').forEach(btn => btn.addEventListener('click', async () => {
+          try {
+            const res = await api('POST', '/trash/' + btn.dataset.tid + '/restore');
+            savedMessages.unshift(res.data);
+            renderList();
+            await refreshTrashList();
+            toast('Flow restored: ' + res.data.name, 'success');
+          } catch (e) { toast(e.message, 'error'); }
+        }));
+        $trashList.querySelectorAll('.btnTrashDel').forEach(btn => btn.addEventListener('click', async () => {
+          if (!confirm('Permanently delete? This cannot be undone.')) return;
+          try {
+            await api('DELETE', '/trash/' + btn.dataset.tid);
+            await refreshTrashList();
+            toast('Permanently deleted', 'success');
+          } catch (e) { toast(e.message, 'error'); }
+        }));
+      } catch (e) { $trashList.innerHTML = '<div class="ver-empty">Failed to load: ' + esc(e.message) + '</div>'; }
+    }
+
+    document.getElementById('btnTrashClose').addEventListener('click', () => $trashModal.classList.remove('open'));
+    $trashModal.addEventListener('click', e => { if (e.target === $trashModal) $trashModal.classList.remove('open'); });
+    document.getElementById('btnOpenTrash').addEventListener('click', openTrash);
+
+    /* ════════════════════════════════════════
+       EDITOR OPEN / CLOSE
+       ════════════════════════════════════════ */
+    function openEditor(id) {
+      _undoStack.length = 0; _redoStack.length = 0;
+      // Restore undo history persisted by pushHistory() so it survives page navigation
+      if (id) try { const _sv = sessionStorage.getItem('_us_' + id); if (_sv) _undoStack.push(...JSON.parse(_sv)); } catch (_) {}
+      clearDirty(); _updateUndoButtons();
+      _multiSel.clear();
+      _multiSel.clear();
+      if (id) {
+        const doc = savedMessages.find(m => m._id === id);
+        if (!doc) return;
+        currentDoc = doc;
+        epTheme    = !!doc.epTheme;
+        multiUser  = !!(doc.machine?.multiUser);
+        if (doc.machine?.states && Object.keys(doc.machine.states).length) {
+          machine = JSON.parse(JSON.stringify(doc.machine));
+        } else {
+          // Migrate legacy embeds/components into an initial state
+          const sid = nid('state');
+          machine = {
+            initial: sid,
+            states: {
+              [sid]: {
+                id: sid, label: 'Default', color: '#7c3aed',
+                position: { x: 80, y: 80 },
+                embeds:     JSON.parse(JSON.stringify(doc.embeds     || [])),
+                components: JSON.parse(JSON.stringify(doc.components || [])),
+                on: {},
+              },
+            },
+          };
+        }
+        $builderTitle.textContent = L.editFlow + ': ' + doc.name;
+      } else {
+        currentDoc = null;
+        epTheme    = false;
+        multiUser  = false;
+        const sid  = nid('state');
+        machine = {
+          initial: sid,
+          states: {
+            [sid]: {
+              id: sid, label: 'Default State', color: '#7c3aed',
+              position: { x: 80, y: 80 },
+              embeds: [], components: [], on: {},
+            },
+          },
+        };
+        $builderTitle.textContent = L.newFlow;
+      }
+      if (!machine.triggers) machine.triggers = [];
+      if (!machine.groups)   machine.groups   = [];
+      $epTheme.checked   = epTheme;
+      $multiUser.checked  = multiUser;
+      selectedStateId   = machine.initial;
+      activeTab         = 'embeds';
+      $listView.style.display   = 'none';
+      $builderView.style.display = 'flex';
+      renderCanvas();
+      renderInspector();
+      lucide.createIcons();
+    }
+
+    function closeEditor() {
+      if (_isDirty && !confirm('<%= t.embeds.jsUnsavedChanges %>')) return;
+      $builderView.style.display = 'none';
+      $listView.style.display    = '';
+      currentDoc      = null;
+      machine         = { initial: null, states: {} };
+      selectedGroupId = null;
+      selectedStateId = null;
+      clearDirty();
+      renderList();
+    }
+
+    /* ════════════════════════════════════════
+       MACHINE STATE MANAGEMENT
+       ════════════════════════════════════════ */
+    function getSelectedState()  { return machine.states[selectedStateId]; }
+
+    function addState() {
+      const sid = nid('state');
+      const n   = Object.keys(machine.states).length;
+      machine.states[sid] = {
+        id: sid, label: 'State ' + (n + 1),
+        color: '#' + Math.floor(Math.random() * 0x808080 + 0x404040).toString(16).padStart(6, '0'),
+        position: { x: 80 + (n % 3) * 290, y: 80 + Math.floor(n / 3) * 190 },
+        embeds: [], components: [], on: {},
+      };
+      if (!machine.initial) machine.initial = sid;
+      pushHistory(); markDirty();
+      selectedStateId = sid;
+      renderCanvas();
+      renderInspector();
+      lucide.createIcons();
+    }
+
+    function deleteSelectedState() {
+      // Bulk delete multi-selection
+      if (_multiSel.size > 1) {
+        const allIds = Object.keys(machine.states);
+        const toDelete = [..._multiSel].filter(id => machine.states[id]);
+        if (allIds.length - toDelete.length < 1) { toast('<%= t.embeds.jsCannotDelAll %>', 'error'); return; }
+        pushHistory();
+        for (const did of toDelete) {
+          for (const s of Object.values(machine.states)) {
+            for (const [eid, tr] of Object.entries(s.on || {})) {
+              if (tr.target === did) delete s.on[eid];
+            }
+          }
+          delete machine.states[did];
+        }
+        if (!machine.states[machine.initial]) machine.initial = Object.keys(machine.states)[0];
+        selectedStateId = machine.initial;
+        _multiSel.clear();
+        markDirty();
+        renderCanvas(); renderInspector(); lucide.createIcons();
+        return;
+      }
+      if (!selectedStateId) return;
+      const ids = Object.keys(machine.states);
+      if (ids.length <= 1) { toast('Cannot delete the last state', 'error'); return; }
+      pushHistory();
+      // Remove transitions that point to this state
+      for (const s of Object.values(machine.states)) {
+        for (const [eid, tr] of Object.entries(s.on || {})) {
+          if (tr.target === selectedStateId) delete s.on[eid];
+      _multiSel.clear();
+        }
+      }
+      delete machine.states[selectedStateId];
+      if (machine.initial === selectedStateId) machine.initial = Object.keys(machine.states)[0];
+      selectedStateId = machine.initial;
+      markDirty();
+      renderCanvas();
+      renderInspector();
+      lucide.createIcons();
+    }
+
+    function setInitialState(id) {
+      pushHistory(); markDirty();
+      machine.initial = id;
+      renderCanvas();
+      renderInspector();
+    }
+
+    function selectState(id) {
+      selectedStateId = id;
+      selectedGroupId = null;
+      renderCanvas();
+      renderInspector();
+      lucide.createIcons();
+      panToState(id);
+    }
+
+    /* ════════════════════════════════════════

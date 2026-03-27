@@ -1,0 +1,170 @@
+﻿  <!-- \u2550\u2550 SAVE MODAL \u2550\u2550 -->
+  <!-- TRIGGERS MODAL -->
+  <div class="modal-overlay" id="triggersModal">
+    <div class="modal-box triggers-modal-box">
+      <div class="triggers-modal-hd">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;stroke:var(--purple-l);fill:none;stroke-width:2;flex-shrink:0;" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <h3>Smart Triggers</h3>
+        <button class="btn btn-ghost btn-sm" id="btnCloseTriggersModal" style="margin-left:auto;"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+      </div>
+      <div id="triggersModalBody" style="flex:1;overflow-y:auto;min-height:80px;"></div>
+      <div class="trg-add-row" style="justify-content:space-between;">
+        <button class="btn btn-ghost btn-sm" id="btnAddTrigger">
+          <i data-lucide="plus" style="width:13px;height:13px;"></i> Add Trigger
+        </button>
+        <button class="btn btn-primary btn-sm" id="btnSaveTriggers">
+          <i data-lucide="save" style="width:13px;height:13px;"></i> Save Triggers
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="saveModal">
+    <div class="modal-box">
+      <!-- Send mode — shown only when this doc already has a live Discord message -->
+      <div class="send-mode-group" id="sendModeGroup">
+        <label class="send-mode-opt">
+          <input type="radio" name="sendMode" id="modeEdit" value="edit" checked>
+          <span class="send-mode-opt-icon"><i data-lucide="pencil" style="width:13px;height:13px;"></i> Edit existing</span>
+          <span class="send-mode-opt-desc">Edits the already-sent Discord message in-place</span>
+        </label>
+        <label class="send-mode-opt">
+          <input type="radio" name="sendMode" id="modeNew" value="new">
+          <span class="send-mode-opt-icon"><i data-lucide="send" style="width:13px;height:13px;"></i> Send as new</span>
+          <span class="send-mode-opt-desc">Sends a brand-new message to the selected channel</span>
+        </label>
+      </div>
+      <h3 id="saveModalTitle"><%= t.embeds.saveModalTitle %></h3>
+      <p id="saveModalDesc" class="modal-desc"><%= t.embeds.saveModalDesc %></p>
+      <div class="form-group">
+        <label class="form-label"><%= t.embeds.saveModalName %></label>
+        <input class="form-input" id="modalName" maxlength="100" placeholder="e.g. Welcome Message" />
+      </div>
+      <div class="form-group">
+        <label class="form-label"><%= t.embeds.saveModalChannel %></label>
+        <select class="form-select" id="modalChannel">
+          <option value="">-- Select --</option>
+          <% (guildChannels || []).forEach(ch => { %>
+            <option value="<%= ch.id %>">#<%= ch.name %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="modalCancel"><%= t.embeds.btnCancel %></button>
+        <button class="btn btn-primary btn-sm" id="modalSave" disabled><%= t.embeds.btnSaveAndSend %></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TEMPLATES DRAWER ══ -->
+  <div class="tpl-backdrop" id="tplBackdrop"></div>
+  <div id="templatesDrawer" aria-hidden="true">
+    <div class="tpl-drawer-hd">
+      <i data-lucide="layout-template" style="width:16px;height:16px;color:var(--purple-l);flex-shrink:0;"></i>
+      <h3><%= t.embeds.tplDrawerTitle %></h3>
+      <button class="btn btn-ghost btn-xs" id="btnCloseTplDrawer" title="Close">
+        <i data-lucide="x" style="width:14px;height:14px;"></i>
+      </button>
+    </div>
+    <div class="tpl-drawer-bar">
+      <button class="btn btn-ghost btn-sm" id="btnTplImport">
+        <i data-lucide="upload" style="width:13px;height:13px;"></i>
+        <%= t.embeds.btnImportJSON %>
+      </button>
+      <input type="file" id="tplFileInput" accept=".json,application/json" style="display:none;">
+    </div>
+    <div class="tpl-drawer-body" id="tplGrid"></div>
+  </div>
+
+  <!-- ══ TEMPLATE SAVE MODAL ══ -->
+  <div class="modal-overlay" id="tplSaveModal">
+    <div class="modal-box" style="max-width:360px;">
+      <h3 style="display:flex;align-items:center;gap:8px;">
+        <i data-lucide="layout-template" style="width:16px;height:16px;color:var(--purple-l);flex-shrink:0;"></i>
+        <%= t.embeds.tplSaveTitle %>
+      </h3>
+      <p class="modal-desc"><%= t.embeds.tplSaveDesc %></p>
+      <div class="form-group">
+        <label class="form-label"><%= t.embeds.tplNameLabel %></label>
+        <input class="form-input" id="tplSaveName" maxlength="100" placeholder="e.g. Welcome Flow">
+      </div>
+      <div class="form-group">
+        <label class="form-label"><%= t.embeds.tplDescLabel %> <span style="color:var(--muted);font-size:.78rem;">(<%= t.embeds.tplOptional %>)</span></label>
+        <input class="form-input" id="tplSaveDesc" maxlength="200" placeholder="<%= t.embeds.tplDescPlaceholder %>…">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="tplSaveCancel"><%= t.embeds.tplCancelBtn %></button>
+        <button class="btn btn-primary btn-sm" id="tplSaveConfirm">
+          <i data-lucide="save" style="width:13px;height:13px;"></i> <%= t.embeds.tplSaveBtn %>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../../partials/promo_card') %>
+  <%- include('../../partials/footer') %>
+
+  <!-- ─── Versions Modal ─────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="versionsModal">
+    <div class="modal-box ver-modal-box">
+      <h3 style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <i data-lucide="history" style="width:16px;height:16px;color:var(--purple-l);flex-shrink:0;"></i>
+        Version History
+        <span id="verDocName" style="font-size:.78rem;color:var(--muted);font-weight:400;margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;"></span>
+      </h3>
+      <p class="modal-desc" style="flex-shrink:0;">Auto-saved on every update &mdash; up to 10 per flow. <span style="color:var(--purple-l);font-weight:600;">Manual snapshots</span> are kept forever.</p>
+      <div style="display:flex;gap:8px;flex-shrink:0;margin-bottom:4px;">
+        <input class="form-input" id="verSnapshotLabel" placeholder="Label for new snapshot (optional)" style="flex:1;">
+        <button class="btn btn-ghost btn-sm" id="btnCreateSnapshot">
+          <i data-lucide="camera" style="width:13px;height:13px;"></i> Snapshot
+        </button>
+      </div>
+      <div class="ver-list" id="verList">
+        <div class="ver-empty">Loading versions…</div>
+      </div>
+      <div class="modal-actions" style="flex-shrink:0;">
+        <button class="btn btn-ghost btn-sm" id="btnVerClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Trash Modal ────────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="trashModal">
+    <div class="modal-box trash-modal-box">
+      <h3 style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <i data-lucide="trash-2" style="width:16px;height:16px;color:var(--danger);flex-shrink:0;"></i>
+        Recycle Bin
+      </h3>
+      <p class="modal-desc" style="flex-shrink:0;">Deleted flows are kept for <strong>30 days</strong>, then permanently removed. Click Restore to bring one back.</p>
+      <div class="trash-list" id="trashList">
+        <div class="ver-empty">Loading…</div>
+      </div>
+      <div class="modal-actions" style="flex-shrink:0;">
+        <button class="btn btn-ghost btn-sm" id="btnTrashClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Emoji Picker -->
+  <div id="emb-emoji-picker">
+    <div class="ep-header">
+      <input class="ep-search" type="text" placeholder="Search emoji…" id="emb-ep-search">
+      <button class="ep-close" id="emb-ep-close" type="button"><i data-lucide="x" style="width:16px;height:16px;stroke:currentColor;"></i></button>
+    </div>
+    <div class="ep-tabs">
+      <button class="ep-tab active" data-tab="unicode" type="button">Unicode</button>
+      <button class="ep-tab" data-tab="server" type="button">Server</button>
+    </div>
+    <div class="ep-body" id="emb-ep-body"></div>
+    <div class="ep-manual">
+      <input class="ep-manual-input" type="text" id="emb-ep-manual" placeholder="<emoji> or :name:">
+      <button class="ep-manual-ok" type="button" id="emb-ep-ok">OK</button>
+    </div>
+  </div>
+  <script type="application/json" id="_data_guildEmojis"><%- JSON.stringify(guildEmojis || []) %></script>
+  <script type="application/json" id="_data_botInfo"><%- JSON.stringify(botInfo || {}) %></script>
+  <script type="application/json" id="_data_embedMessages"><%- JSON.stringify(embedMessages || []) %></script>
+  <script type="application/json" id="_data_guildChannels"><%- JSON.stringify(guildChannels || []) %></script>
+  <script type="application/json" id="_data_guildRoles"><%- JSON.stringify(guildRoles || []) %></script>
