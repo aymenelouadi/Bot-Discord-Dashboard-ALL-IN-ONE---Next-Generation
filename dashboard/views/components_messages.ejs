@@ -494,6 +494,13 @@
     .bld-preview-col::-webkit-scrollbar-thumb { background: rgba(124,58,237,.3); border-radius: 3px; }
     .bld-preview-header { font-size: .65rem; font-weight: 700; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; padding: 0 0 10px; display: flex; align-items: center; gap: 6px; }
     .bld-preview-pulse { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,.7); animation: prevPulse 2s ease-in-out infinite; flex-shrink: 0; }
+    /* Preview state tabs */
+    #previewStateTabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 0 10px; }
+    .bld-prev-tab { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: .6rem; font-weight: 700; cursor: pointer; transition: all .15s; line-height: 1; letter-spacing: .04em; text-transform: uppercase; }
+    .bld-prev-tab:hover { background: rgba(255,255,255,.06); color: var(--white); }
+    .bld-prev-tab.active { background: rgba(124,58,237,.22); border-color: rgba(124,58,237,.45); color: var(--purple-l); }
+    /* Dirty-state save button */
+    #saveBtn.dirty { background: linear-gradient(135deg, #b45309, #d97706) !important; }
     @keyframes prevPulse { 0%,100% { box-shadow: 0 0 4px rgba(34,197,94,.7); } 50% { box-shadow: 0 0 9px rgba(34,197,94,1); } }
     /* Discord mock shell */
     .dc-mock { background: #313338; border-radius: 8px; padding: 16px; font-family: 'gg sans','Noto Sans','Helvetica Neue',Helvetica,Arial,sans-serif; min-height: 60px; }
@@ -1184,6 +1191,7 @@
       let flowStates      = [];     // Array<{ id, label, color, content, components[], actions[] }>
       let initialStateId  = null;   // which state is the "initial" / entry point
       let currentStateId  = null;   // currently editing state id
+      let previewStateId  = null;   // null = current state; string = pinned preview state
       let flowTriggers    = [];     // Array<{ id, type, params:{} }>
       let flowMultiUser   = false;
       let flowTimeout     = 0;
@@ -1247,6 +1255,9 @@
             '<div class="msg-card-actions">' +
               '<button class="btn btn-ghost btn-sm _edit" data-id="' + msg._id + '">' +
                 '<i data-lucide="pencil" style="width:12px;height:12px;stroke:currentColor;"></i> ' + (isAR ? 'تعديل' : 'Edit') +
+              '</button>' +
+              '<button class="btn btn-ghost btn-sm _dup" data-id="' + msg._id + '" data-name="' + esc(msg.name) + '">' +
+                '<i data-lucide="copy" style="width:12px;height:12px;stroke:currentColor;"></i> ' + (isAR ? 'نسخ' : 'Duplicate') +
               '</button>' +
               '<button class="btn btn-danger btn-sm _del" data-id="' + msg._id + '" data-name="' + esc(msg.name) + '">' +
                 '<i data-lucide="trash-2" style="width:12px;height:12px;stroke:currentColor;"></i> ' + (isAR ? 'حذف' : 'Delete') +
@@ -1354,7 +1365,6 @@
         flowStates.forEach(st => {
           const isActive  = st.id === currentStateId;
           const isInitial = st.id === initialStateId;
-          const totalComps = (st.components||[]).length + (compRows.length > 0 && st.id === currentStateId ? 0 : 0);
           const compsDisplay = st.id === currentStateId ? compRows.length : (st.components||[]).length;
           const actDisplay   = st.id === currentStateId
             ? Object.values(actionsMap).filter(a => a.rules?.some(r => r.steps?.length)).length
@@ -1363,7 +1373,7 @@
           item.className = 'fl-state-item' + (isActive ? ' active' : '');
           item.dataset.stateId = st.id;
           item.innerHTML =
-            '<div class="fl-state-dot" style="background:' + esc(st.color) + ';"></div>' +
+            '<div class="fl-state-dot _state-dot" style="background:' + esc(st.color) + ';cursor:pointer;" title="' + (isAR ? 'تغيير اللون' : 'Change color') + '"></div>' +
             '<div class="fl-state-content">' +
               '<div class="fl-state-label">' + esc(st.label) + '</div>' +
               '<div class="fl-state-meta">' + compsDisplay + ' ' + (isAR ? 'عنصر' : 'comp' + (compsDisplay !== 1 ? 's' : '')) + (actDisplay ? ' · ' + actDisplay + (isAR ? ' إجراء' : ' action' + (actDisplay !== 1 ? 's' : '')) : '') + '</div>' +
@@ -1372,8 +1382,28 @@
               (isInitial ? '<span class="fl-state-init-badge">' + (isAR ? 'بداية' : 'INIT') + '</span>' : '') +
             '</div>' +
             '<button class="fl-state-del-btn _del-state" data-sid="' + st.id + '" title="' + (isAR ? 'حذف' : 'Delete') + '">×</button>';
+
+          // Color picker — clicking the dot opens a hidden color input
+          const colorInp = Object.assign(document.createElement('input'), {
+            type: 'color',
+          });
+          colorInp.value = st.color;
+          colorInp.style.cssText = 'position:absolute;visibility:hidden;width:0;height:0;';
+          item.appendChild(colorInp);
+          const dot = item.querySelector('._state-dot');
+          dot.addEventListener('click', e => {
+            e.stopPropagation();
+            colorInp.click();
+          });
+          colorInp.addEventListener('input', () => {
+            st.color = colorInp.value;
+            dot.style.background = colorInp.value;
+            markDirty();
+          });
+
           item.addEventListener('click', e => {
             if (e.target.classList.contains('_del-state')) return;
+            if (e.target.classList.contains('_state-dot')) return;
             if (st.id !== currentStateId) loadStateData(st.id);
           });
           item.addEventListener('dblclick', () => {
@@ -1404,6 +1434,25 @@
           trgCountBadge.textContent = flowTriggers.length;
           trgCountBadge.style.display = flowTriggers.length ? '' : 'none';
         }
+        // Sortable drag-to-reorder states
+        if (window.Sortable) {
+          if (stateListEl._sortable) { try { stateListEl._sortable.destroy(); } catch(e) {} }
+          stateListEl._sortable = Sortable.create(stateListEl, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            onEnd() {
+              const newOrder = [];
+              stateListEl.querySelectorAll('.fl-state-item[data-state-id]').forEach(el => {
+                const st = flowStates.find(s => s.id === el.dataset.stateId);
+                if (st) newOrder.push(st);
+              });
+              if (newOrder.length === flowStates.length) { flowStates = newOrder; markDirty(); }
+            }
+          });
+        }
+        // Sync preview tabs
+        renderPreviewTabs();
       }
 
       /* ═══ OPEN / CLOSE EDITOR ═══ */
@@ -1440,6 +1489,8 @@
         loadStateData(initialStateId || flowStates[0]?.id);
 
         dirty = false;
+        saveBtn.classList.remove('dirty');
+        previewStateId = null;
         listView.style.display    = 'none';
         builderView.classList.add('active');
         renderStatesSidebar();
@@ -1603,6 +1654,7 @@
                 '<div class="bld-container-card"' + (row.accentColor ? ' style="border-left-color:' + esc(row.accentColor) + ';"' : '') + '>' +
                   '<div class="bld-row-header">' +
                     '<span class="bld-row-title">' + (isAR ? 'حاوية' : 'CONTAINER') + '</span>' +
+                    '<span style="font-size:.62rem;color:' + ((row.children?.length||0) >= 10 ? '#ef4444' : 'var(--muted)') + ';font-weight:700;margin-inline-end:auto;">' + (row.children?.length||0) + '/10</span>' +
                     '<div style="display:flex;align-items:center;gap:6px;">' +
                       '<label style="font-size:.72rem;color:var(--muted);">' + (isAR ? 'لون:' : 'Accent:') + '</label>' +
                       '<input type="color" class="_cont-color" value="' + esc(row.accentColor || '#5865f2') + '" style="width:24px;height:22px;border:none;background:none;cursor:pointer;padding:0;border-radius:4px;">' +
@@ -1899,6 +1951,7 @@
               document.addEventListener('click', () => addChildMenu.classList.remove('open'));
               function addChild(type) {
                 addChildMenu.classList.remove('open');
+                if (compRows[ri].children.length >= 10) { toast(isAR ? 'الحد الأقصى ١٠ عناصر في الحاوية' : 'Max 10 items per container'); return; }
                 const childId = 'child_' + rowId + '_' + Date.now();
                 let child = { id: childId, type };
                 if (type === 'text_display') child.text = '';
@@ -2157,11 +2210,49 @@
         const previewEl = document.getElementById('previewContent');
         if (!previewEl) return;
         let html = '';
-        const txt = msgContent.value.trim();
-        if (txt) html += '<div class="dc-text-display">' + dcMarkdown(txt) + '</div>';
-        compRows.forEach(row => { html += renderDcRow(row); });
+        let txt, rows;
+        // Allow pinning preview to a different state without switching editor
+        if (previewStateId && previewStateId !== currentStateId) {
+          const pst = flowStates.find(s => s.id === previewStateId);
+          if (pst) { txt = pst.content; rows = pst.components || []; }
+          else { previewStateId = null; }
+        }
+        if (!previewStateId || previewStateId === currentStateId) {
+          txt  = msgContent.value;
+          rows = compRows;
+        }
+        if (txt?.trim()) html += '<div class="dc-text-display">' + dcMarkdown(txt.trim()) + '</div>';
+        rows.forEach(row => { html += renderDcRow(row); });
         previewEl.innerHTML = html ||
           '<div class="dc-empty-prev">' + (isAR ? 'ابدأ الكتابة أو أضف مكونات...' : 'Start typing or add components...') + '</div>';
+      }
+
+      function renderPreviewTabs() {
+        const previewCol = document.getElementById('previewCol');
+        const dcMock = previewCol?.querySelector('.dc-mock');
+        if (!previewCol || !dcMock) return;
+        let tabsEl = document.getElementById('previewStateTabs');
+        if (flowStates.length <= 1) { if (tabsEl) tabsEl.style.display = 'none'; return; }
+        if (!tabsEl) {
+          tabsEl = document.createElement('div');
+          tabsEl.id = 'previewStateTabs';
+          previewCol.insertBefore(tabsEl, dcMock);
+        }
+        tabsEl.style.display = '';
+        const activeId = previewStateId || currentStateId;
+        tabsEl.innerHTML = flowStates.map(st =>
+          '<button class="bld-prev-tab' + (activeId === st.id ? ' active' : '') + '" data-psid="' + esc(st.id) + '" type="button">' +
+            '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + esc(st.color) + ';flex-shrink:0;"></span>' +
+            esc(st.label) +
+          '</button>'
+        ).join('');
+        tabsEl.querySelectorAll('.bld-prev-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            previewStateId = btn.dataset.psid === currentStateId ? null : btn.dataset.psid;
+            renderPreviewTabs();
+            renderPreview();
+          });
+        });
       }
 
       /* ═══ BUTTON EDIT MODAL ═══ */
@@ -2294,6 +2385,7 @@
 
       function openActionEditor(customId) {
         if (!customId) return;
+        saveCurrentStateData(); // ensure current editor data is flushed before reading flowStates
         _actionCtx = { customId };
         ensureRules(customId);
         document.getElementById('actionModalTitle').textContent = isAR ? 'منطق التفاعل' : 'Interaction Logic';
@@ -2603,6 +2695,39 @@
           return;
         }
 
+        // Deep validation across all states
+        for (const st of flowStates) {
+          const seenIds = new Set();
+          for (const row of (st.components || [])) {
+            if (row.type === 'buttons') {
+              for (const btn of (row.buttons || [])) {
+                if (btn.style === 'Link' && !btn.url?.trim()) {
+                  toast(isAR ? 'زر Link في "' + st.label + '" يحتاج رابطاً' : 'Link button in "' + st.label + '" needs a URL');
+                  return;
+                }
+                if (btn.customId && btn.style !== 'Link') {
+                  if (seenIds.has(btn.customId)) {
+                    toast(isAR ? 'معرف مكرر في "' + st.label + '": ' + btn.customId : 'Duplicate customId in "' + st.label + '": ' + btn.customId);
+                    return;
+                  }
+                  seenIds.add(btn.customId);
+                }
+              }
+            }
+            if (row.type === 'select' && row.select?.customId) {
+              if (seenIds.has(row.select.customId)) {
+                toast(isAR ? 'معرف مكرر في "' + st.label + '": ' + row.select.customId : 'Duplicate customId in "' + st.label + '": ' + row.select.customId);
+                return;
+              }
+              seenIds.add(row.select.customId);
+            }
+            if (row.type === 'container' && !(row.children?.length)) {
+              toast(isAR ? 'حاوية فارغة في الحالة "' + st.label + '"' : 'Empty container in state "' + st.label + '"');
+              return;
+            }
+          }
+        }
+
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;stroke:currentColor;animation:spin 1s linear infinite;"></i> ' + (isAR ? 'جاري الحفظ...' : 'Saving...');
 
@@ -2647,6 +2772,8 @@
               editingId = data.data._id;
             }
             dirty = false;
+            saveBtn.classList.remove('dirty');
+            try { localStorage.removeItem('draft_cm_' + GUILD_ID); } catch(e) {}
             toast(isAR ? 'تم حفظ الأتمتة وإطلاقها!' : 'Flow automation saved & sent!');
           } else {
             toast(data.error || 'Error', 4000);
@@ -2664,6 +2791,7 @@
       let _prevTimer;
       function markDirty() {
         dirty = true;
+        saveBtn.classList.add('dirty');
         clearTimeout(_prevTimer);
         _prevTimer = setTimeout(renderPreview, 60);
       }
