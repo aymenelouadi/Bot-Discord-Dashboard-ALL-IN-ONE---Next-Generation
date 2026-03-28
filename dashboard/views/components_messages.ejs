@@ -1268,6 +1268,24 @@
         lucide.createIcons();
 
         cardsGrid.querySelectorAll('._edit').forEach(btn => btn.addEventListener('click', () => openEditor(btn.dataset.id)));
+        cardsGrid.querySelectorAll('._dup').forEach(btn => btn.addEventListener('click', () => duplicateAutomation(btn.dataset.id, btn.dataset.name)));
+        cardsGrid.querySelectorAll('._del').forEach(btn => btn.addEventListener('click', () => confirmDelete(btn.dataset.id, btn.dataset.name)));
+      }
+
+      async function duplicateAutomation(id, name) {
+        const original = saved.find(m => m._id === id);
+        if (!original) return;
+        const body = JSON.parse(JSON.stringify(original));
+        delete body._id;
+        body.name = name + (isAR ? ' (نسخة)' : ' (Copy)');
+        try {
+          const res  = await fetch(API + '/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          const data = await res.json();
+          if (data.success) { saved.unshift(data.data); renderList(); toast(isAR ? 'تم النسخ' : 'Duplicated'); }
+          else { toast(data.error || 'Error', 4000); }
+        } catch(e) { toast('Network error', 4000); }
+
+        cardsGrid.querySelectorAll('._edit').forEach(btn => btn.addEventListener('click', () => openEditor(btn.dataset.id)));
         cardsGrid.querySelectorAll('._del').forEach(btn => btn.addEventListener('click', () => confirmDelete(btn.dataset.id, btn.dataset.name)));
       }
 
@@ -2869,6 +2887,10 @@
           });
           item.querySelector('._del-trg')?.addEventListener('click', () => {
             flowTriggers.splice(ti, 1);
+        // Ctrl/Cmd+S → save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's' && builderView.classList.contains('active')) {
+          e.preventDefault(); saveBtn.click(); return;
+        }
             renderTriggersModal();
           });
           list.appendChild(item);
@@ -2880,6 +2902,30 @@
         triggersModal.classList.add('open');
       });
       document.getElementById('trgModalClose')?.addEventListener('click', () => { triggersModal.classList.remove('open'); renderStatesSidebar(); });
+
+      // Auto-save draft to localStorage every 30 seconds when dirty
+      function autoDraft() {
+        if (!dirty || !builderView.classList.contains('active')) return;
+        saveCurrentStateData();
+        const draftName = msgName.value.trim();
+        if (!draftName) return;
+        const draftStates = flowStates.map(st => ({
+          id: st.id, label: st.label, color: st.color,
+          content: st.content || '',
+          components: st.components || [],
+          actions: (st.actions || []).map(a => ({ customId: a.customId, rules: a.rules || [] }))
+        }));
+        try {
+          localStorage.setItem('draft_cm_' + GUILD_ID, JSON.stringify({
+            editingId, name: draftName, channelId: msgChannel.value,
+            states: draftStates, initialStateId,
+            multiUser: flowMultiUser, timeout: flowTimeout, triggers: flowTriggers,
+            savedAt: Date.now()
+          }));
+        } catch(e) {}
+      }
+      setInterval(autoDraft, 30000);
+
       document.getElementById('trgModalSave')?.addEventListener('click', () => { markDirty(); triggersModal.classList.remove('open'); renderStatesSidebar(); toast(isAR ? 'تم حفظ المُشغِّلات' : 'Triggers saved'); });
 
       // Close modals on escape
