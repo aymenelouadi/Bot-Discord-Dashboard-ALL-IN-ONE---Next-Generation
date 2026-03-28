@@ -257,13 +257,13 @@
 
     /* ── Builder ── */
     .builder { display: none; }
-    .builder.active { display: flex; flex-direction: column; }
-    .bld-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,.07); flex-wrap: wrap; }
+    .builder.active { display: grid; grid-template-columns: 1fr 380px; column-gap: 24px; align-items: start; }
+    .bld-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,.07); flex-wrap: wrap; grid-column: 1 / -1; }
     .bld-name-input { background: none; border: none; border-bottom: 1.5px solid rgba(255,255,255,.2); color: var(--white); font-size: 1.1rem; font-weight: 700; font-family: inherit; outline: none; padding: 4px 6px; min-width: 160px; flex: 1; max-width: 420px; transition: border-color .18s; }
     .bld-name-input::placeholder { color: var(--muted); font-weight: 400; }
     .bld-name-input:focus { border-bottom-color: var(--purple); }
     .bld-header-btns { display: flex; gap: 8px; flex-shrink: 0; }
-    .bld-body { width: 900px; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+    .bld-body { width: 100%; max-width: 100%; margin: 0; display: flex; flex-direction: column; gap: 8px; }
     .bld-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
     .bld-meta-label { font-size: .72rem; font-weight: 600; color: var(--muted); letter-spacing: .03em; flex-shrink: 0; }
 
@@ -404,6 +404,52 @@
     @keyframes pOut { from { opacity:0; } to { opacity: 1; } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     #ov { position:fixed;inset:0;z-index:9999;background:#040010;animation:pIn .45s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none; }
+
+    /* ── Live Preview Panel ── */
+    .bld-preview-col { position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; }
+    .bld-preview-col::-webkit-scrollbar { width: 3px; }
+    .bld-preview-col::-webkit-scrollbar-thumb { background: rgba(124,58,237,.3); border-radius: 3px; }
+    .bld-preview-header { font-size: .65rem; font-weight: 700; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; padding: 0 0 10px; display: flex; align-items: center; gap: 6px; }
+    .bld-preview-pulse { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,.7); animation: prevPulse 2s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes prevPulse { 0%,100% { box-shadow: 0 0 4px rgba(34,197,94,.7); } 50% { box-shadow: 0 0 9px rgba(34,197,94,1); } }
+    /* Discord mock shell */
+    .dc-mock { background: #313338; border-radius: 8px; padding: 16px; font-family: 'gg sans','Noto Sans','Helvetica Neue',Helvetica,Arial,sans-serif; min-height: 60px; }
+    .dc-msg-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+    .dc-bot-av { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; background: rgba(88,101,242,.25); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .dc-bot-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .dc-msg-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; line-height: 1; }
+    .dc-bot-name { font-size: .9375rem; font-weight: 600; color: #ffffff; cursor: pointer; }
+    .dc-bot-name:hover { text-decoration: underline; }
+    .dc-bot-badge { font-size: .55rem; font-weight: 700; background: #5865f2; color: #fff; border-radius: 3px; padding: 2px 5px; text-transform: uppercase; letter-spacing: .02em; }
+    .dc-bot-time { font-size: .72rem; color: #949ba4; margin-top: 3px; }
+    /* V2 components */
+    .dc-v2-content { display: flex; flex-direction: column; gap: 2px; }
+    .dc-text-display { font-size: .9375rem; line-height: 1.375; color: #dcddde; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; }
+    .dc-text-display strong { font-weight: 700; color: #fff; }
+    .dc-text-display em { font-style: italic; }
+    .dc-text-display u { text-decoration: underline; }
+    .dc-text-display del { text-decoration: line-through; }
+    .dc-text-display code { font-family: 'Consolas','Courier New',monospace; background: #1e1f22; padding: 1px 4px; border-radius: 3px; font-size: .875em; color: #e06c75; white-space: normal; }
+    .dc-sep-wrap-s { margin: 6px 0; }
+    .dc-sep-wrap-l { margin: 16px 0; }
+    .dc-separator { border: none; border-top: 1px solid rgba(79,84,92,.48); }
+    .dc-container { background: #2b2d31; border-left: 4px solid #5865f2; border-radius: 0 4px 4px 0; padding: 12px; display: flex; flex-direction: column; gap: 4px; margin: 2px 0; }
+    .dc-image-wrap { margin: 2px 0; }
+    .dc-image { max-width: 100%; max-height: 280px; border-radius: 4px; object-fit: contain; display: block; }
+    .dc-image-placeholder { background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.1); border-radius: 4px; padding: 10px; text-align: center; font-size: .75rem; color: #949ba4; }
+    .dc-action-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
+    .dc-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 16px; border-radius: 4px; font-size: .875rem; font-weight: 500; font-family: inherit; cursor: default; border: none; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .dc-btn:disabled { opacity: .5; }
+    .dc-btn-primary  { background: #5865f2; color: #fff; }
+    .dc-btn-secondary { background: #4e5058; color: #fff; }
+    .dc-btn-success  { background: #248046; color: #fff; }
+    .dc-btn-danger   { background: #da373c; color: #fff; }
+    .dc-btn-link     { background: #4e5058; color: #00a8fc; }
+    .dc-select-wrap { padding: 2px 0; }
+    .dc-select { width: 100%; background: #1e1f22; border: none; border-radius: 4px; padding: 10px 12px; font-size: .9375rem; color: #949ba4; font-family: inherit; display: flex; align-items: center; justify-content: space-between; cursor: default; }
+    .dc-empty-prev { padding: 24px 12px; text-align: center; color: #949ba4; font-size: .8rem; line-height: 1.6; }
+    @media (max-width: 1100px) { .builder.active { grid-template-columns: 1fr 300px; } }
+    @media (max-width: 860px)  { .builder.active { grid-template-columns: 1fr; } .bld-preview-col { display: none; } }
   </style>
 </head>
 <body>
@@ -603,6 +649,29 @@
         </div>
 
         <div style="padding-bottom:50px;"></div>
+      </div>
+
+      <!-- ── LIVE PREVIEW PANEL ── -->
+      <div class="bld-preview-col" id="previewCol">
+        <div class="bld-preview-header">
+          <div class="bld-preview-pulse"></div>
+          <%= lang === 'ar' ? 'معاينة مباشرة' : 'Live Preview' %>
+        </div>
+        <div class="dc-mock">
+          <div class="dc-msg-header">
+            <div class="dc-bot-av" id="dcBotAv"></div>
+            <div>
+              <div class="dc-msg-meta">
+                <span class="dc-bot-name" id="dcBotName">Bot</span>
+                <span class="dc-bot-badge">BOT</span>
+              </div>
+              <div class="dc-bot-time" id="dcBotTime"></div>
+            </div>
+          </div>
+          <div class="dc-v2-content" id="previewContent">
+            <div class="dc-empty-prev"><%= lang === 'ar' ? 'ابدأ الكتابة لترى المعاينة المباشرة...' : 'Start typing or add components to see live preview...' %></div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -829,6 +898,24 @@
       const botInfo  = (() => { try { return JSON.parse(document.getElementById('_data_botInfo')?.textContent || '{}'); } catch { return {}; } })();
       let   saved    = parseJSON('_data_saved');
 
+      /* ── Init preview bot header ── */
+      (function() {
+        const avEl = document.getElementById('dcBotAv');
+        const nmEl = document.getElementById('dcBotName');
+        const tmEl = document.getElementById('dcBotTime');
+        if (avEl && botInfo.id) {
+          const avUrl = botInfo.avatar
+            ? 'https://cdn.discordapp.com/avatars/' + botInfo.id + '/' + botInfo.avatar + '.webp?size=64'
+            : 'https://cdn.discordapp.com/embed/avatars/0.png';
+          avEl.innerHTML = '<img src="' + avUrl + '" alt="Bot" onerror="this.style.display=\'none\'">';
+        }
+        if (nmEl && botInfo.username) nmEl.textContent = botInfo.username;
+        if (tmEl) {
+          const now = new Date();
+          tmEl.textContent = now.toLocaleTimeString(isAR ? 'ar' : 'en', { hour: '2-digit', minute: '2-digit' });
+        }
+      })();
+
       /* ── DOM refs ── */
       const listView      = document.getElementById('listView');
       const builderView   = document.getElementById('builderView');
@@ -955,6 +1042,7 @@
         builderView.classList.add('active');
         renderCompRows();
         renderActions();
+        renderPreview();
       }
 
       function closeEditor() {
@@ -1437,8 +1525,73 @@
         return ids;
       }
 
-      /* ═══ PREVIEW ═══ */
-      function renderPreview() { /* preview removed in this design */ }
+      /* ═══ LIVE PREVIEW ═══ */
+      function dcMarkdown(raw) {
+        if (!raw) return '';
+        let s = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        s = s.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+        s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+        s = s.replace(/__(.+?)__/g,'<u>$1</u>');
+        s = s.replace(/\*(.+?)\*/g,'<em>$1</em>');
+        s = s.replace(/_([^_]+)_/g,'<em>$1</em>');
+        s = s.replace(/~~(.+?)~~/g,'<del>$1</del>');
+        s = s.replace(/\|\|(.+?)\|\|/g,'<span style="background:#202225;color:#202225;border-radius:2px;padding:0 2px;">$1</span>');
+        s = s.replace(/`([^`]+)`/g,'<code>$1</code>');
+        s = s.replace(/\n/g,'<br>');
+        return s;
+      }
+
+      function renderDcRow(row) {
+        if (!row) return '';
+        if (row.type === 'text_display') {
+          return '<div class="dc-text-display">' + dcMarkdown(row.text || '') + '</div>';
+        }
+        if (row.type === 'separator') {
+          const cls = row.spacing === 'Large' ? 'dc-sep-wrap-l' : 'dc-sep-wrap-s';
+          return row.divider !== false
+            ? '<div class="' + cls + '"><hr class="dc-separator"></div>'
+            : '<div class="' + cls + '"></div>';
+        }
+        if (row.type === 'container') {
+          const ac = row.accentColor || '#5865f2';
+          const inner = (row.children || []).map(renderDcRow).join('') ||
+            '<div style="color:#949ba4;font-size:.8rem;font-style:italic;padding:4px 0;">' + (isAR ? '(فارغ)' : '(empty)') + '</div>';
+          return '<div class="dc-container" style="border-left-color:' + esc(ac) + ';">' + inner + '</div>';
+        }
+        if (row.type === 'image') {
+          if (!row.url) return '<div class="dc-image-placeholder">' + (isAR ? '🖼 لم يتم تعيين رابط الصورة' : '🖼 Image URL not set') + '</div>';
+          return '<div class="dc-image-wrap"><img src="' + esc(row.url) + '" class="dc-image" alt="' + esc(row.description || '') + '" onerror="this.style.display=\'none\'"></div>';
+        }
+        if (row.type === 'buttons') {
+          const styleMap = { Primary:'dc-btn-primary', Secondary:'dc-btn-secondary', Success:'dc-btn-success', Danger:'dc-btn-danger', Link:'dc-btn-link' };
+          const btnsHtml = (row.buttons || []).map(b =>
+            '<button class="dc-btn ' + (styleMap[b.style] || 'dc-btn-secondary') + '"' + (b.disabled ? ' disabled' : '') + '>' +
+              (b.emoji ? esc(b.emoji) + ' ' : '') + esc(b.label || 'Button') +
+              (b.style === 'Link' ? ' <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M10 6v2H5v11h11v-5h2v6a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1h6zm11-3v8h-2V6.413l-7.293 7.294-1.414-1.414L17.585 5H13V3h8z"/></svg>' : '') +
+            '</button>'
+          ).join('');
+          return '<div class="dc-action-row">' + (btnsHtml || '') + '</div>';
+        }
+        if (row.type === 'select') {
+          const s = row.select || {};
+          return '<div class="dc-select-wrap"><div class="dc-select">' +
+            '<span>' + esc(s.placeholder || (isAR ? 'اختر...' : 'Select an option\u2026')) + '</span>' +
+            '<svg viewBox="0 0 24 24" width="16" height="16" fill="#949ba4"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>' +
+            '</div></div>';
+        }
+        return '';
+      }
+
+      function renderPreview() {
+        const previewEl = document.getElementById('previewContent');
+        if (!previewEl) return;
+        let html = '';
+        const txt = msgContent.value.trim();
+        if (txt) html += '<div class="dc-text-display">' + dcMarkdown(txt) + '</div>';
+        compRows.forEach(row => { html += renderDcRow(row); });
+        previewEl.innerHTML = html ||
+          '<div class="dc-empty-prev">' + (isAR ? 'ابدأ الكتابة أو أضف مكونات...' : 'Start typing or add components...') + '</div>';
+      }
 
       /* ═══ BUTTON EDIT MODAL ═══ */
       function openBtnEdit(rowId, bi) {
@@ -1697,7 +1850,12 @@
       });
 
       /* ═══ EVENTS ═══ */
-      function markDirty() { dirty = true; }
+      let _prevTimer;
+      function markDirty() {
+        dirty = true;
+        clearTimeout(_prevTimer);
+        _prevTimer = setTimeout(renderPreview, 60);
+      }
       msgContent.addEventListener('input', () => { contentCount.textContent = msgContent.value.length; markDirty(); });
       msgName.addEventListener('input', markDirty);
       msgChannel.addEventListener('change', markDirty);
