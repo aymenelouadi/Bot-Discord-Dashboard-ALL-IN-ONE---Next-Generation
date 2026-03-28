@@ -257,8 +257,43 @@
 
     /* ── Builder ── */
     .builder { display: none; }
-    .builder.active { display: grid; grid-template-columns: 1fr 380px; column-gap: 24px; align-items: start; }
+    .builder.active { display: grid; grid-template-columns: 196px 1fr 380px; column-gap: 24px; align-items: start; }
     .bld-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,.07); flex-wrap: wrap; grid-column: 1 / -1; }
+    /* ── Flow Automation — States Sidebar ── */
+    .fl-states-sidebar { position: sticky; top: 84px; max-height: calc(100vh - 100px); display: flex; flex-direction: column; gap: 0; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; overflow: hidden; }
+    .fl-sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.06); flex-shrink: 0; }
+    .fl-sidebar-title { font-size: .68rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+    .fl-state-add-btn { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(124,58,237,.4); background: rgba(124,58,237,.12); color: var(--purple-l); font-size: 1rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s; flex-shrink: 0; }
+    .fl-state-add-btn:hover { background: rgba(124,58,237,.3); }
+    .fl-state-list { overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.2) transparent; padding: 4px; display: flex; flex-direction: column; gap: 2px; }
+    .fl-state-list::-webkit-scrollbar { width: 3px; }
+    .fl-state-list::-webkit-scrollbar-thumb { background: rgba(124,58,237,.3); border-radius: 3px; }
+    .fl-state-item { display: flex; align-items: center; gap: 6px; padding: 7px 8px; border-radius: 8px; cursor: pointer; transition: background .15s; position: relative; }
+    .fl-state-item:hover { background: rgba(255,255,255,.05); }
+    .fl-state-item.active { background: rgba(124,58,237,.18); border: 1px solid rgba(124,58,237,.35); }
+    .fl-state-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .fl-state-content { flex: 1; min-width: 0; }
+    .fl-state-label { font-size: .74rem; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .fl-state-meta { font-size: .61rem; color: var(--muted); line-height: 1.3; }
+    .fl-state-badges { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+    .fl-state-init-badge { font-size: .52rem; font-weight: 700; letter-spacing: .06em; padding: 2px 5px; border-radius: 4px; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.3); color: #4ade80; text-transform: uppercase; }
+    .fl-state-del-btn { width: 18px; height: 18px; border-radius: 4px; border: none; background: transparent; color: rgba(255,100,100,.5); cursor: pointer; font-size: .8rem; display: none; align-items: center; justify-content: center; transition: background .12s, color .12s; flex-shrink: 0; }
+    .fl-state-item:hover .fl-state-del-btn { display: flex; }
+    .fl-state-del-btn:hover { background: rgba(239,68,68,.15); color: #f87171; }
+    .fl-state-rename-input { font-size: .74rem; font-weight: 600; color: var(--white); background: rgba(255,255,255,.07); border: 1px solid var(--purple); border-radius: 4px; padding: 1px 5px; width: 100%; outline: none; }
+    /* ── Triggers button ── */
+    .fl-trg-btn-wrap { display: flex; align-items: center; gap: 6px; }
+    .fl-trg-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--purple); color: var(--white); font-size: .6rem; font-weight: 700; }
+    /* ── Multi-user toggle ── */
+    .fl-setting-row { display: flex; align-items: center; gap: 14px; padding: 8px 10px; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.05); border-radius: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+    .fl-toggle-wrap { display: flex; align-items: center; gap: 7px; }
+    .fl-toggle-label { font-size: .72rem; font-weight: 600; color: var(--muted); }
+    .fl-toggle { position: relative; width: 34px; height: 19px; flex-shrink: 0; }
+    .fl-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .fl-toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,.1); border-radius: 99px; cursor: pointer; transition: background .2s; }
+    .fl-toggle-slider::before { content: ''; position: absolute; left: 3px; top: 3px; width: 13px; height: 13px; border-radius: 50%; background: var(--muted); transition: transform .2s, background .2s; }
+    .fl-toggle input:checked + .fl-toggle-slider { background: rgba(124,58,237,.5); }
+    .fl-toggle input:checked + .fl-toggle-slider::before { transform: translateX(15px); background: var(--purple-l); }
     .bld-name-input { background: none; border: none; border-bottom: 1.5px solid rgba(255,255,255,.2); color: var(--white); font-size: 1.1rem; font-weight: 700; font-family: inherit; outline: none; padding: 4px 6px; min-width: 160px; flex: 1; max-width: 420px; transition: border-color .18s; }
     .bld-name-input::placeholder { color: var(--muted); font-weight: 400; }
     .bld-name-input:focus { border-bottom-color: var(--purple); }
@@ -496,8 +531,34 @@
     .dc-select-wrap { padding: 2px 0; }
     .dc-select { width: 100%; background: #1e1f22; border: none; border-radius: 4px; padding: 10px 12px; font-size: .9375rem; color: #949ba4; font-family: inherit; display: flex; align-items: center; justify-content: space-between; cursor: default; }
     .dc-empty-prev { padding: 24px 12px; text-align: center; color: #949ba4; font-size: .8rem; line-height: 1.6; }
-    @media (max-width: 1100px) { .builder.active { grid-template-columns: 1fr 300px; } }
+    @media (max-width: 1200px) { .builder.active { grid-template-columns: 180px 1fr 300px; } }
+    @media (max-width: 1000px) { .builder.active { grid-template-columns: 1fr 280px; } .fl-states-sidebar { display: none; } }
     @media (max-width: 860px)  { .builder.active { grid-template-columns: 1fr; } .bld-preview-col { display: none; } }
+    /* ── Smart Triggers Modal ── */
+    .fl-trg-modal-box { width: 520px; max-width: 95vw; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; }
+    .fl-trg-modal-head { padding: 20px 22px 12px; border-bottom: 1px solid rgba(255,255,255,.07); flex-shrink: 0; }
+    .fl-trg-modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+    .fl-trg-modal-sub { font-size: .73rem; color: var(--muted); }
+    .fl-trg-modal-body { overflow-y: auto; flex: 1; padding: 14px 18px; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.2) transparent; display: flex; flex-direction: column; gap: 8px; }
+    .fl-trg-item { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; overflow: hidden; }
+    .fl-trg-item-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; transition: background .14s; }
+    .fl-trg-item-head:hover { background: rgba(255,255,255,.04); }
+    .fl-trg-icon { font-size: 1rem; flex-shrink: 0; width: 28px; text-align: center; }
+    .fl-trg-label { flex: 1; font-size: .82rem; font-weight: 600; }
+    .fl-trg-badge { font-size: .58rem; font-weight: 700; padding: 2px 6px; border-radius: 5px; letter-spacing: .05em; border: 1px solid; }
+    .fl-trg-badge.active { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.35); color: #4ade80; }
+    .fl-trg-badge.inactive { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); color: var(--muted); }
+    .fl-trg-del-btn { background: none; border: none; color: rgba(255,100,100,.5); cursor: pointer; font-size: .9rem; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: background .13s, color .13s; }
+    .fl-trg-del-btn:hover { background: rgba(239,68,68,.12); color: #f87171; }
+    .fl-trg-params { padding: 0 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+    .fl-trg-params input, .fl-trg-params select { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 7px; color: var(--white); font-size: .77rem; font-family: inherit; padding: 6px 10px; outline: none; transition: border-color .15s; }
+    .fl-trg-params input:focus, .fl-trg-params select:focus { border-color: var(--purple); }
+    .fl-trg-params input::placeholder { color: var(--muted); }
+    .fl-trg-params label { font-size: .68rem; color: var(--muted); font-weight: 600; }
+    .fl-trg-type-picker { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 18px 6px; }
+    .fl-trg-type-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03); color: var(--muted); font-size: .74rem; font-weight: 600; cursor: pointer; transition: all .14s; font-family: inherit; }
+    .fl-trg-type-btn:hover { border-color: rgba(124,58,237,.4); color: var(--white); background: rgba(124,58,237,.1); }
+    .fl-trg-modal-foot { padding: 12px 18px; border-top: 1px solid rgba(255,255,255,.07); display: flex; justify-content: flex-end; gap: 8px; flex-shrink: 0; }
     /* ── Collapse / Duplicate aside buttons ── */
     .bld-comp-row-aside-btn.dup { color: var(--muted); }
     .bld-comp-row-aside-btn.dup:hover { background: rgba(124,58,237,.15); color: var(--purple-l); }
@@ -552,11 +613,11 @@
     <div id="listView">
       <div class="page-header">
         <div class="page-header-left">
-          <h2><%= lang === 'ar' ? 'رسائل المكونات' : 'Components Messages' %></h2>
-          <p><%= lang === 'ar' ? 'أنشئ رسائل تفاعلية تحتوي على أزرار وقوائم منسدلة باستخداⅯ Discord Components V2' : 'Build interactive messages with buttons and select menus using Discord Components V2' %></p>
+          <h2><%= lang === 'ar' ? 'أتمتة الرسائل' : 'Message Automation' %></h2>
+          <p><%= lang === 'ar' ? 'أنشئ تدفقات رسائل تفاعلية متعددة الحالات مع قواعد منطقية ومشغلات خارجية' : 'Build multi-state interactive message flows with IF/THEN logic and smart external triggers' %></p>
           <div class="page-header-badge">
-            <i data-lucide="layout-panel-top" style="width:11px;height:11px;stroke:currentColor;"></i>
-            Components V2
+            <i data-lucide="workflow" style="width:11px;height:11px;stroke:currentColor;"></i>
+            Flow Automation
           </div>
         </div>
         <div class="page-header-right">
@@ -587,11 +648,16 @@
     <!-- ═══ BUILDER VIEW ═══ -->
     <div class="builder" id="builderView">
 
-      <!-- Header: name input + close/save buttons -->
+      <!-- Header: name input + triggers + close/save buttons -->
       <div class="bld-header">
         <input type="text" class="bld-name-input" id="msgName" maxlength="100"
-               placeholder="<%= lang === 'ar' ? 'اسم الرسالة...' : 'Message name...' %>">
+               placeholder="<%= lang === 'ar' ? 'اسم الأتمتة...' : 'Automation name...' %>">
         <div class="bld-header-btns">
+          <button class="btn btn-ghost btn-sm fl-trg-btn-wrap" id="triggersBtn" type="button">
+            <i data-lucide="zap" style="width:13px;height:13px;stroke:currentColor;"></i>
+            <%= lang === 'ar' ? 'المُشغِّلات' : 'Triggers' %>
+            <span class="fl-trg-count" id="trgCountBadge" style="display:none">0</span>
+          </button>
           <button class="btn btn-ghost btn-sm" id="backToList">
             <%= lang === 'ar' ? 'إغلاق' : 'Close' %>
           </button>
@@ -602,14 +668,40 @@
         </div>
       </div>
 
-      <!-- Main 900px body -->
+      <!-- ═══ STATES SIDEBAR ═══ -->
+      <div class="fl-states-sidebar" id="statesSidebar">
+        <div class="fl-sidebar-header">
+          <span class="fl-sidebar-title"><%= lang === 'ar' ? 'الحالات' : 'States' %></span>
+          <button class="fl-state-add-btn" id="addStateBtn" type="button" title="<%= lang === 'ar' ? 'إضافة حالة' : 'Add state' %>">+</button>
+        </div>
+        <div class="fl-state-list" id="stateList"></div>
+      </div>
+
+      <!-- Main body -->
       <div class="bld-body">
 
-        <!-- Channel selector row -->
+        <!-- Channel + flow settings row -->
         <div class="bld-meta-row">
           <span class="bld-meta-label"><%= lang === 'ar' ? 'القناة:' : 'Channel:' %></span>
-          <select class="bld-select" id="msgChannel" style="max-width:240px;">
+          <select class="bld-select" id="msgChannel" style="max-width:200px;">
             <option value=""><%= lang === 'ar' ? 'اختر قناة...' : 'Select channel...' %></option>
+          </select>
+        </div>
+        <div class="fl-setting-row" id="flowSettingsRow">
+          <div class="fl-toggle-wrap">
+            <span class="fl-toggle-label"><%= lang === 'ar' ? 'متعدد المستخدمين' : 'Multi-user' %></span>
+            <label class="fl-toggle">
+              <input type="checkbox" id="multiUserToggle">
+              <span class="fl-toggle-slider"></span>
+            </label>
+          </div>
+          <span class="bld-meta-label"><%= lang === 'ar' ? 'الانتهاء:' : 'Timeout:' %></span>
+          <select class="bld-select" id="flowTimeout" style="max-width:130px;font-size:.74rem;">
+            <option value="0"><%= lang === 'ar' ? 'بلا توقف' : 'No timeout' %></option>
+            <option value="300"><%= lang === 'ar' ? '5 دقائق' : '5 minutes' %></option>
+            <option value="600"><%= lang === 'ar' ? '10 دقائق' : '10 minutes' %></option>
+            <option value="3600"><%= lang === 'ar' ? 'ساعة' : '1 hour' %></option>
+            <option value="86400"><%= lang === 'ar' ? '24 ساعة' : '24 hours' %></option>
           </select>
         </div>
 
@@ -876,6 +968,31 @@
     </div>
   </div>
 
+  <!-- ═══ SMART TRIGGERS MODAL ═══ -->
+  <div class="modal-overlay" id="triggersModal">
+    <div class="modal fl-trg-modal-box">
+      <div class="fl-trg-modal-head">
+        <div class="fl-trg-modal-title">
+          <i data-lucide="zap" style="width:15px;height:15px;stroke:currentColor;vertical-align:-2px;margin-right:6px;"></i>
+          <%= lang === 'ar' ? 'المُشغِّلات الذكية' : 'Smart Triggers' %>
+        </div>
+        <div class="fl-trg-modal-sub"><%= lang === 'ar' ? 'أحداث خارجية تُطلق الأتمتة' : 'External events that start or affect the automation flow' %></div>
+      </div>
+      <div class="fl-trg-modal-body">
+        <div class="fl-trg-type-picker" id="trgTypePicker">
+          <!-- Rendered by JS -->
+        </div>
+        <div id="trgList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+      <div class="fl-trg-modal-foot">
+        <button class="btn btn-ghost btn-sm" id="trgModalClose"><%= lang === 'ar' ? 'إغلاق' : 'Close' %></button>
+        <button class="btn btn-primary btn-sm" id="trgModalSave"><%= lang === 'ar' ? 'حفظ' : 'Save' %></button>
+      </div>
+    </div>
+  </div>
+
   <%- include('partials/promo_card') %>
   <%- include('partials/footer') %>
 
@@ -1040,6 +1157,11 @@
       const actionsPanel   = document.getElementById('actionsPanel');
       const actionsSection = document.getElementById('actionsSection');
       const toastEl        = document.getElementById('toast');
+      const triggersModal  = document.getElementById('triggersModal');
+      const stateListEl    = document.getElementById('stateList');
+      const trgCountBadge  = document.getElementById('trgCountBadge');
+      const multiUserToggle = document.getElementById('multiUserToggle');
+      const flowTimeoutSel  = document.getElementById('flowTimeout');
 
       /* ── Modal refs ── */
       const btnEditModal   = document.getElementById('btnEditModal');
@@ -1047,17 +1169,24 @@
       const actionModal    = document.getElementById('actionModal');
       const deleteModal    = document.getElementById('deleteModal');
 
-      /* ── State ── */
-      let editingId    = null;   // null = new, string = editing existing
-      let compRows     = [];     // array of { id, type, buttons[], select }
-      let actionsMap   = {};     // customId → { customId, steps[] }
-      let dirty        = false;
-      let _btnEditCtx  = null;   // { rowId, btnIndex }
-      let _optEditCtx  = null;   // { rowId, optIndex }
-      let _actionCtx   = null;   // { customId }
-      let _deleteCtx   = null;   // { id, name }
-      let nextRowId    = 1;
-      const collapsedRows = new Set(); // UI-only: row ids currently collapsed
+      /* ── Automation state ── */
+      let editingId       = null;   // null = new, string = editing existing
+      let compRows        = [];     // current state's components (array of rows)
+      let actionsMap      = {};     // customId → { customId, rules[] }
+      let dirty           = false;
+      let _btnEditCtx     = null;
+      let _optEditCtx     = null;
+      let _actionCtx      = null;
+      let _deleteCtx      = null;
+      let nextRowId       = 1;
+      const collapsedRows = new Set();
+      // Flow-level automation data
+      let flowStates      = [];     // Array<{ id, label, color, content, components[], actions[] }>
+      let initialStateId  = null;   // which state is the "initial" / entry point
+      let currentStateId  = null;   // currently editing state id
+      let flowTriggers    = [];     // Array<{ id, type, params:{} }>
+      let flowMultiUser   = false;
+      let flowTimeout     = 0;
 
       /* ── Utility ── */
       function uid() { return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
@@ -1089,23 +1218,31 @@
         saved.forEach(msg => {
           const card = document.createElement('div');
           card.className = 'msg-card';
-          const btnCount = (msg.components || []).reduce((n, r) => n + (r.type === 'buttons' ? (r.buttons?.length || 0) : 0), 0);
-          const selCount = (msg.components || []).filter(r => r.type === 'select').length;
-          const actCount = (msg.actions || []).length;
-          const chName   = channels.find(c => c.id === msg.channelId)?.name || '—';
-          const date     = msg.updatedAt ? new Date(msg.updatedAt).toLocaleDateString(isAR ? 'ar' : 'en', { month: 'short', day: 'numeric' }) : '';
+          // Support both old flat format and new states format
+          const stateCount = msg.states?.length || 1;
+          const stateLabel = stateCount + ' ' + (isAR ? (stateCount === 1 ? 'حالة' : 'حالات') : ('state' + (stateCount !== 1 ? 's' : '')));
+          const allComps   = msg.states
+            ? msg.states.flatMap(s => s.components || [])
+            : (msg.components || []);
+          const btnCount   = allComps.reduce((n, r) => n + (r.type === 'buttons' ? (r.buttons?.length || 0) : 0), 0);
+          const selCount   = allComps.filter(r => r.type === 'select').length;
+          const trgCount   = (msg.triggers || []).length;
+          const chName     = channels.find(c => c.id === msg.channelId)?.name || '—';
+          const date       = msg.updatedAt ? new Date(msg.updatedAt).toLocaleDateString(isAR ? 'ar' : 'en', { month: 'short', day: 'numeric' }) : '';
+          const previewTxt = msg.states ? (msg.states.find(s => s.id === msg.initialStateId) || msg.states[0])?.content || '' : msg.content || '';
 
           card.innerHTML =
             '<div class="msg-card-head">' +
               '<span class="msg-card-name">' + esc(msg.name) + '</span>' +
               '<span class="msg-card-date">' + esc(date) + '</span>' +
             '</div>' +
-            '<div class="msg-card-preview">' + esc(msg.content || (isAR ? '(بدون محتوى)' : '(no content)')) + '</div>' +
+            '<div class="msg-card-preview">' + esc(previewTxt || (isAR ? '(بدون محتوى)' : '(no content)')) + '</div>' +
             '<div class="msg-card-meta">' +
               '<span class="msg-card-tag"><i data-lucide="hash" style="width:10px;height:10px;stroke:currentColor;"></i> ' + esc(chName) + '</span>' +
+              '<span class="msg-card-tag"><i data-lucide="workflow" style="width:10px;height:10px;stroke:currentColor;"></i> ' + esc(stateLabel) + '</span>' +
               (btnCount ? '<span class="msg-card-tag"><i data-lucide="square" style="width:10px;height:10px;stroke:currentColor;"></i> ' + btnCount + ' ' + (isAR ? 'أزرار' : 'btns') + '</span>' : '') +
               (selCount ? '<span class="msg-card-tag"><i data-lucide="list" style="width:10px;height:10px;stroke:currentColor;"></i> ' + selCount + ' ' + (isAR ? 'قوائم' : 'selects') + '</span>' : '') +
-              (actCount ? '<span class="msg-card-tag"><i data-lucide="zap" style="width:10px;height:10px;stroke:currentColor;"></i> ' + actCount + ' ' + (isAR ? 'إجراءات' : 'actions') + '</span>' : '') +
+              (trgCount ? '<span class="msg-card-tag" style="color:#4ade80;border-color:rgba(34,197,94,.3);"><i data-lucide="zap" style="width:10px;height:10px;stroke:currentColor;"></i> ' + trgCount + ' ' + (isAR ? 'مُشغِّل' : 'trigger' + (trgCount !== 1 ? 's' : '')) + '</span>' : '') +
             '</div>' +
             '<div class="msg-card-actions">' +
               '<button class="btn btn-ghost btn-sm _edit" data-id="' + msg._id + '">' +
@@ -1123,43 +1260,189 @@
         cardsGrid.querySelectorAll('._del').forEach(btn => btn.addEventListener('click', () => confirmDelete(btn.dataset.id, btn.dataset.name)));
       }
 
+      /* ═══ STATE COLORS ═══ */
+      const STATE_COLORS = ['#5865f2','#7c3aed','#06b6d4','#22c55e','#f97316','#ef4444','#ec4899','#eab308'];
+
+      /* ═══ MIGRATE LEGACY FORMAT → FLOW FORMAT ═══ */
+      function migrateToFlow(msg) {
+        if (msg.states && msg.states.length > 0) return msg; // already flow format
+        const stateId = 'state_1';
+        const actions = (msg.actions || []).map(a => {
+          const entry = JSON.parse(JSON.stringify(a));
+          if (entry.steps && !entry.rules) {
+            entry.rules = entry.steps.length ? [{ id: uid(), conditions: [], conditionOp: 'AND', steps: entry.steps }] : [];
+            delete entry.steps;
+          }
+          if (!entry.rules) entry.rules = [];
+          return entry;
+        });
+        msg.states = [{ id: stateId, label: isAR ? 'الحالة الأولى' : 'Initial', color: '#5865f2',
+          content: msg.content || '', components: msg.components || [], actions }];
+        msg.initialStateId = stateId;
+        msg.multiUser  = msg.multiUser  || false;
+        msg.timeout    = msg.timeout    || 0;
+        msg.triggers   = msg.triggers   || [];
+        return msg;
+      }
+
+      /* ═══ STATE CRUD ═══ */
+      function saveCurrentStateData() {
+        const st = flowStates.find(s => s.id === currentStateId);
+        if (!st) return;
+        st.content    = msgContent.value;
+        st.components = JSON.parse(JSON.stringify(compRows));
+        st.actions    = Object.values(actionsMap).filter(a => {
+          const rules = a.rules || [];
+          return rules.some(r => r.steps?.length > 0);
+        }).map(a => ({ customId: a.customId, rules: a.rules || [] }));
+      }
+
+      function loadStateData(stateId) {
+        if (currentStateId) saveCurrentStateData();
+        const st = flowStates.find(s => s.id === stateId);
+        if (!st) return;
+        currentStateId      = stateId;
+        msgContent.value    = st.content || '';
+        contentCount.textContent = msgContent.value.length;
+        compRows   = JSON.parse(JSON.stringify(st.components || []));
+        actionsMap = {};
+        (st.actions || []).forEach(a => {
+          const entry = JSON.parse(JSON.stringify(a));
+          if (entry.steps && !entry.rules) {
+            entry.rules = entry.steps.length ? [{ id: uid(), conditions: [], conditionOp: 'AND', steps: entry.steps }] : [];
+            delete entry.steps;
+          }
+          if (!entry.rules) entry.rules = [];
+          actionsMap[a.customId] = entry;
+        });
+        nextRowId = compRows.length ? Math.max(...compRows.map(r => parseInt(r.id?.split('_')[1]) || 0)) + 1 : 1;
+        renderStatesSidebar();
+        renderCompRows();
+        renderActions();
+        renderPreview();
+      }
+
+      function addFlowState() {
+        const newId    = 'state_' + Date.now().toString(36);
+        const color    = STATE_COLORS[flowStates.length % STATE_COLORS.length];
+        const label    = (isAR ? 'حالة ' : 'State ') + (flowStates.length + 1);
+        flowStates.push({ id: newId, label, color, content: '', components: [], actions: [] });
+        markDirty();
+        loadStateData(newId);
+      }
+
+      function deleteFlowState(stateId) {
+        if (flowStates.length <= 1) { toast(isAR ? 'يجب أن تكون هناك حالة واحدة على الأقل' : 'Must have at least one state'); return; }
+        const idx = flowStates.findIndex(s => s.id === stateId);
+        if (idx < 0) return;
+        flowStates.splice(idx, 1);
+        if (initialStateId === stateId) initialStateId = flowStates[0].id;
+        markDirty();
+        loadStateData(currentStateId === stateId ? flowStates[Math.max(0, idx - 1)].id : currentStateId);
+      }
+
+      function setInitialState(stateId) {
+        initialStateId = stateId;
+        markDirty();
+        renderStatesSidebar();
+      }
+
+      /* ═══ RENDER STATES SIDEBAR ═══ */
+      function renderStatesSidebar() {
+        if (!stateListEl) return;
+        stateListEl.innerHTML = '';
+        flowStates.forEach(st => {
+          const isActive  = st.id === currentStateId;
+          const isInitial = st.id === initialStateId;
+          const totalComps = (st.components||[]).length + (compRows.length > 0 && st.id === currentStateId ? 0 : 0);
+          const compsDisplay = st.id === currentStateId ? compRows.length : (st.components||[]).length;
+          const actDisplay   = st.id === currentStateId
+            ? Object.values(actionsMap).filter(a => a.rules?.some(r => r.steps?.length)).length
+            : (st.actions||[]).length;
+          const item = document.createElement('div');
+          item.className = 'fl-state-item' + (isActive ? ' active' : '');
+          item.dataset.stateId = st.id;
+          item.innerHTML =
+            '<div class="fl-state-dot" style="background:' + esc(st.color) + ';"></div>' +
+            '<div class="fl-state-content">' +
+              '<div class="fl-state-label">' + esc(st.label) + '</div>' +
+              '<div class="fl-state-meta">' + compsDisplay + ' ' + (isAR ? 'عنصر' : 'comp' + (compsDisplay !== 1 ? 's' : '')) + (actDisplay ? ' · ' + actDisplay + (isAR ? ' إجراء' : ' action' + (actDisplay !== 1 ? 's' : '')) : '') + '</div>' +
+            '</div>' +
+            '<div class="fl-state-badges">' +
+              (isInitial ? '<span class="fl-state-init-badge">' + (isAR ? 'بداية' : 'INIT') + '</span>' : '') +
+            '</div>' +
+            '<button class="fl-state-del-btn _del-state" data-sid="' + st.id + '" title="' + (isAR ? 'حذف' : 'Delete') + '">×</button>';
+          item.addEventListener('click', e => {
+            if (e.target.classList.contains('_del-state')) return;
+            if (st.id !== currentStateId) loadStateData(st.id);
+          });
+          item.addEventListener('dblclick', () => {
+            const labelEl = item.querySelector('.fl-state-label');
+            const input = document.createElement('input');
+            input.className = 'fl-state-rename-input';
+            input.value = st.label;
+            labelEl.replaceWith(input);
+            input.focus();
+            input.select();
+            const commit = () => {
+              const newLabel = input.value.trim() || st.label;
+              st.label = newLabel;
+              markDirty();
+              renderStatesSidebar();
+            };
+            input.addEventListener('blur', commit);
+            input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = st.label; input.blur(); } });
+          });
+          stateListEl.appendChild(item);
+        });
+        // Bind delete buttons
+        stateListEl.querySelectorAll('._del-state').forEach(btn => {
+          btn.addEventListener('click', e => { e.stopPropagation(); deleteFlowState(btn.dataset.sid); });
+        });
+        // Update trigger count badge
+        if (trgCountBadge) {
+          trgCountBadge.textContent = flowTriggers.length;
+          trgCountBadge.style.display = flowTriggers.length ? '' : 'none';
+        }
+      }
+
       /* ═══ OPEN / CLOSE EDITOR ═══ */
       function openEditor(id) {
+        let msgData;
         if (id) {
           const msg = saved.find(m => m._id === id);
           if (!msg) return;
           editingId = id;
-          msgName.value    = msg.name || '';
-          msgChannel.value = msg.channelId || '';
-          msgContent.value = msg.content || '';
-          compRows   = JSON.parse(JSON.stringify(msg.components || []));
-          actionsMap = {};
-          (msg.actions || []).forEach(a => {
-            const entry = JSON.parse(JSON.stringify(a));
-            // Migrate old steps→rules on load
-            if (entry.steps && !entry.rules) {
-              entry.rules = entry.steps.length ? [{ id: 'r0', conditions: [], conditionOp: 'AND', steps: entry.steps }] : [];
-              delete entry.steps;
-            }
-            if (!entry.rules) entry.rules = [];
-            actionsMap[a.customId] = entry;
-          });
+          msgData = migrateToFlow(JSON.parse(JSON.stringify(msg)));
         } else {
           editingId = null;
-          msgName.value = '';
-          msgChannel.value = '';
-          msgContent.value = '';
-          compRows   = [];
-          actionsMap = {};
+          const stateId = 'state_1';
+          msgData = {
+            name: '', channelId: '',
+            states: [{ id: stateId, label: isAR ? 'الحالة الأولى' : 'Initial', color: '#5865f2', content: '', components: [], actions: [] }],
+            initialStateId: stateId, multiUser: false, timeout: 0, triggers: []
+          };
         }
-        nextRowId = compRows.length ? Math.max(...compRows.map(r => parseInt(r.id?.split('_')[1]) || 0)) + 1 : 1;
-        contentCount.textContent = msgContent.value.length;
+        // Load flow-level data
+        flowStates     = msgData.states || [];
+        initialStateId = msgData.initialStateId || flowStates[0]?.id || null;
+        flowTriggers   = JSON.parse(JSON.stringify(msgData.triggers || []));
+        flowMultiUser  = msgData.multiUser || false;
+        flowTimeout    = msgData.timeout   || 0;
+
+        msgName.value    = msgData.name      || '';
+        msgChannel.value = msgData.channelId || '';
+        if (multiUserToggle) multiUserToggle.checked = flowMultiUser;
+        if (flowTimeoutSel)  flowTimeoutSel.value    = String(flowTimeout);
+
+        // Load initial state into editor
+        currentStateId = null; // reset so loadStateData doesn't double-save
+        loadStateData(initialStateId || flowStates[0]?.id);
+
         dirty = false;
         listView.style.display    = 'none';
         builderView.classList.add('active');
-        renderCompRows();
-        renderActions();
-        renderPreview();
+        renderStatesSidebar();
       }
 
       function closeEditor() {
@@ -1167,8 +1450,6 @@
         listView.style.display = '';
         renderList();
       }
-
-      /* ═══ SVG CONSTANTS ═══ */
       const GRIP_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"><circle cx="6.75" cy="9" r="1.25" fill="currentColor"></circle><circle cx="6.75" cy="3.75" r="1.25" fill="currentColor"></circle><circle cx="6.75" cy="14.25" r="1.25" fill="currentColor"></circle><circle cx="11.25" cy="9" r="1.25" fill="currentColor"></circle><circle cx="11.25" cy="3.75" r="1.25" fill="currentColor"></circle><circle cx="11.25" cy="14.25" r="1.25" fill="currentColor"></circle></svg>';
       const TRASH_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 18 18"><path opacity="0.4" d="M3.408 5L3.903 14.389C3.979 15.853 5.185 17 6.649 17H11.353C12.817 17 14.023 15.853 14.099 14.39L14.594 5H3.408Z" fill="currentColor"></path><path d="M7.374 14C6.98 14 6.649 13.69 6.626 13.29L6.376 8.79C6.354 8.38 6.67 8.02 7.083 8C7.489 7.98 7.851 8.29 7.874 8.71L8.124 13.21C8.147 13.62 7.83 13.98 7.417 14H7.374Z" fill="currentColor"></path><path d="M10.626 14H10.583C10.17 13.98 9.854 13.62 9.876 13.21L10.126 8.71C10.149 8.29 10.498 7.98 10.917 8C11.33 8.02 11.647 8.38 11.624 8.79L11.374 13.29C11.352 13.69 11.021 14 10.626 14Z" fill="currentColor"></path><path d="M15.25 4H12V2.75C12 1.785 11.215 1 10.25 1H7.75C6.785 1 6 1.785 6 2.75V4H2.75C2.336 4 2 4.336 2 4.75C2 5.164 2.336 5.5 2.75 5.5H15.25C15.664 5.5 16 5.164 16 4.75C16 4.336 15.664 4 15.25 4ZM7.5 2.75C7.5 2.614 7.614 2.5 7.75 2.5H10.25C10.386 2.5 10.5 2.614 10.5 2.75V4H7.5V2.75Z" fill="currentColor"></path></svg>';
 
@@ -1962,27 +2243,30 @@
       /* ═══ IF / THEN INTERACTION LOGIC BUILDER ═══ */
 
       const ACTION_TYPES = [
+        // Flow / Automation
+        { value: 'go_to_state',       label: isAR ? '🔀 الانتقال إلى حالة'  : '🔀 Go to State',        group: isAR ? 'أتمتة' : 'Automation' },
+        { value: 'update_message',    label: isAR ? '🔄 تحديث الرسالة'      : '🔄 Update Message',     group: isAR ? 'أتمتة' : 'Automation' },
         // Messaging
-        { value: 'reply',             label: isAR ? '💬 رد في القناة'       : '💬 Reply in Channel' },
-        { value: 'send_dm',           label: isAR ? '📨 رسالة خاصة'         : '📨 Send DM' },
-        { value: 'send_to_channel',   label: isAR ? '📢 إرسال إلى قناة'     : '📢 Send to Channel' },
-        { value: 'send_webhook',      label: isAR ? '🔗 إرسال Webhook'      : '🔗 Send Webhook' },
-        { value: 'edit_message',      label: isAR ? '✏️ تعديل الرسالة'      : '✏️ Edit Message' },
+        { value: 'reply',             label: isAR ? '💬 رد في القناة'       : '💬 Reply in Channel',   group: isAR ? 'رسائل' : 'Messaging' },
+        { value: 'send_dm',           label: isAR ? '📨 رسالة خاصة'         : '📨 Send DM',            group: isAR ? 'رسائل' : 'Messaging' },
+        { value: 'send_to_channel',   label: isAR ? '📢 إرسال إلى قناة'     : '📢 Send to Channel',    group: isAR ? 'رسائل' : 'Messaging' },
+        { value: 'send_webhook',      label: isAR ? '🔗 إرسال Webhook'      : '🔗 Send Webhook',       group: isAR ? 'رسائل' : 'Messaging' },
+        { value: 'edit_message',      label: isAR ? '✏️ تعديل الرسالة'      : '✏️ Edit Message',       group: isAR ? 'رسائل' : 'Messaging' },
         // Roles
-        { value: 'add_role',          label: isAR ? '🏷 إضافة رتبة'         : '🏷 Add Role' },
-        { value: 'remove_role',       label: isAR ? '🗑 إزالة رتبة'         : '🗑 Remove Role' },
-        { value: 'toggle_role',       label: isAR ? '🔄 تبديل رتبة'         : '🔄 Toggle Role' },
+        { value: 'add_role',          label: isAR ? '🏷 إضافة رتبة'         : '🏷 Add Role',           group: isAR ? 'رتب' : 'Roles' },
+        { value: 'remove_role',       label: isAR ? '🗑 إزالة رتبة'         : '🗑 Remove Role',        group: isAR ? 'رتب' : 'Roles' },
+        { value: 'toggle_role',       label: isAR ? '🔄 تبديل رتبة'         : '🔄 Toggle Role',        group: isAR ? 'رتب' : 'Roles' },
         // Tickets
-        { value: 'open_ticket',       label: isAR ? '🎫 فتح تذكرة'          : '🎫 Open Ticket' },
-        { value: 'close_ticket',      label: isAR ? '🔒 إغلاق التذكرة'      : '🔒 Close Ticket' },
+        { value: 'open_ticket',       label: isAR ? '🎫 فتح تذكرة'          : '🎫 Open Ticket',        group: isAR ? 'تذاكر' : 'Tickets' },
+        { value: 'close_ticket',      label: isAR ? '🔒 إغلاق التذكرة'      : '🔒 Close Ticket',       group: isAR ? 'تذاكر' : 'Tickets' },
         // Components
-        { value: 'disable_component', label: isAR ? '🚫 تعطيل مكوّن'        : '🚫 Disable Component' },
-        { value: 'enable_component',  label: isAR ? '✅ تفعيل مكوّن'        : '✅ Enable Component' },
+        { value: 'disable_component', label: isAR ? '🚫 تعطيل مكوّن'        : '🚫 Disable Component',  group: isAR ? 'مكونات' : 'Components' },
+        { value: 'enable_component',  label: isAR ? '✅ تفعيل مكوّن'        : '✅ Enable Component',   group: isAR ? 'مكونات' : 'Components' },
         // Other
-        { value: 'create_thread',     label: isAR ? '🧵 إنشاء ثريد'         : '🧵 Create Thread' },
-        { value: 'award_points',      label: isAR ? '⭐ منح نقاط'           : '⭐ Award Points' },
-        { value: 'kick_member',       label: isAR ? '👢 طرد العضو'          : '👢 Kick Member' },
-        { value: 'timeout_member',    label: isAR ? '⏱ إيقاف مؤقت (10 دق)' : '⏱ Timeout Member (10m)' },
+        { value: 'create_thread',     label: isAR ? '🧵 إنشاء ثريد'         : '🧵 Create Thread',      group: isAR ? 'أخرى' : 'Other' },
+        { value: 'award_points',      label: isAR ? '⭐ منح نقاط'           : '⭐ Award Points',       group: isAR ? 'أخرى' : 'Other' },
+        { value: 'kick_member',       label: isAR ? '👢 طرد العضو'          : '👢 Kick Member',        group: isAR ? 'أخرى' : 'Other' },
+        { value: 'timeout_member',    label: isAR ? '⏱ إيقاف مؤقت (10 دق)' : '⏱ Timeout Member (10m)', group: isAR ? 'أخرى' : 'Other' },
       ];
 
       const COND_TYPES = [
@@ -2246,7 +2530,18 @@
         if (t === 'reply')           { h += content + ephem; }
         if (t === 'send_dm')         { h += content; }
         if (t === 'edit_message')    { h += content; }
+        if (t === 'update_message')  { h += content; }
         if (t === 'send_to_channel') { h += content + channelField; }
+        if (t === 'go_to_state') {
+          const stateOptions = flowStates.map(s =>
+            '<option value="' + esc(s.id) + '"' + (step.targetId === s.id ? ' selected' : '') + '>' + esc(s.label) + (s.id === initialStateId ? ' ★' : '') + '</option>'
+          ).join('');
+          h += '<div class="bld-field"><label class="bld-label">' + (isAR ? 'الحالة المستهدفة' : 'Target State') + '</label>' +
+            '<select class="bld-select _step-target" data-si="' + si + '">' +
+              '<option value="">' + (isAR ? 'اختر حالة...' : 'Select state...') + '</option>' + stateOptions +
+            '</select></div>' +
+            '<div style="font-size:.65rem;color:var(--muted);margin-top:2px;">' + (isAR ? 'ينتقل المستخدم إلى هذه الحالة من الأتمتة' : 'Transitions the user to this flow state') + '</div>';
+        }
         if (t === 'send_webhook') {
           h += '<div class="bld-field"><label class="bld-label">Webhook URL</label>' +
             '<input type="url" class="bld-input _step-webhook" data-si="' + si + '" value="' + esc(step.webhookUrl || '') + '" placeholder="https://discord.com/api/webhooks/..."></div>';
@@ -2298,25 +2593,43 @@
       saveBtn.addEventListener('click', async () => {
         const name      = msgName.value.trim();
         const channelId = msgChannel.value;
-        const content   = msgContent.value;
-        if (!name) { toast(isAR ? 'أدخل اسم الرسالة' : 'Enter a message name'); msgName.focus(); return; }
+        if (!name) { toast(isAR ? 'أدخل اسم الأتمتة' : 'Enter an automation name'); msgName.focus(); return; }
         if (!channelId) { toast(isAR ? 'اختر قناة' : 'Select a channel'); msgChannel.focus(); return; }
-        // Validate: at least 1 component or content
-        if (!content.trim() && !compRows.length) { toast(isAR ? 'أضف محتوى أو مكونات' : 'Add content or components'); return; }
+        // Validate: initial state must have content or at least 1 component
+        saveCurrentStateData(); // flush first
+        const initSt = flowStates.find(s => s.id === initialStateId) || flowStates[0];
+        if (!initSt?.content?.trim() && !(initSt?.components?.length)) {
+          toast(isAR ? 'أضف محتوى أو مكونات للحالة الأولى' : 'Add content or components to the initial state');
+          return;
+        }
 
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;stroke:currentColor;animation:spin 1s linear infinite;"></i> ' + (isAR ? 'جاري الحفظ...' : 'Saving...');
 
-        const actions = Object.values(actionsMap).filter(a => {
-          const rules = a.rules || (a.steps?.length ? [{ conditions: [], steps: a.steps }] : []);
-          return rules.some(r => r.steps?.length > 0);
-        }).map(a => {
-          const rules = a.rules || (a.steps?.length ? [{ conditions: [], steps: a.steps }] : []);
-          return { customId: a.customId, rules };
-        });
+        // Serialize all states (migrate rules format in each state's actions)
+        const serializedStates = flowStates.map(st => ({
+          id: st.id, label: st.label, color: st.color,
+          content: st.content || '',
+          components: st.components || [],
+          actions: (st.actions || []).map(a => {
+            const rules = a.rules || (a.steps?.length ? [{ conditions:[], conditionOp:'AND', steps:a.steps }] : []);
+            return { customId: a.customId, rules };
+          })
+        }));
 
         try {
-          const body = { name, channelId, content, components: compRows, actions };
+          const body = {
+            name, channelId,
+            states:        serializedStates,
+            initialStateId,
+            multiUser:     flowMultiUser,
+            timeout:       flowTimeout,
+            triggers:      flowTriggers,
+            // Legacy compat fields from initial state for backend
+            content:    (flowStates.find(s => s.id === initialStateId) || flowStates[0])?.content || '',
+            components: (flowStates.find(s => s.id === initialStateId) || flowStates[0])?.components || [],
+            actions:    (flowStates.find(s => s.id === initialStateId) || flowStates[0])?.actions   || [],
+          };
           if (editingId) body._id = editingId;
 
           const res = await fetch(API + '/save', {
@@ -2334,7 +2647,7 @@
               editingId = data.data._id;
             }
             dirty = false;
-            toast(isAR ? 'تم الحفظ والإرسال بنجاح!' : 'Saved & sent successfully!');
+            toast(isAR ? 'تم حفظ الأتمتة وإطلاقها!' : 'Flow automation saved & sent!');
           } else {
             toast(data.error || 'Error', 4000);
           }
@@ -2357,6 +2670,11 @@
       msgContent.addEventListener('input', () => { contentCount.textContent = msgContent.value.length; markDirty(); });
       msgName.addEventListener('input', markDirty);
       msgChannel.addEventListener('change', markDirty);
+      if (multiUserToggle) multiUserToggle.addEventListener('change', () => { flowMultiUser = multiUserToggle.checked; markDirty(); });
+      if (flowTimeoutSel)  flowTimeoutSel.addEventListener('change',  () => { flowTimeout   = parseInt(flowTimeoutSel.value) || 0; markDirty(); });
+
+      // Add state button
+      document.getElementById('addStateBtn')?.addEventListener('click', () => addFlowState());
 
       newMsgBtn.addEventListener('click', () => openEditor(null));
       emptyNewBtn.addEventListener('click', () => openEditor(null));
@@ -2365,6 +2683,77 @@
         closeEditor();
       });
 
+      // ═══ SMART TRIGGERS MODAL ═══
+      const TRIGGER_TYPES = [
+        { value: 'slash_command', label: isAR ? 'أمر Slash'   : 'Slash Command', icon: '⚡', params: [{ key: 'name', label: isAR ? 'اسم الأمر' : 'Command name', placeholder: '/menu' }] },
+        { value: 'on_join',       label: isAR ? 'انضمام عضو' : 'Member Joins',   icon: '👋', params: [] },
+        { value: 'on_reaction',   label: isAR ? 'تفاعل'       : 'Reaction Added', icon: '✨', params: [{ key: 'emoji', label: isAR ? 'الإيموجي' : 'Emoji', placeholder: '👍' }] },
+        { value: 'scheduled',     label: isAR ? 'مجدول'        : 'Scheduled',      icon: '🕐', params: [{ key: 'cron', label: isAR ? 'Cron' : 'Cron expression', placeholder: '0 9 * * *' }] },
+        { value: 'webhook',       label: isAR ? 'Webhook'      : 'Webhook',        icon: '🔗', params: [] },
+        { value: 'on_message',    label: isAR ? 'رسالة تطابق' : 'Message Pattern', icon: '💬', params: [{ key: 'pattern', label: isAR ? 'النمط (regex)' : 'Pattern (regex)', placeholder: '^!start' }] },
+      ];
+
+      function renderTriggersModal() {
+        const picker = document.getElementById('trgTypePicker');
+        const list   = document.getElementById('trgList');
+        if (!picker || !list) return;
+        // Type add buttons
+        picker.innerHTML = TRIGGER_TYPES.map(t =>
+          '<button class="fl-trg-type-btn _add-trg" data-ttype="' + t.value + '" type="button">' + t.icon + ' ' + t.label + '</button>'
+        ).join('');
+        picker.querySelectorAll('._add-trg').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const tt = TRIGGER_TYPES.find(t => t.value === btn.dataset.ttype);
+            if (!tt) return;
+            flowTriggers.push({ id: uid(), type: tt.value, params: {} });
+            renderTriggersModal();
+          });
+        });
+        // Render trigger items
+        list.innerHTML = '';
+        if (!flowTriggers.length) {
+          list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.79rem;padding:24px 0;">' + (isAR ? 'لا مُشغِّلات بعد — اختر واحداً أعلاه' : 'No triggers yet — pick one above') + '</div>';
+          return;
+        }
+        flowTriggers.forEach((trg, ti) => {
+          const tt = TRIGGER_TYPES.find(t => t.value === trg.type) || { icon: '⚡', label: trg.type, params: [] };
+          const item = document.createElement('div');
+          item.className = 'fl-trg-item';
+          let paramsHtml = '';
+          tt.params.forEach(p => {
+            paramsHtml +=
+              '<label>' + esc(p.label) + '</label>' +
+              '<input type="text" data-trgid="' + trg.id + '" data-key="' + esc(p.key) + '" value="' + esc(trg.params[p.key] || '') + '" placeholder="' + esc(p.placeholder || '') + '">';
+          });
+          item.innerHTML =
+            '<div class="fl-trg-item-head">' +
+              '<span class="fl-trg-icon">' + tt.icon + '</span>' +
+              '<span class="fl-trg-label">' + esc(tt.label) + '</span>' +
+              '<span class="fl-trg-badge active">active</span>' +
+              '<button class="fl-trg-del-btn _del-trg" data-ti="' + ti + '" type="button">×</button>' +
+            '</div>' +
+            (paramsHtml ? '<div class="fl-trg-params">' + paramsHtml + '</div>' : '');
+          item.querySelectorAll('.fl-trg-params input').forEach(inp => {
+            inp.addEventListener('input', () => {
+              const trgItem = flowTriggers.find(t => t.id === inp.dataset.trgid);
+              if (trgItem) trgItem.params[inp.dataset.key] = inp.value;
+            });
+          });
+          item.querySelector('._del-trg')?.addEventListener('click', () => {
+            flowTriggers.splice(ti, 1);
+            renderTriggersModal();
+          });
+          list.appendChild(item);
+        });
+      }
+
+      document.getElementById('triggersBtn')?.addEventListener('click', () => {
+        renderTriggersModal();
+        triggersModal.classList.add('open');
+      });
+      document.getElementById('trgModalClose')?.addEventListener('click', () => { triggersModal.classList.remove('open'); renderStatesSidebar(); });
+      document.getElementById('trgModalSave')?.addEventListener('click', () => { markDirty(); triggersModal.classList.remove('open'); renderStatesSidebar(); toast(isAR ? 'تم حفظ المُشغِّلات' : 'Triggers saved'); });
+
       // Close modals on escape
       document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
@@ -2372,11 +2761,12 @@
           if (optEditModal.classList.contains('open')) { optEditModal.classList.remove('open'); _optEditCtx = null; }
           if (actionModal.classList.contains('open')) { actionModal.classList.remove('open'); _actionCtx = null; }
           if (deleteModal.classList.contains('open')) { deleteModal.classList.remove('open'); _deleteCtx = null; }
+          if (triggersModal?.classList.contains('open')) { triggersModal.classList.remove('open'); renderStatesSidebar(); }
         }
       });
 
       // Close modals on backdrop click
-      [btnEditModal, optEditModal, actionModal, deleteModal].forEach(modal => {
+      [btnEditModal, optEditModal, actionModal, deleteModal, triggersModal].forEach(modal => {
         modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
       });
 
