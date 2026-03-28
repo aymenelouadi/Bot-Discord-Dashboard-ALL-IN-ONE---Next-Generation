@@ -450,6 +450,21 @@
     .dc-empty-prev { padding: 24px 12px; text-align: center; color: #949ba4; font-size: .8rem; line-height: 1.6; }
     @media (max-width: 1100px) { .builder.active { grid-template-columns: 1fr 300px; } }
     @media (max-width: 860px)  { .builder.active { grid-template-columns: 1fr; } .bld-preview-col { display: none; } }
+    /* ── Collapse / Duplicate aside buttons ── */
+    .bld-comp-row-aside-btn.dup:hover { background: rgba(124,58,237,.15); color: var(--purple-l); }
+    .bld-comp-row-aside-btn.collapse-btn { color: var(--muted); }
+    .bld-comp-row-aside-btn.collapse-btn:hover { background: rgba(255,255,255,.06); color: var(--white); }
+    /* Collapsed cards — hide body, keep header */
+    .bld-buttons-card.collapsed > *:not(.bld-row-header),
+    .bld-select-card.collapsed > *:not(.bld-row-header),
+    .bld-text-display-card.collapsed > *:not(.bld-row-header),
+    .bld-separator-card.collapsed > *:not(.bld-row-header),
+    .bld-container-card.collapsed > *:not(.bld-row-header),
+    .bld-image-card.collapsed > *:not(.bld-row-header) { display: none !important; }
+    .bld-row-header { user-select: none; }
+    /* Sortable drag visual */
+    .sortable-ghost  { opacity: .35; outline: 1px dashed rgba(124,58,237,.5); border-radius: 10px; }
+    .sortable-chosen { cursor: grabbing !important; }
   </style>
 </head>
 <body>
@@ -704,6 +719,11 @@
         <label class="bld-label"><%= lang === 'ar' ? 'إيموجي' : 'Emoji' %></label>
         <input type="text" class="bld-input" id="btnEditEmoji" placeholder="😀 or <:name:id>">
       </div>
+      <div class="bld-field" id="btnEditCustomIdWrap">
+        <label class="bld-label">Custom ID</label>
+        <input type="text" class="bld-input" id="btnEditCustomId" maxlength="100" placeholder="my_button_id" style="font-family:'Orbitron',monospace;font-size:.72rem;letter-spacing:.04em;">
+        <div style="font-size:.65rem;color:var(--muted);margin-top:4px;"><%= lang === 'ar' ? 'المعرف المستخدم لتشغيل الإجراءات عند الضغط' : 'Used to trigger interaction actions on click' %></div>
+      </div>
       <div class="bld-field" style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="btnEditDisabled" style="accent-color:var(--purple);width:16px;height:16px;">
         <label for="btnEditDisabled" style="font-size:.78rem;color:var(--muted);cursor:pointer;"><%= lang === 'ar' ? 'معطل' : 'Disabled' %></label>
@@ -775,6 +795,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
   <script src="/js/lucide.min.js"></script>
   <%- include('partials/bg_particles') %>
   <script>
@@ -950,6 +971,7 @@
       let _actionCtx   = null;   // { customId }
       let _deleteCtx   = null;   // { id, name }
       let nextRowId    = 1;
+      const collapsedRows = new Set(); // UI-only: row ids currently collapsed
 
       /* ── Utility ── */
       function uid() { return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
@@ -1084,7 +1106,7 @@
           inner = '<div class="bld-child-title">' + (isAR ? 'قائمة' : 'SELECT') + '</div>' +
             '<input type="text" class="bld-input _child-sel-ph" data-ci="' + ci + '" value="' + esc(child.select?.placeholder || '') + '" placeholder="Placeholder..." style="font-size:.74rem;">';
         }
-        return '<div class="bld-child-row"><div class="bld-child-grip">' + CHILD_GRIP_SVG + '</div><div class="bld-child-main">' + inner + '</div>' + delBtn + '</div>';
+        return '<div class="bld-child-row" data-child-ci="' + ci + '"><div class="bld-child-grip">' + CHILD_GRIP_SVG + '</div><div class="bld-child-main">' + inner + '</div>' + delBtn + '</div>';
       }
 
       /* ═══ COMPONENT ROWS RENDERING ═══ */
@@ -1250,6 +1272,53 @@
 
         lucide.createIcons();
         bindRowEvents();
+        initSortable();
+      }
+
+      /* ═══ SORTABLE DRAG & DROP ═══ */
+      function initSortable() {
+        if (!window.Sortable) return;
+        // Top-level rows (exclude #contentRow via draggable option)
+        if (compRowsEl._sortable) { try { compRowsEl._sortable.destroy(); } catch(e) {} }
+        compRowsEl._sortable = Sortable.create(compRowsEl, {
+          handle: '.bld-comp-row-grip',
+          draggable: '.bld-comp-row[data-row-id]',
+          animation: 150,
+          ghostClass: 'sortable-ghost',
+          chosenClass: 'sortable-chosen',
+          onEnd() {
+            const newOrder = [];
+            compRowsEl.querySelectorAll('.bld-comp-row[data-row-id]').forEach(el => {
+              const row = compRows.find(r => r.id === el.dataset.rowId);
+              if (row) newOrder.push(row);
+            });
+            compRows = newOrder;
+            markDirty(); renderCompRows(); renderActions();
+          }
+        });
+        // Container children
+        compRowsEl.querySelectorAll('.bld-container-children').forEach(container => {
+          if (container._sortable) { try { container._sortable.destroy(); } catch(e) {} }
+          container._sortable = Sortable.create(container, {
+            handle: '.bld-child-grip',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd() {
+              const rowId = container.closest('[data-row-id]')?.dataset.rowId;
+              const ri = compRows.findIndex(r => r.id === rowId);
+              if (ri < 0) return;
+              const newChildren = [];
+              container.querySelectorAll('.bld-child-row[data-child-ci]').forEach(el => {
+                const ci = parseInt(el.dataset.childCi);
+                if (!isNaN(ci) && compRows[ri].children[ci]) newChildren.push(compRows[ri].children[ci]);
+              });
+              if (newChildren.length === compRows[ri].children.length) {
+                compRows[ri].children = newChildren;
+                markDirty(); renderCompRows();
+              }
+            }
+          });
+        });
       }
 
       /* ═══ ROW EVENT BINDINGS ═══ */
@@ -1258,6 +1327,49 @@
           const rowId = card.dataset.rowId;
           const ri = compRows.findIndex(r => r.id === rowId);
           if (ri < 0) return;
+
+          // Apply collapsed CSS class
+          const innerCard = card.querySelector('.bld-buttons-card,.bld-select-card,.bld-text-display-card,.bld-separator-card,.bld-container-card,.bld-image-card');
+          if (innerCard && collapsedRows.has(rowId)) innerCard.classList.add('collapsed');
+
+          // Inject Collapse + Duplicate buttons before the delete button
+          const aside = card.querySelector('.bld-comp-row-aside');
+          if (aside) {
+            const isCol = collapsedRows.has(rowId);
+            const colBtn = document.createElement('button');
+            colBtn.className = 'bld-comp-row-aside-btn collapse-btn';
+            colBtn.title = isCol ? (isAR ? 'فتح' : 'Expand') : (isAR ? 'طي' : 'Collapse');
+            colBtn.innerHTML = isCol
+              ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 15l-6-6-6 6"/></svg>'
+              : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>';
+            const dupBtn = document.createElement('button');
+            dupBtn.className = 'bld-comp-row-aside-btn dup';
+            dupBtn.title = isAR ? 'نسخ' : 'Duplicate';
+            dupBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+            aside.insertBefore(colBtn, aside.firstChild);
+            aside.insertBefore(dupBtn, colBtn.nextSibling);
+            colBtn.addEventListener('click', () => {
+              if (collapsedRows.has(rowId)) collapsedRows.delete(rowId);
+              else collapsedRows.add(rowId);
+              renderCompRows();
+            });
+            dupBtn.addEventListener('click', () => {
+              const clone = JSON.parse(JSON.stringify(compRows[ri]));
+              clone.id = 'row_' + (nextRowId++);
+              if (clone.type === 'buttons' && clone.buttons)
+                clone.buttons.forEach(b => { if (b.customId) b.customId = uid(); });
+              if (clone.type === 'select' && clone.select?.customId)
+                clone.select.customId = uid();
+              if (clone.type === 'container' && clone.children)
+                clone.children.forEach((ch, i) => {
+                  ch.id = 'child_' + clone.id + '_' + i;
+                  if (ch.buttons) ch.buttons.forEach(b => { if (b.customId) b.customId = uid(); });
+                  if (ch.select?.customId) ch.select.customId = uid();
+                });
+              compRows.splice(ri + 1, 0, clone);
+              markDirty(); renderCompRows(); renderActions();
+            });
+          }
 
           // Delete row
           card.querySelector('._del-row')?.addEventListener('click', () => {
@@ -1600,17 +1712,19 @@
         const btn = compRows[ri].buttons[bi];
         if (!btn) return;
         _btnEditCtx = { rowId, bi };
-        document.getElementById('btnEditLabel').value    = btn.label || '';
-        document.getElementById('btnEditStyle').value    = btn.style || 'Primary';
-        document.getElementById('btnEditUrl').value      = btn.url || '';
-        document.getElementById('btnEditEmoji').value    = btn.emoji || '';
+        document.getElementById('btnEditLabel').value      = btn.label || '';
+        document.getElementById('btnEditStyle').value      = btn.style || 'Primary';
+        document.getElementById('btnEditUrl').value        = btn.url || '';
+        document.getElementById('btnEditEmoji').value      = btn.emoji || '';
+        document.getElementById('btnEditCustomId').value   = btn.customId || '';
         document.getElementById('btnEditDisabled').checked = !!btn.disabled;
         toggleUrlField();
         btnEditModal.classList.add('open');
       }
       function toggleUrlField() {
-        document.getElementById('btnEditUrlWrap').style.display =
-          document.getElementById('btnEditStyle').value === 'Link' ? '' : 'none';
+        const isLink = document.getElementById('btnEditStyle').value === 'Link';
+        document.getElementById('btnEditUrlWrap').style.display      = isLink ? '' : 'none';
+        document.getElementById('btnEditCustomIdWrap').style.display = isLink ? 'none' : '';
       }
       document.getElementById('btnEditStyle').addEventListener('change', toggleUrlField);
       document.getElementById('btnEditCancel').addEventListener('click', () => { btnEditModal.classList.remove('open'); _btnEditCtx = null; });
@@ -1625,8 +1739,16 @@
         btn.url      = document.getElementById('btnEditUrl').value.trim();
         btn.emoji    = document.getElementById('btnEditEmoji').value.trim();
         btn.disabled = document.getElementById('btnEditDisabled').checked;
-        if (btn.style === 'Link') { btn.customId = ''; delete actionsMap[btn.customId]; }
-        else if (!btn.customId) { btn.customId = uid(); }
+        if (btn.style === 'Link') {
+          if (btn.customId) { delete actionsMap[btn.customId]; btn.customId = ''; }
+        } else {
+          const newCid = document.getElementById('btnEditCustomId').value.trim() || btn.customId || uid();
+          if (btn.customId && btn.customId !== newCid && actionsMap[btn.customId]) {
+            actionsMap[newCid] = { ...actionsMap[btn.customId], customId: newCid };
+            delete actionsMap[btn.customId];
+          }
+          btn.customId = newCid;
+        }
         markDirty(); renderCompRows(); renderActions(); renderPreview();
         btnEditModal.classList.remove('open'); _btnEditCtx = null;
       });
