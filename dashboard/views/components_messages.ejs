@@ -309,6 +309,20 @@
     .bld-opt-chip-del { display: inline-flex; align-items: center; justify-content: center; width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.1); border: none; color: rgba(255,255,255,.4); cursor: pointer; font-size: 8px; padding: 0; line-height: 1; transition: background .15s, color .15s; }
     .bld-opt-chip-del:hover { background: rgba(239,68,68,.3); color: #fca5a5; }
 
+    /* ── Text Display row card ── */
+    .bld-text-display-card { background: var(--surface); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 10px 12px; }
+    .bld-text-display-card textarea { width: 100%; min-height: 64px; background: none; border: none; border-top: 1px solid rgba(255,255,255,.07); color: var(--white); font-size: .82rem; font-family: inherit; padding: 8px 0 4px; resize: vertical; outline: none; line-height: 1.55; margin-top: 6px; }
+
+    /* ── Separator row card ── */
+    .bld-separator-card { background: var(--surface); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 10px 12px; }
+
+    /* ── Container row card ── */
+    .bld-container-card { background: var(--surface); border: 1px solid rgba(255,255,255,.09); border-left: 3px solid rgba(124,58,237,.5); border-radius: 10px; padding: 10px 12px; transition: border-left-color .2s; }
+
+    /* ── Image row card ── */
+    .bld-image-card { background: var(--surface); border: 1px solid rgba(255,255,255,.09); border-radius: 10px; padding: 10px 12px; }
+    .bld-image-preview { max-width: 100%; max-height: 120px; border-radius: 6px; object-fit: cover; margin-top: 8px; display: block; }
+
     /* ── Add Component button & popup menu ── */
     .bld-add-comp-wrap { position: relative; margin-top: 4px; }
     .bld-add-comp-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: var(--surface); border: 1px dashed rgba(255,255,255,.14); border-radius: 10px; color: var(--muted); font-size: .82rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .18s; }
@@ -509,12 +523,52 @@
             <%= lang === 'ar' ? 'إضافة مكوّن' : 'Add Component' %>
           </button>
           <div class="bld-add-comp-menu" id="addCompMenu">
+            <button class="bld-add-comp-menu-item" id="menuAddContent" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                <path opacity="0.4" d="M15.7501 9.75H2.25009C1.83599 9.75 1.50009 9.4141 1.50009 9C1.50009 8.5859 1.83599 8.25 2.25009 8.25H15.7501C16.1642 8.25 16.5001 8.5859 16.5001 9C16.5001 9.4141 16.1642 9.75 15.7501 9.75Z"></path>
+                <path d="M15.7501 4.5H2.25009C1.83599 4.5 1.50009 4.1641 1.50009 3.75C1.50009 3.3359 1.83599 3 2.25009 3H15.7501C16.1642 3 16.5001 3.3359 16.5001 3.75C16.5001 4.1641 16.1642 4.5 15.7501 4.5Z"></path>
+                <path d="M8.25009 15H2.25009C1.83599 15 1.50009 14.6641 1.50009 14.25C1.50009 13.8359 1.83599 13.5 2.25009 13.5H8.25009C8.66419 13.5 9.00009 13.8359 9.00009 14.25C9.00009 14.6641 8.66419 15 8.25009 15Z"></path>
+              </svg>
+              <%= lang === 'ar' ? 'نص' : 'Content' %>
+            </button>
+            <button class="bld-add-comp-menu-item" id="menuAddSeparator" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                <path d="m4.75,6.5h8.5c1.517,0,2.75-1.233,2.75-2.75v-1c0-.414-.336-.75-.75-.75H2.75c-.414,0-.75.336-.75.75v1c0,1.517,1.233,2.75,2.75,2.75Z" stroke-width="0"></path>
+                <path d="m13.25,11.5H4.75c-1.517,0-2.75,1.233-2.75,2.75v1c0,.414.336.75.75.75h12.5c.414,0,.75-.336.75-.75v-1c0-1.517-1.233-2.75-2.75-2.75Z" stroke-width="0"></path>
+                <path opacity="0.4" d="m16,8.25H2c-.414,0-.75.336-.75.75s.336.75.75.75h14c.414,0,.75-.336.75-.75s-.336-.75-.75-.75Z" stroke-width="0"></path>
+              </svg>
+              <%= lang === 'ar' ? 'فاصل' : 'Separator' %>
+            </button>
+            <button class="bld-add-comp-menu-item" id="menuAddContainer" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                <path opacity="0.4" d="M15.2501 3.5C15.6643 3.5 16.0001 3.16421 16.0001 2.75C16.0001 2.33579 15.6643 2 15.2501 2C14.8359 2 14.5001 2.33579 14.5001 2.75C14.5001 3.16421 14.8359 3.5 15.2501 3.5Z"></path>
+                <path opacity="0.4" d="M2.75012 3.5C3.16434 3.5 3.50012 3.16421 3.50012 2.75C3.50012 2.33579 3.16434 2 2.75012 2C2.33591 2 2.00012 2.33579 2.00012 2.75C2.00012 3.16421 2.33591 3.5 2.75012 3.5Z"></path>
+                <path opacity="0.4" d="M15.2501 16C15.6643 16 16.0001 15.6642 16.0001 15.25C16.0001 14.8358 15.6643 14.5 15.2501 14.5C14.8359 14.5 14.5001 14.8358 14.5001 15.25C14.5001 15.6642 14.8359 16 15.2501 16Z"></path>
+                <path opacity="0.4" d="M2.75012 16C3.16434 16 3.50012 15.6642 3.50012 15.25C3.50012 14.8358 3.16434 14.5 2.75012 14.5C2.33591 14.5 2.00012 14.8358 2.00012 15.25C2.00012 15.6642 2.33591 16 2.75012 16Z"></path>
+                <path d="M10.2501 6H7.75012C6.78362 6 6.00012 6.7835 6.00012 7.75V10.25C6.00012 11.2165 6.78362 12 7.75012 12H10.2501C11.2166 12 12.0001 11.2165 12.0001 10.25V7.75C12.0001 6.7835 11.2166 6 10.2501 6Z"></path>
+              </svg>
+              <%= lang === 'ar' ? 'حاوية' : 'Container' %>
+            </button>
+            <button class="bld-add-comp-menu-item" id="menuAddImage" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M2 4.75C2 3.23069 3.23128 2 4.75 2H13.25C14.7687 2 16 3.23069 16 4.75V13.25C16 14.7693 14.7687 16 13.25 16H4.75C3.23128 16 2 14.7693 2 13.25V4.75Z" fill-opacity="0.4"></path>
+                <path d="M16 12.6731V13.25C16 14.7693 14.7687 16 13.25 16H4.74998C4.42692 16 4.11688 15.9443 3.82892 15.842L10.0849 9.586C10.8659 8.805 12.1319 8.805 12.9129 9.586L16 12.6731Z"></path>
+                <path d="M9.15802 6.508L7.89502 6.087L7.47402 4.824C7.33702 4.416 6.66202 4.416 6.52502 4.824L6.10402 6.087L4.84102 6.508C4.63702 6.576 4.49902 6.767 4.49902 6.982C4.49902 7.197 4.63702 7.388 4.84102 7.456L6.10402 7.877L6.52502 9.14C6.59302 9.344 6.78502 9.482 7.00002 9.482C7.21502 9.482 7.40602 9.344 7.47502 9.14L7.89602 7.877L9.15902 7.456C9.36302 7.388 9.50102 7.197 9.50102 6.982C9.50102 6.767 9.36302 6.576 9.15902 6.508H9.15802Z"></path>
+              </svg>
+              <%= lang === 'ar' ? 'صورة' : 'Image' %>
+            </button>
             <button class="bld-add-comp-menu-item" id="menuAddBtnRow" type="button">
-              <i data-lucide="square" style="width:15px;height:15px;stroke:currentColor;"></i>
-              <%= lang === 'ar' ? 'صف أزرار' : 'Button Row' %>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                <path opacity="0.4" d="M7.40679 10.4561C7.05959 9.504 7.28859 8.4688 8.00399 7.754C8.49369 7.2667 9.13779 6.9996 9.82089 6.9996C10.1222 6.9996 10.419 7.0523 10.7037 7.1558L16.9801 9.4483C16.985 9.3816 17.0001 9.3179 17.0001 9.2501V5.7501C17.0001 4.2335 15.7667 3.0001 14.2501 3.0001H3.75009C2.23349 3.0001 1.00009 4.2335 1.00009 5.7501V9.2501C1.00009 10.7667 2.23349 12.0001 3.75009 12.0001H7.97089L7.40679 10.4561Z"></path>
+                <path d="M17.0455 11.0693L10.1915 8.5654C9.797 8.4218 9.3634 8.5171 9.0645 8.8144C8.7662 9.1127 8.6709 9.5444 8.8155 9.9414L11.3199 16.7964C11.4752 17.2197 11.878 17.5005 12.3272 17.5005C12.335 17.5005 12.3423 17.5 12.3497 17.5C12.8077 17.4907 13.2096 17.1909 13.3492 16.7544L14.2359 13.9858L17.0054 13.0986C17.4414 12.959 17.7403 12.5571 17.7495 12.0991C17.7593 11.6411 17.4762 11.2275 17.0455 11.0693Z"></path>
+              </svg>
+              <%= lang === 'ar' ? 'أزرار' : 'Button' %>
             </button>
             <button class="bld-add-comp-menu-item" id="menuAddSelectRow" type="button">
-              <i data-lucide="list" style="width:15px;height:15px;stroke:currentColor;"></i>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+                <path d="M9.53,2.22c-.293-.293-.768-.293-1.061,0l-3.5,3.5c-.293,.293-.293,.768,0,1.061s.768,.293,1.061,0l2.97-2.97,2.97,2.97c.146,.146,.338,.22,.53,.22s.384-.073,.53-.22c.293-.293,.293-.768,0-1.061l-3.5-3.5Z"></path>
+                <path opacity="0.4" d="M11.97,11.22l-2.97,2.97-2.97-2.97c-.293-.293-.768-.293-1.061,0s-.293,.768,0,1.061l3.5,3.5c.146,.146,.338,.22,.53,.22s.384-.073,.53-.22l3.5-3.5c.293-.293,.293-.768,0-1.061s-.768-.293-1.061,0Z"></path>
+              </svg>
               <%= lang === 'ar' ? 'قائمة منسدلة' : 'Select Menu' %>
             </button>
           </div>
@@ -963,6 +1017,85 @@
               '<div class="bld-comp-row-aside">' +
                 '<button class="bld-comp-row-aside-btn red _del-row" title="' + (isAR ? 'حذف' : 'Delete') + '">' + TRASH_SVG + '</button>' +
               '</div>';
+
+          } else if (row.type === 'text_display') {
+            wrap.innerHTML =
+              '<div class="bld-comp-row-grip">' + GRIP_SVG + '</div>' +
+              '<div class="bld-comp-row-main">' +
+                '<div class="bld-text-display-card">' +
+                  '<div class="bld-row-header"><span class="bld-row-title">' + (isAR ? 'نص' : 'TEXT DISPLAY') + '</span></div>' +
+                  '<textarea class="_td-text" maxlength="4000" placeholder="' + (isAR ? 'أدخل النص...' : 'Enter text content...') + '" rows="3">' + esc(row.text || '') + '</textarea>' +
+                '</div>' +
+              '</div>' +
+              '<div class="bld-comp-row-aside">' +
+                '<button class="bld-comp-row-aside-btn red _del-row" title="' + (isAR ? 'حذف' : 'Delete') + '">' + TRASH_SVG + '</button>' +
+              '</div>';
+
+          } else if (row.type === 'separator') {
+            const sepPreview = row.divider !== false
+              ? '<hr style="border:none;border-top:1px solid rgba(255,255,255,.13);margin:' + (row.spacing === 'Large' ? '16px' : '6px') + ' 0;">'
+              : '<div style="height:' + (row.spacing === 'Large' ? '20px' : '8px') + ';"></div>';
+            wrap.innerHTML =
+              '<div class="bld-comp-row-grip">' + GRIP_SVG + '</div>' +
+              '<div class="bld-comp-row-main">' +
+                '<div class="bld-separator-card">' +
+                  '<div class="bld-row-header">' +
+                    '<span class="bld-row-title">' + (isAR ? 'فاصل' : 'SEPARATOR') + '</span>' +
+                    '<div style="display:flex;align-items:center;gap:10px;">' +
+                      '<label style="display:flex;align-items:center;gap:4px;font-size:.72rem;color:var(--muted);cursor:pointer;">' +
+                        '<input type="checkbox" class="_sep-divider"' + (row.divider !== false ? ' checked' : '') + '> ' + (isAR ? 'خط' : 'Line') +
+                      '</label>' +
+                      '<select class="bld-select _sep-spacing" style="font-size:.72rem;padding:3px 24px 3px 8px;width:auto;">' +
+                        '<option value="Small"' + (row.spacing !== 'Large' ? ' selected' : '') + '>' + (isAR ? 'صغير' : 'Small') + '</option>' +
+                        '<option value="Large"' + (row.spacing === 'Large' ? ' selected' : '') + '>' + (isAR ? 'كبير' : 'Large') + '</option>' +
+                      '</select>' +
+                    '</div>' +
+                  '</div>' +
+                  sepPreview +
+                '</div>' +
+              '</div>' +
+              '<div class="bld-comp-row-aside">' +
+                '<button class="bld-comp-row-aside-btn red _del-row" title="' + (isAR ? 'حذف' : 'Delete') + '">' + TRASH_SVG + '</button>' +
+              '</div>';
+
+          } else if (row.type === 'container') {
+            wrap.innerHTML =
+              '<div class="bld-comp-row-grip">' + GRIP_SVG + '</div>' +
+              '<div class="bld-comp-row-main">' +
+                '<div class="bld-container-card"' + (row.accentColor ? ' style="border-left-color:' + esc(row.accentColor) + ';"' : '') + '>' +
+                  '<div class="bld-row-header">' +
+                    '<span class="bld-row-title">' + (isAR ? 'حاوية' : 'CONTAINER') + '</span>' +
+                    '<div style="display:flex;align-items:center;gap:6px;">' +
+                      '<label style="font-size:.72rem;color:var(--muted);">' + (isAR ? 'لون:' : 'Accent:') + '</label>' +
+                      '<input type="color" class="_cont-color" value="' + esc(row.accentColor || '#5865f2') + '" style="width:24px;height:22px;border:none;background:none;cursor:pointer;padding:0;border-radius:4px;">' +
+                      '<button class="btn btn-ghost btn-sm _cont-clear" style="font-size:.65rem;padding:2px 6px;">' + (isAR ? 'إزالة' : 'Clear') + '</button>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div style="font-size:.72rem;color:var(--muted);padding:4px 0 2px;">' + (isAR ? 'تضم مكونات مضافة لاحقاً' : 'Groups nested components (nesting coming soon)') + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="bld-comp-row-aside">' +
+                '<button class="bld-comp-row-aside-btn red _del-row" title="' + (isAR ? 'حذف' : 'Delete') + '">' + TRASH_SVG + '</button>' +
+              '</div>';
+
+          } else if (row.type === 'image') {
+            wrap.innerHTML =
+              '<div class="bld-comp-row-grip">' + GRIP_SVG + '</div>' +
+              '<div class="bld-comp-row-main">' +
+                '<div class="bld-image-card">' +
+                  '<div class="bld-row-header"><span class="bld-row-title">' + (isAR ? 'صورة' : 'IMAGE') + '</span></div>' +
+                  '<div class="bld-field">' +
+                    '<input type="url" class="bld-input _img-url" value="' + esc(row.url || '') + '" placeholder="' + (isAR ? 'رابط الصورة (https://...)' : 'Image URL (https://...)') + '" style="font-size:.78rem;">' +
+                  '</div>' +
+                  '<div class="bld-field" style="margin-top:5px;">' +
+                    '<input type="text" class="bld-input _img-desc" value="' + esc(row.description || '') + '" placeholder="' + (isAR ? 'نص بديل (اختياري)' : 'Alt text (optional)') + '" style="font-size:.78rem;">' +
+                  '</div>' +
+                  (row.url ? '<img src="' + esc(row.url) + '" class="bld-image-preview" onerror="this.style.display=\'none\'">' : '') +
+                '</div>' +
+              '</div>' +
+              '<div class="bld-comp-row-aside">' +
+                '<button class="bld-comp-row-aside-btn red _del-row" title="' + (isAR ? 'حذف' : 'Delete') + '">' + TRASH_SVG + '</button>' +
+              '</div>';
           }
 
           compRowsEl.appendChild(wrap);
@@ -1040,6 +1173,31 @@
               markDirty(); renderCompRows();
             });
           }
+
+          if (compRows[ri].type === 'text_display') {
+            const tdText = card.querySelector('._td-text');
+            if (tdText) tdText.addEventListener('input', () => { compRows[ri].text = tdText.value; markDirty(); });
+          }
+
+          if (compRows[ri].type === 'separator') {
+            const sepChk = card.querySelector('._sep-divider');
+            if (sepChk) sepChk.addEventListener('change', () => { compRows[ri].divider = sepChk.checked; markDirty(); renderCompRows(); });
+            const sepSel = card.querySelector('._sep-spacing');
+            if (sepSel) sepSel.addEventListener('change', () => { compRows[ri].spacing = sepSel.value; markDirty(); renderCompRows(); });
+          }
+
+          if (compRows[ri].type === 'container') {
+            const contColor = card.querySelector('._cont-color');
+            if (contColor) contColor.addEventListener('input', () => { compRows[ri].accentColor = contColor.value; markDirty(); renderCompRows(); });
+            card.querySelector('._cont-clear')?.addEventListener('click', () => { compRows[ri].accentColor = ''; markDirty(); renderCompRows(); });
+          }
+
+          if (compRows[ri].type === 'image') {
+            const imgUrl = card.querySelector('._img-url');
+            if (imgUrl) imgUrl.addEventListener('change', () => { compRows[ri].url = imgUrl.value; markDirty(); renderCompRows(); });
+            const imgDesc = card.querySelector('._img-desc');
+            if (imgDesc) imgDesc.addEventListener('input', () => { compRows[ri].description = imgDesc.value; markDirty(); });
+          }
         });
       }
 
@@ -1063,8 +1221,32 @@
         compRows.push({ id, type: 'select', buttons: [], select: { customId: uid(), placeholder: isAR ? 'اختر خياراً...' : 'Select an option…', minValues: 1, maxValues: 1, disabled: false, options: [{ label: isAR ? 'خيار 1' : 'Option 1', value: uid(), description: '', emoji: '', default: false }] } });
         markDirty(); renderCompRows(); renderActions();
       }
-      document.getElementById('menuAddBtnRow')?.addEventListener('click', () => { addCompMenuEl.classList.remove('open'); addButtonRow(); });
-      document.getElementById('menuAddSelectRow')?.addEventListener('click', () => { addCompMenuEl.classList.remove('open'); addSelectRow(); });
+      function addTextDisplayRow() {
+        const id = 'row_' + (nextRowId++);
+        compRows.push({ id, type: 'text_display', text: '' });
+        markDirty(); renderCompRows();
+      }
+      function addSeparatorRow() {
+        const id = 'row_' + (nextRowId++);
+        compRows.push({ id, type: 'separator', divider: true, spacing: 'Small' });
+        markDirty(); renderCompRows();
+      }
+      function addContainerRow() {
+        const id = 'row_' + (nextRowId++);
+        compRows.push({ id, type: 'container', accentColor: '' });
+        markDirty(); renderCompRows();
+      }
+      function addImageRow() {
+        const id = 'row_' + (nextRowId++);
+        compRows.push({ id, type: 'image', url: '', description: '' });
+        markDirty(); renderCompRows();
+      }
+      document.getElementById('menuAddContent')?.addEventListener('click',    () => { addCompMenuEl.classList.remove('open'); addTextDisplayRow(); });
+      document.getElementById('menuAddSeparator')?.addEventListener('click',  () => { addCompMenuEl.classList.remove('open'); addSeparatorRow(); });
+      document.getElementById('menuAddContainer')?.addEventListener('click',  () => { addCompMenuEl.classList.remove('open'); addContainerRow(); });
+      document.getElementById('menuAddImage')?.addEventListener('click',      () => { addCompMenuEl.classList.remove('open'); addImageRow(); });
+      document.getElementById('menuAddBtnRow')?.addEventListener('click',     () => { addCompMenuEl.classList.remove('open'); addButtonRow(); });
+      document.getElementById('menuAddSelectRow')?.addEventListener('click',  () => { addCompMenuEl.classList.remove('open'); addSelectRow(); });
 
       /* ═══ ACTIONS SECTION TOGGLE ═══ */
       document.getElementById('actionsToggle')?.addEventListener('click', () => {

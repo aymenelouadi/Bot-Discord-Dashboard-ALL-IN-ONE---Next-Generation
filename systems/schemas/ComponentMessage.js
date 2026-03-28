@@ -47,10 +47,20 @@ const SelectMenuSchema = new Schema({
 
 // ── Component row sub-schema ────────────────────────────────────────────────
 const ComponentRowSchema = new Schema({
-    id:      { type: String, required: true },
-    type:    { type: String, enum: ['buttons', 'select'], required: true },
-    buttons: { type: [ButtonSchema], default: [] },
-    select:  { type: SelectMenuSchema, default: null },
+    id:          { type: String, required: true },
+    type:        { type: String, enum: ['buttons', 'select', 'text_display', 'separator', 'container', 'image'], required: true },
+    buttons:     { type: [ButtonSchema], default: [] },
+    select:      { type: SelectMenuSchema, default: null },
+    // text_display
+    text:        { type: String, default: '' },
+    // separator
+    divider:     { type: Boolean, default: true },
+    spacing:     { type: String, enum: ['Small', 'Large'], default: 'Small' },
+    // container
+    accentColor: { type: String, default: '' },
+    // image
+    url:         { type: String, default: '' },
+    description: { type: String, default: '' },
 }, { _id: false });
 
 // ── Action step sub-schema ──────────────────────────────────────────────────
