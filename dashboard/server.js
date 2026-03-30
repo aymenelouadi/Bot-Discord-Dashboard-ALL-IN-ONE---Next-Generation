@@ -2179,7 +2179,7 @@ function _defaultMultiPanelData() {
     };
 }
 
-function _ticketsCommon(req, res) {
+async function _ticketsCommon(req, res) {
     const guildDb            = require('./utils/guildDb');
     const { getClient }      = require('./utils/botClient');
     const getUnicodeFlagIcon = require('country-flag-icons/unicode').default;
@@ -2195,7 +2195,7 @@ function _ticketsCommon(req, res) {
     const guildInfo = raw.find(g => g.id === guildId);
 
     // ── Load tickets.json; auto-migrate from old settings.json if first run ──
-    let ticketData = guildDb.read(guildId, 'tickets', null);
+    let ticketData = await guildDb.readAsync(guildId, 'tickets', null);
     if (!ticketData) {
         ticketData = _defaultTicketData();
         const old = guildDb.read(guildId, 'settings', {});
@@ -2269,20 +2269,20 @@ function _ticketsCommon(req, res) {
     };
 }
 
-app.get('/dashboard/:guildId/tickets', require('./middleware/auth'), (req, res) => {
-    const ctx = _ticketsCommon(req, res);
+app.get('/dashboard/:guildId/tickets', require('./middleware/auth'), async (req, res) => {
+    const ctx = await _ticketsCommon(req, res);
     if (!ctx) return;
     res.render('tickets', { user: req.session.user, ...ctx, t: req.t, lang: req.lang });
 });
 
 // ── Quick enable/disable toggle (used by the overview page toggle switch) ─────────
-app.post('/dashboard/:guildId/tickets/toggle', require('./middleware/auth'), express.json(), (req, res) => {
+app.post('/dashboard/:guildId/tickets/toggle', require('./middleware/auth'), express.json(), async (req, res) => {
     const guildDb    = require('./utils/guildDb');
     const { guildId } = req.params;
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
     const { enabled } = req.body;
     if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'enabled must be boolean' });
-    const ticketData = guildDb.read(guildId, 'tickets', null) || _defaultTicketData();
+    const ticketData = (await guildDb.readAsync(guildId, 'tickets', null)) || _defaultTicketData();
     if (!ticketData.general)      ticketData.general      = {};
     if (!ticketData.panels)       ticketData.panels       = [];
     if (!ticketData.multiPanels)  ticketData.multiPanels  = [];
@@ -2293,20 +2293,20 @@ app.post('/dashboard/:guildId/tickets/toggle', require('./middleware/auth'), exp
     res.json({ success: true, enabled });
 });
 
-app.get('/dashboard/:guildId/tickets/general', require('./middleware/auth'), (req, res) => {
-    const ctx = _ticketsCommon(req, res);
+app.get('/dashboard/:guildId/tickets/general', require('./middleware/auth'), async (req, res) => {
+    const ctx = await _ticketsCommon(req, res);
     if (!ctx) return;
     res.render('tickets_general', { user: req.session.user, ...ctx, t: req.t, lang: req.lang });
 });
 
-app.post('/dashboard/:guildId/tickets/general/save', require('./middleware/auth'), express.json(), (req, res) => {
+app.post('/dashboard/:guildId/tickets/general/save', require('./middleware/auth'), express.json(), async (req, res) => {
     const guildDb = require('./utils/guildDb');
     const { guildId } = req.params;
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
 
     const now = new Date().toISOString();
     const { ENABLE, ...generalFields } = req.body;
-    const ticketData = guildDb.read(guildId, 'tickets', null) || _defaultTicketData();
+    const ticketData = (await guildDb.readAsync(guildId, 'tickets', null)) || _defaultTicketData();
     ticketData.enabled   = ENABLE !== undefined ? Boolean(ENABLE) : (ticketData.enabled !== false);
     ticketData.general   = generalFields;
     ticketData.updatedAt = now;
@@ -2317,20 +2317,20 @@ app.post('/dashboard/:guildId/tickets/general/save', require('./middleware/auth'
     res.json({ success: true });
 });
 
-app.get('/dashboard/:guildId/tickets/panels', require('./middleware/auth'), (req, res) => {
-    const ctx = _ticketsCommon(req, res);
+app.get('/dashboard/:guildId/tickets/panels', require('./middleware/auth'), async (req, res) => {
+    const ctx = await _ticketsCommon(req, res);
     if (!ctx) return;
     res.render('tickets_panels', { user: req.session.user, ...ctx, t: req.t, lang: req.lang });
 });
 
-app.post('/dashboard/:guildId/tickets/panels/save', require('./middleware/auth'), express.json(), (req, res) => {
+app.post('/dashboard/:guildId/tickets/panels/save', require('./middleware/auth'), express.json(), async (req, res) => {
     const guildDb = require('./utils/guildDb');
     const { guildId } = req.params;
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
 
     const now = new Date().toISOString();
     const { panelId, multiPanel, ...panelFields } = req.body;
-    const ticketData = guildDb.read(guildId, 'tickets', null) || _defaultTicketData();
+    const ticketData = (await guildDb.readAsync(guildId, 'tickets', null)) || _defaultTicketData();
     if (!ticketData.panels)      ticketData.panels      = [];
     if (!ticketData.multiPanels) ticketData.multiPanels = [];
 
@@ -2424,7 +2424,7 @@ app.post('/dashboard/:guildId/tickets/panels/send', require('./middleware/auth')
     const client = getClient();
     if (!client) return res.status(503).json({ error: 'Bot not connected' });
 
-    const ticketData = guildDb.read(guildId, 'tickets', null);
+    const ticketData = await guildDb.readAsync(guildId, 'tickets', null);
     if (!ticketData) return res.status(404).json({ error: 'No tickets data found' });
 
     const panel = ticketData.panels?.find(p => p.id === panelId);
@@ -2468,7 +2468,7 @@ app.post('/dashboard/:guildId/tickets/multi-panels/send', require('./middleware/
     const client = getClient();
     if (!client) return res.status(503).json({ error: 'Bot not connected' });
 
-    const ticketData = guildDb.read(guildId, 'tickets', null);
+    const ticketData = await guildDb.readAsync(guildId, 'tickets', null);
     if (!ticketData) return res.status(404).json({ error: 'No tickets data found' });
 
     const mp = ticketData.multiPanels?.find(m => m.id === mpId);
@@ -2516,13 +2516,13 @@ app.post('/dashboard/:guildId/tickets/multi-panels/send', require('./middleware/
 });
 
 // ── Delete single panel ────────────────────────────────────────────────────
-app.delete('/dashboard/:guildId/tickets/panels/delete', require('./middleware/auth'), express.json(), (req, res) => {
+app.delete('/dashboard/:guildId/tickets/panels/delete', require('./middleware/auth'), express.json(), async (req, res) => {
     const guildDb = require('./utils/guildDb');
     const { guildId } = req.params;
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
     const { panelId } = req.body;
     if (!panelId) return res.status(400).json({ error: 'panelId required' });
-    const ticketData = guildDb.read(guildId, 'tickets', null);
+    const ticketData = await guildDb.readAsync(guildId, 'tickets', null);
     if (!ticketData) return res.status(404).json({ error: 'No tickets data' });
     const before = (ticketData.panels || []).length;
     ticketData.panels = (ticketData.panels || []).filter(p => p.id !== panelId);
@@ -2532,13 +2532,13 @@ app.delete('/dashboard/:guildId/tickets/panels/delete', require('./middleware/au
 });
 
 // ── Delete single multi-panel ────────────────────────────────────────────────
-app.delete('/dashboard/:guildId/tickets/multi-panels/delete', require('./middleware/auth'), express.json(), (req, res) => {
+app.delete('/dashboard/:guildId/tickets/multi-panels/delete', require('./middleware/auth'), express.json(), async (req, res) => {
     const guildDb = require('./utils/guildDb');
     const { guildId } = req.params;
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
     const { mpId } = req.body;
     if (!mpId) return res.status(400).json({ error: 'mpId required' });
-    const ticketData = guildDb.read(guildId, 'tickets', null);
+    const ticketData = await guildDb.readAsync(guildId, 'tickets', null);
     if (!ticketData) return res.status(404).json({ error: 'No tickets data' });
     const before = (ticketData.multiPanels || []).length;
     ticketData.multiPanels = (ticketData.multiPanels || []).filter(m => m.id !== mpId);
