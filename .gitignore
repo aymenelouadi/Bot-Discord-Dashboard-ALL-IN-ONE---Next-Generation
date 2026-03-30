@@ -74,9 +74,6 @@ coverage/
 package-lock.json
 yarn.lock
 
-# Sensitive runtime config — contains secrets, never commit
-settings.json
-
 # Internal folders not for distribution
 cmd/
 configs/
