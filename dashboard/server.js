@@ -2538,21 +2538,19 @@ app.delete('/dashboard/:guildId/tickets/multi-panels/delete', require('./middlew
 });
 
 // ── Reset all ticket data ────────────────────────────────────────────────────
-app.post('/dashboard/:guildId/tickets/reset', require('./middleware/auth'), (req, res) => {
+app.post('/dashboard/:guildId/tickets/reset', require('./middleware/auth'), async (req, res) => {
     const guildDb = require('./utils/guildDb');
-    const fs      = require('fs');
-    const path    = require('path');
+    const db      = require('../systems/schemas');
     const { guildId } = req.params;
     if (!/^\d{17,20}$/.test(guildId)) return res.status(400).json({ error: 'Invalid guildId' });
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
-    const files = ['tickets','open_tickets','ticket_feedback','ticket_cooldowns'];
-    files.forEach(f => {
-        try {
-            const fp = path.join(__dirname, 'database', guildId, `${f}.json`);
-            if (fs.existsSync(fp)) fs.unlinkSync(fp);
-        } catch (e) { logger.warn(`tickets reset: could not delete ${f}.json`, { category: 'dashboard', guildId, error: e.message }); }
-    });
-    // Also clear transcripts folder if exists
+    // Clear ticket panel config + cooldowns in MongoDB (via Guild document)
+    guildDb.write(guildId, 'tickets', { panels: [], multiPanels: [] });
+    guildDb.write(guildId, 'ticket_cooldowns', {});
+    // Clear open tickets and feedback from their own MongoDB collections
+    await db.Ticket.deleteMany({ guildId }).catch(err => logger.warn('tickets reset: Ticket.deleteMany error', { category: 'dashboard', guildId, error: err.message }));
+    await db.TicketFeedback.deleteMany({ guildId }).catch(err => logger.warn('tickets reset: TicketFeedback.deleteMany error', { category: 'dashboard', guildId, error: err.message }));
+    // Clear transcripts folder if exists (HTML files on disk)
     try {
         const tDir = path.join(__dirname, 'database', guildId, 'transcripts');
         if (fs.existsSync(tDir)) fs.rmSync(tDir, { recursive: true, force: true });
@@ -2563,8 +2561,6 @@ app.post('/dashboard/:guildId/tickets/reset', require('./middleware/auth'), (req
 // Reset panels + multi-panels (keeps feedback / transcripts)
 app.post('/dashboard/:guildId/tickets/panels/reset', require('./middleware/auth'), (req, res) => {
     const guildDb = require('./utils/guildDb');
-    const fs      = require('fs');
-    const path    = require('path');
     const { guildId } = req.params;
     if (!req.session.guilds?.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
     const db = guildDb.read(guildId, 'tickets');
@@ -3565,8 +3561,6 @@ app.post('/dashboard/:guildId/auto-responder/save', require('./middleware/auth')
 
 /* ── Points: Ticket Points ───────────────────────────── */
 app.get('/dashboard/:guildId/points/tickets', require('./middleware/auth'), (req, res) => {
-    const fs            = require('fs');
-    const path          = require('path');
     const guildDb       = require('./utils/guildDb');
     const staffPoints   = require('../systems/points_tickets');
     const { getClient } = require('./utils/botClient');
