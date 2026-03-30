@@ -531,6 +531,11 @@ async function loadFromMongoDB() {
             const maxNum = data.tickets.reduce((m, t) => Math.max(m, t.number || 0), 0);
             data.nextNumber = maxNum + 1;
             _cacheSet(gid, 'open_tickets', data);
+            // Write JSON fallback so sync read() works even after L0 cache expires
+            try {
+                const dir = ensureDir(gid);
+                fs.writeFileSync(path.join(dir, 'open_tickets.json'), JSON.stringify(data, null, 2), 'utf8');
+            } catch (_) { /* non-critical */ }
         }
 
         // ── TicketFeedback ────────────────────────────────────────────────

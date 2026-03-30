@@ -140,7 +140,7 @@ async function openTicket(interaction, panelId, panel, ticketData) {
 
     // ─ 5. Max-open check ─────────────────────────────────────────────────
     if (panel.maxOpen > 0) {
-        const otDb   = guildDb.read(guildId, 'open_tickets', { tickets: [] });
+        const otDb   = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [] });
         const open   = otDb.tickets.filter(
             t => t.userId === user.id && t.panelId === panelId && t.status === 'open'
         );
@@ -190,7 +190,7 @@ async function openTicket(interaction, panelId, panel, ticketData) {
         transcriptChannelMsgId: null,
     };
 
-    const otDb = guildDb.read(guildId, 'open_tickets', { tickets: [], nextNumber: 1 });
+    const otDb = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [], nextNumber: 1 });
     otDb.tickets.push(record);
     otDb.nextNumber = ticketNumber + 1;
     guildDb.write(guildId, 'open_tickets', otDb);
@@ -235,7 +235,7 @@ async function openTicket(interaction, panelId, panel, ticketData) {
  */
 async function closeTicket(interaction, ticketId, reason = '') {
     const guildId = interaction.guildId;
-    const otDb    = guildDb.read(guildId, 'open_tickets', { tickets: [] });
+    const otDb    = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [] });
     const idx     = otDb.tickets.findIndex(t => t.id === ticketId);
 
     if (idx === -1) {
@@ -439,7 +439,7 @@ async function _applyClaimPermissions(channel, ticketData, panel, claimerId, cla
 
 async function claimTicket(interaction, ticketId) {
     const guildId = interaction.guildId;
-    const otDb    = guildDb.read(guildId, 'open_tickets', { tickets: [] });
+    const otDb    = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [] });
     const idx     = otDb.tickets.findIndex(t => t.id === ticketId);
 
     if (idx === -1) return interaction.reply({ content: '❌ Ticket not found.', flags: MessageFlags.Ephemeral });
@@ -484,7 +484,7 @@ async function claimTicket(interaction, ticketId) {
 
 async function unclaimTicket(interaction, ticketId) {
     const guildId = interaction.guildId;
-    const otDb    = guildDb.read(guildId, 'open_tickets', { tickets: [] });
+    const otDb    = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [] });
     const idx     = otDb.tickets.findIndex(t => t.id === ticketId);
 
     if (idx === -1) return interaction.reply({ content: '❌ Ticket not found.', flags: MessageFlags.Ephemeral });
@@ -525,7 +525,7 @@ async function unclaimTicket(interaction, ticketId) {
 // ═════════════════════════════════════════════════════════════════════════════
 async function handleAddUserButton(interaction, ticketId) {
     const guildId    = interaction.guildId;
-    const otDb       = guildDb.read(guildId, 'open_tickets', { tickets: [] });
+    const otDb       = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [] });
     const ticket     = otDb.tickets.find(t => t.id === ticketId);
     const ticketData = guildDb.read(guildId, 'tickets', null);
     const panel      = ticketData?.panels?.find(p => p.id === ticket?.panelId);
@@ -584,7 +584,7 @@ async function handleAddUserModal(interaction) {
 
 async function handleRemoveUserButton(interaction, ticketId) {
     const guildId    = interaction.guildId;
-    const otDb       = guildDb.read(guildId, 'open_tickets', { tickets: [] });
+    const otDb       = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [] });
     const ticket     = otDb.tickets.find(t => t.id === ticketId);
     const ticketData = guildDb.read(guildId, 'tickets', null);
     const panel      = ticketData?.panels?.find(p => p.id === ticket?.panelId);
@@ -619,7 +619,7 @@ async function handleRemoveUserModal(interaction) {
     const raw      = interaction.fields.getTextInputValue('userid').replace(/\D/g, '');
 
     // Don't remove the ticket record owner or bot
-    const otDb   = guildDb.read(interaction.guildId, 'open_tickets', { tickets: [] });
+    const otDb   = await guildDb.readAsync(interaction.guildId, 'open_tickets', { tickets: [] });
     const ticket = otDb.tickets.find(t => t.id === ticketId);
     if (ticket?.userId === raw) {
         return interaction.reply({ content: '❌ Cannot remove the ticket owner.', flags: MessageFlags.Ephemeral });
@@ -768,7 +768,7 @@ async function handleFormModal(interaction) {
 
     // ─ Max open ───────────────────────────────────────────────────────────────
     if (panel.maxOpen > 0) {
-        const otDb = guildDb.read(guildId, 'open_tickets', { tickets: [] });
+        const otDb = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [] });
         const open = otDb.tickets.filter(
             t => t.userId === user.id && t.panelId === panelId && t.status === 'open'
         );
@@ -808,7 +808,7 @@ async function handleFormModal(interaction) {
         transcriptPath:         null,
         transcriptChannelMsgId: null,
     };
-    const otDb2 = guildDb.read(guildId, 'open_tickets', { tickets: [], nextNumber: 1 });
+    const otDb2 = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [], nextNumber: 1 });
     otDb2.tickets.push(record);
     otDb2.nextNumber = ticketNumber + 1;
     guildDb.write(guildId, 'open_tickets', otDb2);
@@ -998,7 +998,7 @@ function _matchesRule(rule, member) {
 }
 
 async function _nextTicketNumber(guildId) {
-    const db = guildDb.read(guildId, 'open_tickets', { tickets: [], nextNumber: 1 });
+    const db = await guildDb.readAsync(guildId, 'open_tickets', { tickets: [], nextNumber: 1 });
     return db.nextNumber ?? (db.tickets.length + 1);
 }
 
@@ -1364,7 +1364,7 @@ async function handleEscalateSelect(interaction) {
 
         // ─ Mark ticket record as escalated ───────────────────────────────
         try {
-            const _otDb = guildDb.read(interaction.guildId, 'open_tickets', { tickets: [] });
+            const _otDb = await guildDb.readAsync(interaction.guildId, 'open_tickets', { tickets: [] });
             const _idx  = _otDb.tickets.findIndex(t => interaction.channelId === t.channelId);
             if (_idx !== -1) {
                 _otDb.tickets[_idx].escalated = true;
