@@ -1,0 +1,1212 @@
+<%#
+  This project was programmed by the Next Generation team.
+  If you encounter any problems, open an Issue or log into the Discord server:
+  https://discord.gg/BhJStSa89s
+%>
+<!DOCTYPE html>
+<html lang="<%= t.lang %>" dir="<%= t.dir %>">
+<head>
+  <%- include('partials/head_theme') %>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title><%= lang === 'ar' ? 'مركز الأتمتة' : 'Automation Studio' %> — <%= guildInfo.name %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Tajawal:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Base Tokens ── */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#040010;--surface:rgba(255,255,255,.04);--surface-2:rgba(255,255,255,.07);--surface-3:rgba(255,255,255,.10);
+      --card:rgba(10,3,30,.78);--card-hover:rgba(16,6,40,.92);
+      --purple:#7c3aed;--purple-l:#a78bfa;--purple-d:#5b21b6;
+      --cyan:#06b6d4;--cyan-l:#67e8f9;--gold:#d97706;--gold-l:#fcd34d;
+      --green:#22c55e;--red:#ef4444;--orange:#f97316;--yellow:#eab308;
+      --border:rgba(124,58,237,.18);--border-h:rgba(124,58,237,.45);--border-focus:rgba(124,58,237,.6);
+      --muted:rgba(203,194,255,.5);--white:#f8fafc;
+      --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--sp-8:32px;--sp-10:40px;--sp-16:64px;
+      --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:18px;--r-full:9999px;
+      --fs-xs:.68rem;--fs-sm:.76rem;--fs-base:.84rem;--fs-md:.92rem;--fs-lg:1.05rem;--fs-xl:1.25rem;--fs-2xl:1.5rem;
+      --fw-normal:400;--fw-medium:500;--fw-semibold:600;--fw-bold:700;--fw-black:800;
+      --sh-sm:0 2px 8px rgba(0,0,0,.25);--sh-md:0 4px 20px rgba(0,0,0,.35);--sh-lg:0 8px 40px rgba(0,0,0,.5);--sh-glow:0 0 20px rgba(124,58,237,.2);
+      --nav-w:64px;--mgmt-w:220px;--topbar-h:60px;
+      --ease-out:cubic-bezier(.22,1,.36,1);--ease-spring:cubic-bezier(.34,1.56,.64,1);--dur-fast:.15s;--dur-normal:.25s;--dur-slow:.35s;
+    }
+    html,body{min-height:100dvh;}
+    body{background:var(--bg);color:var(--white);font-family:'<%= t.fontBody %>','Tajawal','Inter',system-ui,sans-serif;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+    #c{position:fixed;inset:0;z-index:0;pointer-events:none;}
+    ::selection{background:rgba(124,58,237,.35);color:#fff;}
+    :focus-visible{outline:2px solid var(--purple);outline-offset:2px;border-radius:var(--r-sm);}
+    ::-webkit-scrollbar{width:5px;height:5px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:rgba(124,58,237,.22);border-radius:3px;}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(124,58,237,.4);}
+
+    /* ── Glow backgrounds ── */
+    .glow{position:fixed;border-radius:50%;pointer-events:none;z-index:1;filter:blur(120px);animation:glow-drift 22s ease-in-out infinite alternate;will-change:transform;}
+    .glow-a{width:min(600px,80vw);height:min(600px,80vw);top:-20%;right:-16%;background:radial-gradient(circle,rgba(124,58,237,.28) 0%,transparent 65%);}
+    .glow-b{width:min(500px,70vw);height:min(500px,70vw);bottom:-18%;left:-12%;background:radial-gradient(circle,rgba(6,182,212,.18) 0%,transparent 65%);animation-delay:-11s;}
+    @keyframes glow-drift{from{transform:translate(0,0) scale(1);}to{transform:translate(20px,15px) scale(1.06);}}
+
+    /* ══ TOPBAR ══ */
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--topbar-h);display:flex;align-items:center;justify-content:space-between;padding:0 var(--sp-5);background:rgba(4,0,16,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.06);gap:var(--sp-3);}
+    .topbar-left{display:flex;align-items:center;gap:var(--sp-3);min-width:0;flex:1;}
+    .guild-icon-top{width:36px;height:36px;border-radius:var(--r-md);object-fit:cover;flex-shrink:0;border:1px solid rgba(124,58,237,.35);box-shadow:0 2px 12px rgba(124,58,237,.25);}
+    .guild-icon-top-fallback{width:36px;height:36px;border-radius:var(--r-md);background:linear-gradient(135deg,rgba(124,58,237,.35),rgba(6,182,212,.2));border:1px solid rgba(124,58,237,.35);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:.85rem;font-weight:800;color:var(--purple-l);flex-shrink:0;}
+    .guild-meta{min-width:0;}
+    .guild-meta-name{font-size:.88rem;font-weight:var(--fw-bold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+    .guild-meta-id{font-size:.6rem;color:var(--muted);font-family:'Orbitron',monospace;letter-spacing:.05em;}
+    .guild-stats-row{display:flex;align-items:center;gap:5px;}
+    .gms-item{display:flex;align-items:center;gap:3px;font-size:.6rem;color:var(--muted);}
+    .gms-sep{color:rgba(255,255,255,.15);font-size:.6rem;}
+    .topbar-sep{width:1px;height:28px;background:rgba(255,255,255,.08);flex-shrink:0;}
+    .topbar-brand{display:flex;align-items:center;gap:var(--sp-2);text-decoration:none;flex-shrink:0;}
+    .topbar-brand img{width:26px;height:26px;border-radius:7px;box-shadow:0 2px 10px rgba(124,58,237,.3);}
+    .topbar-brand span{font-family:'Orbitron',monospace;font-size:.78rem;font-weight:800;letter-spacing:.1em;background:linear-gradient(135deg,var(--white),var(--purple-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .topbar-right{display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;}
+    .user-chip{display:flex;align-items:center;gap:7px;padding:4px 10px 4px 5px;border-radius:var(--r-full);background:var(--surface);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all var(--dur-fast);}
+    .user-chip:hover{background:var(--surface-2);border-color:rgba(124,58,237,.3);}
+    .user-chip-av{width:26px;height:26px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;}
+    .user-chip-av-fallback{width:26px;height:26px;border-radius:50%;background:rgba(124,58,237,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .user-chip span{font-size:.78rem;font-weight:var(--fw-medium);}
+    .menu-toggle{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:var(--r-md);background:var(--surface);border:1px solid rgba(255,255,255,.08);color:var(--white);cursor:pointer;transition:all var(--dur-fast);flex-shrink:0;}
+    .menu-toggle:hover{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4);}
+    .nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:84;backdrop-filter:blur(2px);}
+    .nav-overlay.open{display:block;}
+
+    /* ══ NAV SIDEBAR ══ */
+    .nav-sidebar{position:fixed;top:var(--topbar-h);bottom:0;left:0;width:var(--nav-w);z-index:90;background:rgba(4,0,16,.92);border-right:1px solid rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;padding:10px 0 16px;gap:4px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;transition:width .28s var(--ease-out);}
+    .nav-sidebar::-webkit-scrollbar{display:none;}
+    .nav-sidebar:hover{width:220px;align-items:stretch;overflow-x:unset;}
+    [dir="rtl"] .nav-sidebar{left:auto;right:0;border-right:none;border-left:1px solid rgba(255,255,255,.06);}
+    .nav-back{display:flex;align-items:center;gap:0;width:40px;min-height:40px;color:var(--purple-l);text-decoration:none;transition:width var(--dur-slow) var(--ease-out),gap var(--dur-slow) var(--ease-out),padding var(--dur-slow) var(--ease-out);flex-shrink:0;overflow:visible;padding:0;justify-content:flex-start;border-radius:0;background:none;border:none;}
+    .nav-back .nav-icon{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--purple);border-radius:.6rem;padding:7px;box-sizing:border-box;transition:background var(--dur-slow) var(--ease-out);}
+    .nav-back:hover .nav-icon{background:#8b5cf6;}
+    .nav-back .nav-label{font-size:.78rem;font-weight:var(--fw-semibold);white-space:nowrap;opacity:0;visibility:hidden;transition:opacity var(--dur-slow) var(--ease-out),visibility var(--dur-slow) var(--ease-out);pointer-events:none;color:var(--white);}
+    .nav-sidebar:hover .nav-back{width:100%;gap:10px;padding:0 12px 0 8px;}
+    [dir="rtl"] .nav-sidebar:hover .nav-back{padding:0 8px 0 12px;}
+    .nav-sidebar:hover .nav-back .nav-label{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-divider{width:32px;height:1px;background:rgba(255,255,255,.08);margin:4px 0;flex-shrink:0;transition:width .28s;}
+    .nav-sidebar:hover .nav-divider{width:calc(100% - 24px);}
+    .nav-item{display:flex;align-items:center;gap:0;width:40px;min-height:40px;border-radius:0;background:none;text-decoration:none;flex-shrink:0;position:relative;overflow:visible;transition:gap var(--dur-slow) var(--ease-out),width var(--dur-slow) var(--ease-out),padding var(--dur-slow) var(--ease-out);padding:0;justify-content:flex-start;}
+    .nav-item-icon{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;position:relative;transition:transform var(--dur-fast);}
+    .nav-item:hover .nav-item-icon{transform:scale(1.05);}
+    .nav-item-icon img{width:40px;height:40px;object-fit:cover;display:block;border-radius:50%;}
+    .nav-item-fallback{width:40px;height:40px;background:linear-gradient(135deg,rgba(124,58,237,.5),rgba(6,182,212,.3));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:.8rem;font-weight:800;color:var(--white);border-radius:50%;}
+    .nav-status{position:absolute;bottom:2px;right:2px;width:10px;height:10px;border-radius:50%;border:2px solid rgba(4,0,16,.92);flex-shrink:0;transition:opacity .2s;}
+    .nav-status.on{background:#23a55a;box-shadow:0 0 5px rgba(35,165,90,.7);}
+    .nav-status.off{background:#ef4444;box-shadow:0 0 5px rgba(239,68,68,.6);}
+    .nav-item-label{display:flex;align-items:center;gap:8px;min-width:0;flex:1;opacity:0;visibility:hidden;transition:opacity var(--dur-slow) var(--ease-out),visibility var(--dur-slow) var(--ease-out);pointer-events:none;}
+    .nav-item-name{font-size:.78rem;font-weight:var(--fw-semibold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--white);}
+    .nav-item-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-left:auto;}
+    .nav-item-dot.on{background:#23a55a;box-shadow:0 0 4px rgba(35,165,90,.7);}
+    .nav-item-dot.off{background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,.6);}
+    .nav-sidebar:hover .nav-item{width:100%;gap:10px;padding:0 12px 0 8px;justify-content:flex-start;border-radius:var(--r-md);}
+    [dir="rtl"] .nav-sidebar:hover .nav-item{padding:0 8px 0 12px;}
+    .nav-sidebar:hover .nav-item-label{opacity:1;visibility:visible;pointer-events:auto;}
+    .nav-sidebar:hover .nav-status{opacity:0;}
+    .nav-item.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:22px;border-radius:0 3px 3px 0;background:var(--purple-l);flex-shrink:0;}
+    [dir="rtl"] .nav-item.active::before{left:auto;right:-8px;border-radius:3px 0 0 3px;}
+
+    /* ══ MGMT SIDEBAR ══ */
+    .mgmt-sidebar{position:fixed;top:var(--topbar-h);bottom:0;left:var(--nav-w);width:var(--mgmt-w);z-index:85;background:rgba(6,2,20,.97);border-right:1px solid rgba(255,255,255,.06);backdrop-filter:blur(20px);display:flex;flex-direction:column;overflow:hidden;transition:transform var(--dur-slow) var(--ease-out);}
+    [dir="rtl"] .mgmt-sidebar{left:auto;right:var(--nav-w);border-right:none;border-left:1px solid rgba(255,255,255,.06);}
+    .mgmt-sort-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;padding:0;flex-shrink:0;transition:all var(--dur-fast);}
+    .mgmt-sort-btn:hover{background:rgba(255,255,255,.06);color:var(--white);}
+    .mgmt-body{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(124,58,237,.25) transparent;padding-bottom:var(--sp-2);}
+    .mgmt-body::-webkit-scrollbar{width:3px;}
+    .mgmt-body::-webkit-scrollbar-track{background:transparent;}
+    .mgmt-body::-webkit-scrollbar-thumb{background:rgba(124,58,237,.3);border-radius:3px;}
+    .mgmt-nav{padding:var(--sp-2) var(--sp-3) 0;}
+    .mgmt-section{margin-bottom:2px;}
+    .mgmt-section-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:var(--sp-2) var(--sp-3);background:none;border:none;border-radius:var(--r-md);cursor:pointer;color:var(--white);font-family:inherit;font-size:.76rem;font-weight:var(--fw-bold);letter-spacing:.02em;transition:background var(--dur-fast);}
+    .mgmt-section-btn:hover{background:rgba(255,255,255,.04);}
+    .mgmt-sec-chevron{transition:transform .25s var(--ease-out);transform:rotate(180deg);opacity:.6;flex-shrink:0;}
+    .mgmt-section-btn.open .mgmt-sec-chevron{transform:rotate(0deg);}
+    .mgmt-sec-body{overflow:hidden;transition:max-height .3s var(--ease-out);max-height:0;}
+    .mgmt-sec-body.open{max-height:600px;}
+    .mgmt-item{display:flex;align-items:center;gap:0;padding:5px 8px 5px 0;border-radius:var(--r-sm);text-decoration:none;color:var(--muted);font-size:.78rem;font-weight:var(--fw-semibold);position:relative;cursor:pointer;transition:all var(--dur-fast);width:100%;border:none;background:none;font-family:inherit;}
+    .mgmt-item:hover:not(.disabled){background:rgba(255,255,255,.04);color:var(--white);}
+    .mgmt-item.active{color:var(--white);}
+    .mgmt-item.disabled{cursor:default;opacity:.6;}
+    .mgmt-item-indicator{width:3px;height:0;border-radius:0 3px 3px 0;background:var(--purple);box-shadow:0 0 10px rgba(104,31,209,.6);margin-right:8px;flex-shrink:0;transition:height 300ms var(--ease-out);}
+    .mgmt-item.active .mgmt-item-indicator{height:1.6rem;}
+    [dir="rtl"] .mgmt-item-indicator{border-radius:3px 0 0 3px;margin-right:0;margin-left:8px;}
+    .mgmt-item-icon{display:flex;align-items:center;justify-content:center;width:28px;height:28px;flex-shrink:0;border-radius:var(--r-sm);margin-right:8px;color:inherit;}
+    [dir="rtl"] .mgmt-item-icon{margin-right:0;margin-left:8px;}
+    .mgmt-item-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .mgmt-badge{font-size:.6rem;font-weight:var(--fw-bold);padding:2px 8px;border-radius:var(--r-full);border:1px solid rgba(255,255,255,.1);color:var(--muted);background:rgba(255,255,255,.05);flex-shrink:0;letter-spacing:.03em;margin-left:4px;}
+    [dir="rtl"] .mgmt-badge{margin-left:0;margin-right:4px;}
+    .mgmt-footer{display:flex;align-items:center;justify-content:space-between;padding:var(--sp-3) var(--sp-4);background:var(--purple);border-radius:var(--r-xl) var(--r-xl) 0 0;flex-shrink:0;}
+    .mgmt-footer-user{display:flex;align-items:center;gap:var(--sp-2);min-width:0;overflow:hidden;}
+    .mgmt-footer-av{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.25);}
+    .mgmt-footer-av-fallback{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:var(--fw-bold);color:var(--white);flex-shrink:0;}
+    .mgmt-footer-name{font-size:.78rem;font-weight:var(--fw-bold);color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+    .mgmt-footer-dots{background:none;border:none;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:var(--r-sm);flex-shrink:0;transition:background var(--dur-fast);}
+    .mgmt-footer-dots:hover{background:rgba(255,255,255,.18);}
+
+    /* ══ PROFILE SIDEBAR ══ */
+    .profile-sidebar{position:fixed;top:0;right:0;bottom:0;width:min(320px,90vw);z-index:200;background:rgba(6,2,24,.97);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-left:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;transform:translateX(110%);transition:transform var(--dur-slow) var(--ease-out);}
+    [dir="rtl"] .profile-sidebar{left:0;right:auto;border-left:none;border-right:1px solid rgba(255,255,255,.07);transform:translateX(-110%);}
+    .profile-sidebar.open{transform:translateX(0);}
+    .profile-backdrop{display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);}
+    .profile-backdrop.open{display:block;}
+    .prof-banner{height:90px;position:relative;flex-shrink:0;background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(6,182,212,.15));}
+    .prof-banner-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(6,2,24,.9));}
+    .prof-banner-solid{width:100%;height:100%;background:var(--bannerBg,#5b21b6);}
+    .prof-close{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.4);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    [dir="rtl"] .prof-close{right:auto;left:8px;}
+    .prof-avatar-wrap{position:relative;width:fit-content;margin:-30px 0 0 var(--sp-4);z-index:2;}
+    [dir="rtl"] .prof-avatar-wrap{margin-left:0;margin-right:var(--sp-4);}
+    .prof-avatar{width:68px;height:68px;border-radius:50%;border:4px solid rgba(6,2,24,.97);display:block;}
+    .prof-avatar-fallback{width:68px;height:68px;border-radius:50%;border:4px solid rgba(6,2,24,.97);background:rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;}
+    .prof-online-dot{width:14px;height:14px;border-radius:50%;background:var(--green);border:3px solid rgba(6,2,24,.97);position:absolute;bottom:4px;right:4px;}
+    .prof-badges-right{display:flex;flex-wrap:wrap;gap:4px;padding:8px var(--sp-4) 0;justify-content:flex-end;}
+    [dir="rtl"] .prof-badges-right{justify-content:flex-start;}
+    .prof-badge{position:relative;cursor:default;}
+    .prof-badge img{width:20px;height:20px;object-fit:contain;}
+    .prof-badge-tip{display:none;position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:white;font-size:.65rem;white-space:nowrap;padding:3px 7px;border-radius:5px;pointer-events:none;}
+    .prof-badge:hover .prof-badge-tip{display:block;}
+    .prof-body{flex:1;overflow-y:auto;padding:var(--sp-4);}
+    .prof-names{margin-bottom:var(--sp-3);}
+    .prof-display-name{font-size:1rem;font-weight:var(--fw-bold);}
+    .prof-username{font-size:.78rem;color:var(--muted);}
+    .prof-custom-status{font-size:.78rem;color:var(--muted);margin-bottom:var(--sp-2);}
+    .prof-divider{height:1px;background:rgba(255,255,255,.07);margin:var(--sp-3) 0;}
+    .prof-actrow{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);padding:6px 0;cursor:pointer;border-radius:var(--r-sm);}
+    .prof-actrow:hover{color:var(--white);}
+    .prof-actdot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .status-online{background:var(--green);}
+    .status-idle{background:var(--yellow);}
+    .status-dnd{background:var(--red);}
+    .status-offline{background:rgba(255,255,255,.25);}
+    .prof-footer{padding:var(--sp-3) var(--sp-4) max(var(--sp-4),env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+    .prof-btn{display:flex;align-items:center;gap:8px;padding:9px var(--sp-3);border-radius:var(--r-md);background:var(--surface);border:1px solid rgba(255,255,255,.08);color:var(--white);text-decoration:none;font-size:.8rem;font-weight:var(--fw-medium);font-family:inherit;cursor:pointer;transition:all var(--dur-fast);}
+    .prof-btn:hover{background:var(--surface-2);border-color:rgba(255,255,255,.15);}
+    .prof-btn.logout{color:var(--red);background:rgba(239,68,68,.06);}
+    .prof-btn.logout:hover{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);}
+    .prof-btn.help{color:var(--purple-l);}
+    .theme-toggle-btn{display:flex;align-items:center;gap:8px;width:100%;padding:9px var(--sp-3);border-radius:var(--r-md);background:var(--surface);border:1px solid rgba(255,255,255,.08);color:var(--white);font-size:.8rem;font-weight:var(--fw-medium);font-family:inherit;cursor:pointer;transition:all var(--dur-fast);}
+    .theme-toggle-btn:hover{background:var(--surface-2);}
+    .ttb-label{flex:1;text-align:start;}
+    .ttb-badge{font-size:.65rem;background:rgba(124,58,237,.2);color:var(--purple-l);padding:2px 7px;border-radius:var(--r-full);}
+
+    /* ══ Language selector ══ */
+    .lcs-wrap{position:relative;}
+    .lcs-btn{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:var(--r-md);background:var(--surface);border:1px solid rgba(255,255,255,.08);color:var(--white);font-family:inherit;font-size:.78rem;font-weight:var(--fw-semibold);cursor:pointer;transition:all var(--dur-fast);}
+    .lcs-btn:hover{border-color:rgba(124,58,237,.4);}
+    .lcs-arrow{transition:transform .2s;flex-shrink:0;}
+    .lcs-wrap.open .lcs-arrow{transform:rotate(180deg);}
+    .lcs-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:130px;background:rgba(10,4,28,.98);border:1px solid rgba(124,58,237,.25);border-radius:var(--r-lg);box-shadow:var(--sh-lg);overflow:hidden;z-index:300;list-style:none;}
+    [dir="rtl"] .lcs-menu{right:auto;left:0;}
+    .lcs-wrap.open .lcs-menu{display:block;}
+    .lcs-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:.8rem;transition:background var(--dur-fast);}
+    .lcs-item:hover,.lcs-item.lcs-active{background:rgba(124,58,237,.12);color:var(--purple-l);}
+
+    /* ══ MAIN CONTENT AREA ══ */
+    .main{position:relative;z-index:10;min-height:calc(100dvh - var(--topbar-h));margin-top:var(--topbar-h);margin-left:calc(var(--nav-w) + var(--mgmt-w));padding:var(--sp-8) var(--sp-8) var(--sp-16);transition:margin var(--dur-slow) var(--ease-out);}
+    [dir="rtl"] .main{margin-left:0;margin-right:calc(var(--nav-w) + var(--mgmt-w));}
+
+    /* ══ PAGE HEADER ══ */
+    .auto-header{margin-bottom:var(--sp-8);}
+    .auto-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-5);}
+    .auto-title{display:flex;align-items:center;gap:var(--sp-3);}
+    .auto-title-icon{width:44px;height:44px;border-radius:var(--r-lg);background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(6,182,212,.15));border:1px solid rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .auto-title h1{font-size:var(--fs-2xl);font-weight:var(--fw-black);line-height:1.2;letter-spacing:-.02em;}
+    .auto-title p{font-size:var(--fs-sm);color:var(--muted);margin-top:3px;}
+    .auto-stats{display:flex;gap:var(--sp-4);flex-wrap:wrap;}
+    .auto-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-4);min-width:110px;}
+    .auto-stat-val{font-size:var(--fs-xl);font-weight:var(--fw-black);color:var(--purple-l);line-height:1;}
+    .auto-stat-lbl{font-size:var(--fs-xs);color:var(--muted);margin-top:4px;}
+
+    /* ══ FILTER BAR ══ */
+    .auto-filter{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-6);padding-bottom:var(--sp-5);border-bottom:1px solid rgba(255,255,255,.06);}
+    .filter-pill{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--r-full);border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);font-size:var(--fs-sm);font-weight:var(--fw-semibold);font-family:inherit;cursor:pointer;transition:all var(--dur-fast);}
+    .filter-pill:hover{border-color:rgba(124,58,237,.4);color:var(--white);}
+    .filter-pill.active{background:rgba(124,58,237,.18);border-color:rgba(124,58,237,.5);color:var(--purple-l);}
+    .filter-pill .fp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .fp-dot-all{background:var(--purple-l);}
+    .fp-dot-component{background:var(--cyan);}
+    .fp-dot-embed{background:var(--gold-l);}
+    .filter-search{flex:1;min-width:180px;max-width:300px;padding:7px var(--sp-3) 7px 34px;border-radius:var(--r-full);background:var(--surface);border:1px solid rgba(255,255,255,.08);color:var(--white);font-size:var(--fs-sm);font-family:inherit;outline:none;position:relative;}
+    .filter-search:focus{border-color:var(--border-focus);}
+    .filter-search-wrap{position:relative;flex:1;min-width:180px;max-width:300px;}
+    .filter-search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;}
+    [dir="rtl"] .filter-search-wrap svg{left:auto;right:10px;}
+    [dir="rtl"] .filter-search-wrap input{padding-right:34px;padding-left:var(--sp-3);}
+    .auto-sep{margin-left:auto;}
+    [dir="rtl"] .auto-sep{margin-left:0;margin-right:auto;}
+    .btn-new-auto{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r-full);background:linear-gradient(135deg,var(--purple),var(--purple-d));border:none;color:white;font-size:var(--fs-sm);font-weight:var(--fw-bold);font-family:inherit;cursor:pointer;transition:all var(--dur-fast);box-shadow:0 4px 14px rgba(124,58,237,.3);text-decoration:none;}
+    .btn-new-auto:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,.45);}
+
+    /* ══ ENTRY CARDS ══ */
+    .auto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--sp-4);}
+    .auto-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);padding:var(--sp-4);transition:all var(--dur-normal) var(--ease-out);position:relative;display:flex;flex-direction:column;gap:var(--sp-3);}
+    .auto-card:hover{border-color:var(--border-h);background:var(--card-hover);transform:translateY(-2px);box-shadow:var(--sh-glow);}
+    .auto-card-head{display:flex;align-items:flex-start;gap:var(--sp-3);}
+    .auto-card-icon{width:40px;height:40px;border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .aci-component{background:linear-gradient(135deg,rgba(6,182,212,.22),rgba(6,182,212,.06));border:1px solid rgba(6,182,212,.25);}
+    .aci-embed{background:linear-gradient(135deg,rgba(217,119,6,.22),rgba(217,119,6,.06));border:1px solid rgba(217,119,6,.25);}
+    .auto-card-info{flex:1;min-width:0;}
+    .auto-card-name{font-size:var(--fs-md);font-weight:var(--fw-bold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+    .auto-card-type{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);font-weight:var(--fw-semibold);padding:2px 8px;border-radius:var(--r-full);}
+    .act-component{background:rgba(6,182,212,.12);color:var(--cyan-l);}
+    .act-embed{background:rgba(217,119,6,.12);color:var(--gold-l);}
+    .auto-card-meta{display:flex;flex-wrap:wrap;gap:var(--sp-2);align-items:center;}
+    .ac-meta-chip{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:var(--muted);padding:2px 7px;border-radius:var(--r-full);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);}
+    .auto-card-triggers{display:flex;flex-wrap:wrap;gap:5px;}
+    .trigger-badge{display:inline-flex;align-items:center;gap:4px;font-size:.63rem;font-weight:var(--fw-semibold);padding:3px 8px;border-radius:var(--r-full);background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:var(--purple-l);}
+    .auto-card-footer{display:flex;gap:var(--sp-2);margin-top:auto;padding-top:var(--sp-2);border-top:1px solid rgba(255,255,255,.05);}
+    .ac-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:var(--r-md);border:1px solid rgba(255,255,255,.08);background:var(--surface);color:var(--white);font-size:var(--fs-xs);font-weight:var(--fw-semibold);font-family:inherit;text-decoration:none;cursor:pointer;transition:all var(--dur-fast);}
+    .ac-btn:hover{background:var(--surface-2);border-color:rgba(124,58,237,.35);}
+    .ac-btn-primary{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.35);color:var(--purple-l);}
+    .ac-btn-primary:hover{background:rgba(124,58,237,.25);border-color:rgba(124,58,237,.55);}
+
+    /* ══ EMPTY STATE ══ */
+    .auto-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-4);padding:var(--sp-10) var(--sp-6);text-align:center;color:var(--muted);}
+    .auto-empty-icon{width:64px;height:64px;border-radius:var(--r-xl);background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;opacity:.6;}
+    .auto-empty h3{font-size:var(--fs-lg);font-weight:var(--fw-bold);color:var(--white);}
+    .auto-empty p{font-size:var(--fs-sm);max-width:320px;}
+
+    /* ══ CREATE MODAL ══ */
+    .modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:var(--sp-5);opacity:0;pointer-events:none;transition:opacity var(--dur-normal);}
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal-box{background:rgba(8,3,22,.98);border:1px solid rgba(124,58,237,.25);border-radius:var(--r-xl);width:min(460px,100%);box-shadow:0 24px 80px rgba(0,0,0,.6);transform:scale(.95);transition:transform var(--dur-normal) var(--ease-spring);}
+    .modal-overlay.open .modal-box{transform:scale(1);}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:var(--sp-5) var(--sp-5) var(--sp-4);border-bottom:1px solid rgba(255,255,255,.07);}
+    .modal-head h3{font-size:var(--fs-lg);font-weight:var(--fw-bold);}
+    .modal-close{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.06);border:none;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background var(--dur-fast);}
+    .modal-close:hover{background:rgba(255,255,255,.12);}
+    .modal-body{padding:var(--sp-5);}
+    .modal-body p{font-size:var(--fs-sm);color:var(--muted);margin-bottom:var(--sp-5);}
+    .new-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);}
+    .new-type-card{display:flex;flex-direction:column;align-items:center;gap:var(--sp-3);padding:var(--sp-5) var(--sp-4);border-radius:var(--r-lg);border:1px solid rgba(255,255,255,.1);background:var(--surface);text-decoration:none;color:var(--white);transition:all var(--dur-fast);text-align:center;}
+    .new-type-card:hover{transform:translateY(-2px);}
+    .new-type-card.ntc-component{border-color:rgba(6,182,212,.3);background:rgba(6,182,212,.05);}
+    .new-type-card.ntc-component:hover{background:rgba(6,182,212,.1);box-shadow:0 6px 24px rgba(6,182,212,.15);}
+    .new-type-card.ntc-embed{border-color:rgba(217,119,6,.3);background:rgba(217,119,6,.05);}
+    .new-type-card.ntc-embed:hover{background:rgba(217,119,6,.1);box-shadow:0 6px 24px rgba(217,119,6,.15);}
+    .ntc-icon{width:48px;height:48px;border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;margin-bottom:2px;}
+    .ntc-component .ntc-icon{background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.25);}
+    .ntc-embed .ntc-icon{background:rgba(217,119,6,.15);border:1px solid rgba(217,119,6,.25);}
+    .ntc-label{font-size:var(--fs-sm);font-weight:var(--fw-bold);}
+    .ntc-desc{font-size:var(--fs-xs);color:var(--muted);line-height:1.45;}
+
+    /* ══ LINK CARDS ══ */
+    .fp-dot-link{background:var(--green);}
+    .links-section{margin-top:var(--sp-8);}
+    .links-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-5);}
+    .links-section-title{display:flex;align-items:center;gap:var(--sp-3);}
+    .links-accent-bar{width:3px;height:22px;background:linear-gradient(var(--purple),var(--cyan));border-radius:2px;flex-shrink:0;}
+    .links-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:var(--sp-4);}
+    .link-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);padding:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-3);transition:all var(--dur-normal) var(--ease-out);position:relative;}
+    .link-card:hover{border-color:var(--border-h);background:var(--card-hover);transform:translateY(-2px);box-shadow:var(--sh-glow);}
+    .link-card.disabled-link{opacity:.55;}
+    .link-flow{display:flex;align-items:center;gap:var(--sp-3);}
+    .link-node{flex:1;min-width:0;padding:var(--sp-2) var(--sp-3);border-radius:var(--r-lg);border:1px solid;display:flex;flex-direction:column;gap:3px;}
+    .link-node-component{background:rgba(6,182,212,.07);border-color:rgba(6,182,212,.25);}
+    .link-node-embed{background:rgba(217,119,6,.07);border-color:rgba(217,119,6,.25);}
+    .lnode-kind{font-size:.58rem;font-weight:var(--fw-bold);letter-spacing:.08em;text-transform:uppercase;}
+    .link-node-component .lnode-kind{color:var(--cyan-l);}
+    .link-node-embed .lnode-kind{color:var(--gold-l);}
+    .lnode-name{font-size:.78rem;font-weight:var(--fw-semibold);color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .lnode-btn{font-size:.63rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .link-arrow{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.2);color:var(--purple-l);font-size:.85rem;}
+    .link-meta-row{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;}
+    .link-mode-badge{display:inline-flex;align-items:center;gap:4px;font-size:.6rem;font-weight:var(--fw-bold);padding:2px 8px;border-radius:var(--r-full);background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);color:var(--purple-l);}
+    .link-name-label{font-size:.65rem;color:var(--muted);}
+    .link-enabled-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .link-enabled-dot.on{background:var(--green);box-shadow:0 0 5px rgba(34,197,94,.5);}
+    .link-enabled-dot.off{background:rgba(255,255,255,.2);}
+    .link-actions{display:flex;gap:var(--sp-2);margin-top:auto;padding-top:var(--sp-2);border-top:1px solid rgba(255,255,255,.05);}
+    .btn-new-link{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:var(--r-full);background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--green);font-size:var(--fs-sm);font-weight:var(--fw-bold);font-family:inherit;cursor:pointer;transition:all var(--dur-fast);}
+    .btn-new-link:hover{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.5);}
+
+    /* ══ LINK MODAL ══ */
+    .link-modal-box{background:rgba(8,3,22,.98);border:1px solid rgba(124,58,237,.25);border-radius:var(--r-xl);width:min(520px,100%);box-shadow:0 24px 80px rgba(0,0,0,.6);transform:scale(.95);transition:transform var(--dur-normal) var(--ease-spring);}
+    .modal-overlay.open .link-modal-box{transform:scale(1);}
+    .lm-body{padding:var(--sp-5);display:flex;flex-direction:column;gap:var(--sp-4);}
+    .lm-field{display:flex;flex-direction:column;gap:var(--sp-2);}
+    .lm-label{font-size:var(--fs-xs);font-weight:var(--fw-semibold);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+    .lm-input,.lm-select{width:100%;padding:9px var(--sp-3);border-radius:var(--r-md);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--white);font-size:var(--fs-sm);font-family:inherit;outline:none;transition:border-color var(--dur-fast);appearance:none;-webkit-appearance:none;}
+    .lm-input:focus,.lm-select:focus{border-color:var(--border-focus);}
+    .lm-select option{background:#0c0520;color:var(--white);}
+    .lm-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);}
+    .lm-btn-save{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:var(--r-md);background:linear-gradient(135deg,var(--purple),var(--purple-d));border:none;color:white;font-size:var(--fs-sm);font-weight:var(--fw-bold);font-family:inherit;cursor:pointer;transition:all var(--dur-fast);}
+    .lm-btn-save:hover{opacity:.9;transform:translateY(-1px);}
+    .lm-btn-save:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+
+    /* ══ TOAST ══ */
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:var(--r-lg);background:rgba(10,4,30,.97);border:1px solid rgba(124,58,237,.35);box-shadow:var(--sh-lg);font-size:var(--fs-sm);font-weight:var(--fw-semibold);transform:translateY(80px);opacity:0;transition:all .3s var(--ease-spring);}
+    [dir="rtl"] .toast{right:auto;left:24px;}
+    .toast.show{transform:translateY(0);opacity:1;}
+
+    /* ══ RESPONSIVE ══ */
+    @media(max-width:900px){
+      .menu-toggle{display:flex;}
+      .mgmt-sidebar{transform:translateX(-110%);}
+      [dir="rtl"] .mgmt-sidebar{transform:translateX(110%);}
+      .mgmt-sidebar.open{transform:translateX(0);}
+      .main{margin-left:var(--nav-w);margin-right:0;padding:20px 16px 48px;}
+      [dir="rtl"] .main{margin-left:0;margin-right:var(--nav-w);}
+      .topbar{padding:0 12px;gap:8px;}
+      .topbar-brand{display:none;}
+      .guild-meta-id{display:none!important;}
+      .guild-meta-name{max-width:90px;}
+      .user-chip span{display:none;}
+      .user-chip{padding:4px 7px;}
+      .topbar-sep{display:none;}
+    }
+    @media(max-width:600px){
+      :root{--nav-w:0px;}
+      .nav-sidebar{transform:translateX(-100%);width:220px!important;align-items:stretch;overflow-x:unset;z-index:95;transition:transform 350ms cubic-bezier(0.4,0,0.2,1);}
+      [dir="rtl"] .nav-sidebar{transform:translateX(100%);}
+      .nav-sidebar.open{transform:translateX(0)!important;}
+      .nav-sidebar.open .nav-back{width:100%;gap:10px;padding:0 12px 0 8px;}
+      .nav-sidebar.open .nav-back .nav-label{opacity:1;visibility:visible;pointer-events:auto;}
+      .nav-sidebar.open .nav-item{width:100%;gap:10px;padding:0 12px 0 8px;justify-content:flex-start;border-radius:10px;}
+      .nav-sidebar.open .nav-item-label{opacity:1;visibility:visible;pointer-events:auto;}
+      .nav-sidebar.open .nav-status{opacity:0;}
+      .nav-sidebar.open .nav-divider{width:calc(100% - 24px);}
+      .main{margin-left:0!important;margin-right:0!important;}
+      .auto-grid{grid-template-columns:1fr;}
+      .auto-header-top{flex-direction:column;}
+      .auto-stats{width:100%;}
+      .auto-stat{flex:1;min-width:80px;}
+      .new-type-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="glow glow-a"></div>
+<div class="glow glow-b"></div>
+
+<%- include('partials/layout', { activePage: 'automations' }) %>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+    <!-- Header -->
+    <div class="auto-header">
+      <div class="auto-header-top">
+        <div class="auto-title">
+          <div class="auto-title-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple-l)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </div>
+          <div>
+            <h1><%= lang === 'ar' ? 'استوديو الأتمتة' : 'Automation Studio' %></h1>
+            <p><%= lang === 'ar' ? 'جميع رسائلك التفاعلية والـ Embeds في مكان واحد' : 'All your interactive messages & embeds in one place' %></p>
+          </div>
+        </div>
+        <div class="auto-stats">
+          <div class="auto-stat">
+            <div class="auto-stat-val" id="stat-total"><%= embedMessages.length + componentMessages.length %></div>
+            <div class="auto-stat-lbl"><%= lang === 'ar' ? 'المجموع' : 'Total' %></div>
+          </div>
+          <div class="auto-stat">
+            <div class="auto-stat-val" style="color:var(--cyan-l)"><%= componentMessages.length %></div>
+            <div class="auto-stat-lbl"><%= lang === 'ar' ? 'مكونات' : 'Components' %></div>
+          </div>
+          <div class="auto-stat">
+            <div class="auto-stat-val" style="color:var(--gold-l)"><%= embedMessages.length %></div>
+            <div class="auto-stat-lbl"><%= lang === 'ar' ? 'Embeds' : 'Embeds' %></div>
+          </div>
+          <div class="auto-stat">
+            <div class="auto-stat-val" style="color:var(--green)" id="stat-links"><%= automationLinks.length %></div>
+            <div class="auto-stat-lbl"><%= lang === 'ar' ? 'روابط' : 'Links' %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="auto-filter">
+        <button class="filter-pill active" data-filter="all">
+          <span class="fp-dot fp-dot-all"></span>
+          <%= lang === 'ar' ? 'الكل' : 'All' %>
+        </button>
+        <button class="filter-pill" data-filter="component">
+          <span class="fp-dot fp-dot-component"></span>
+          Components
+        </button>
+        <button class="filter-pill" data-filter="embed">
+          <span class="fp-dot fp-dot-embed"></span>
+          Embeds
+        </button>
+        <button class="filter-pill" data-filter="link">
+          <span class="fp-dot fp-dot-link"></span>
+          <%= lang === 'ar' ? '\u0631\u0648\u0627\u0628\u0637' : 'Links' %>
+        </button>
+        <div class="filter-search-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="filter-search" id="search-input" type="text" placeholder="<%= lang === 'ar' ? 'بحث...' : 'Search...' %>" autocomplete="off" />
+        </div>
+        <span class="auto-sep"></span>
+        <button class="btn-new-auto" id="btn-create">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          <%= lang === 'ar' ? 'جديد' : 'New' %>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="auto-grid" id="auto-grid">
+
+      <%
+        // Combine both lists into a unified array with a `kind` field
+        const allItems = [
+          ...componentMessages.map(m => ({ ...m, kind: 'component' })),
+          ...embedMessages.map(m => ({ ...m, kind: 'embed' })),
+        ].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+      %>
+
+      <% if (!allItems.length) { %>
+        <div class="auto-empty" id="empty-state" style="grid-column:1/-1;">
+          <div class="auto-empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </div>
+          <h3><%= lang === 'ar' ? 'لا توجد أتمتة بعد' : 'No automations yet' %></h3>
+          <p><%= lang === 'ar' ? 'أنشئ رسالة مكونات أو Embed للبدء' : 'Create a Component Message or Embed to get started' %></p>
+          <button class="btn-new-auto" id="btn-create-empty">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <%= lang === 'ar' ? 'إنشاء أول أتمتة' : 'Create first automation' %>
+          </button>
+        </div>
+      <% } %>
+
+      <% allItems.forEach(function(item) {
+        const isComponent = item.kind === 'component';
+        const editUrl = isComponent
+          ? '/dashboard/' + guildId + '/components?edit=' + item._id
+          : '/dashboard/' + guildId + '/embeds?edit=' + item._id;
+        const listUrl = isComponent
+          ? '/dashboard/' + guildId + '/components'
+          : '/dashboard/' + guildId + '/embeds';
+
+        // Trigger icons map
+        const triggerIcons = {
+          slash_command: '⚡', on_join: '👋', member_leave: '🚪',
+          role_add: '🏷️', role_remove: '🏷️', on_reaction: '✨',
+          scheduled: '🕐', webhook: '🔗', on_message: '💬', on_channel_create: '📂',
+        };
+        const triggers = item.triggers || [];
+        const updatedAgo = item.updatedAt
+          ? (function() {
+              const diff = Date.now() - new Date(item.updatedAt);
+              const mins = Math.floor(diff / 60000);
+              const hrs  = Math.floor(mins / 60);
+              const days = Math.floor(hrs / 24);
+              if (days > 0) return (lang === 'ar' ? 'منذ ' + days + ' يوم' : days + 'd ago');
+              if (hrs > 0)  return (lang === 'ar' ? 'منذ ' + hrs + ' ساعة' : hrs + 'h ago');
+              return (lang === 'ar' ? 'منذ ' + mins + ' دقيقة' : mins + 'm ago');
+            })()
+          : '';
+      %>
+        <div class="auto-card" data-kind="<%= item.kind %>" data-name="<%= (item.name || '').toLowerCase() %>">
+          <div class="auto-card-head">
+            <div class="auto-card-icon <%= isComponent ? 'aci-component' : 'aci-embed' %>">
+              <% if (isComponent) { %>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-l)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+              <% } else { %>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold-l)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m5 16-3 3 3 3"/><path d="m9 22 3-3-3-3"/></svg>
+              <% } %>
+            </div>
+            <div class="auto-card-info">
+              <div class="auto-card-name" title="<%= item.name || '' %>"><%= item.name || (lang === 'ar' ? 'بدون اسم' : 'Untitled') %></div>
+              <span class="auto-card-type <%= isComponent ? 'act-component' : 'act-embed' %>">
+                <% if (isComponent) { %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+                  Component
+                <% } else { %>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.15V4a2 2 0 0 1 2-2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>
+                  Embed
+                <% } %>
+              </span>
+            </div>
+          </div>
+
+          <!-- Meta row -->
+          <div class="auto-card-meta">
+            <% if (updatedAgo) { %>
+              <span class="ac-meta-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <%= updatedAgo %>
+              </span>
+            <% } %>
+            <% if (item.channelId || (item.channelIds && item.channelIds.length)) { %>
+              <span class="ac-meta-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <%= lang === 'ar' ? 'قناة محددة' : 'Has channel' %>
+              </span>
+            <% } %>
+            <% if (item.messageId) { %>
+              <span class="ac-meta-chip" style="color:var(--green);border-color:rgba(34,197,94,.2);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <%= lang === 'ar' ? 'مُرسَل' : 'Sent' %>
+              </span>
+            <% } %>
+          </div>
+
+          <!-- Trigger badges -->
+          <% if (triggers.length > 0) { %>
+            <div class="auto-card-triggers">
+              <% triggers.slice(0, 4).forEach(function(trg) { %>
+                <span class="trigger-badge">
+                  <%= triggerIcons[trg.type] || '⚡' %> <%= trg.type %>
+                </span>
+              <% }); %>
+              <% if (triggers.length > 4) { %>
+                <span class="trigger-badge" style="background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:var(--muted);">+<%= triggers.length - 4 %></span>
+              <% } %>
+            </div>
+          <% } %>
+
+          <!-- Footer actions -->
+          <div class="auto-card-footer">
+            <a href="<%= editUrl %>" class="ac-btn ac-btn-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <%= lang === 'ar' ? 'تحرير' : 'Edit' %>
+            </a>
+            <a href="<%= listUrl %>" class="ac-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <%= lang === 'ar' ? 'فتح في المحرر' : 'Open editor' %>
+            </a>
+          </div>
+        </div>
+      <% }); %>
+
+    </div><!-- /auto-grid -->
+
+    <!-- no-results message (hidden initially) -->
+    <div class="auto-empty" id="no-results" style="display:none;">
+      <div class="auto-empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <h3><%= lang === 'ar' ? 'لا نتائج' : 'No results' %></h3>
+      <p><%= lang === 'ar' ? 'حاول تغيير كلمة البحث أو الفلتر' : 'Try a different search or filter' %></p>
+    </div>
+
+    <!-- ══ LINKS SECTION ══ -->
+    <div class="links-section" id="links-section">
+      <div class="links-section-head">
+        <div class="links-section-title">
+          <span class="links-accent-bar"></span>
+          <h2 style="font-size:var(--fs-lg);font-weight:var(--fw-bold);"><%= lang === 'ar' ? 'روابط الأتمتة' : 'Automation Links' %></h2>
+          <span class="mgmt-badge" id="links-count-badge"><%= automationLinks.length %></span>
+        </div>
+        <button class="btn-new-link" id="btn-new-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          <%= lang === 'ar' ? 'رابط جديد' : 'New Link' %>
+        </button>
+      </div>
+
+      <div class="links-grid" id="links-grid">
+        <% if (!automationLinks.length) { %>
+          <div class="auto-empty" id="links-empty" style="grid-column:1/-1;">
+            <div class="auto-empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <h3><%= lang === 'ar' ? 'لا توجد روابط بعد' : 'No links yet' %></h3>
+            <p><%= lang === 'ar' ? 'اربط زراً في Embed برسالة Component (أو العكس)' : 'Link a button in an Embed to trigger a Component message (or vice versa)' %></p>
+          </div>
+        <% } %>
+
+        <% automationLinks.forEach(function(link) { %>
+          <div class="link-card<%= link.enabled ? '' : ' disabled-link' %>" data-link-id="<%= link._id %>" data-link-enabled="<%= link.enabled %>">
+            <div class="link-flow">
+              <div class="link-node link-node-<%= link.sourceKind %>">
+                <span class="lnode-kind"><%= link.sourceKind === 'embed' ? 'Embed' : 'Component' %></span>
+                <span class="lnode-name" title="<%= link.sourceName %>"><%= link.sourceName %></span>
+                <span class="lnode-btn">
+                  <% if (link.sourceButtonId) { %>
+                    🎯 <%= link.sourceButtonId %>
+                  <% } else { %>
+                    <%= lang === 'ar' ? 'أي زر' : 'any button' %>
+                  <% } %>
+                </span>
+              </div>
+              <div class="link-arrow">→</div>
+              <div class="link-node link-node-<%= link.targetKind %>">
+                <span class="lnode-kind"><%= link.targetKind === 'embed' ? 'Embed' : 'Component' %></span>
+                <span class="lnode-name" title="<%= link.targetName %>"><%= link.targetName %></span>
+              </div>
+            </div>
+            <div class="link-meta-row">
+              <span class="link-enabled-dot<%= link.enabled ? ' on' : ' off' %>"></span>
+              <span class="link-mode-badge"><%= link.sendMode %></span>
+              <% if (link.name && link.name !== 'Untitled Link') { %>
+                <span class="link-name-label"><%= link.name %></span>
+              <% } %>
+            </div>
+            <div class="link-actions">
+              <button class="ac-btn" onclick="editLink(this)" 
+                data-id="<%= link._id %>"
+                data-name="<%= (link.name || '').replace(/\"/g, '&quot;') %>"
+                data-source-kind="<%= link.sourceKind %>"
+                data-source-id="<%= link.sourceId %>"
+                data-source-btn="<%= link.sourceButtonId || '' %>"
+                data-target-kind="<%= link.targetKind %>"
+                data-target-id="<%= link.targetId %>"
+                data-send-mode="<%= link.sendMode %>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <%= lang === 'ar' ? 'تعديل' : 'Edit' %>
+              </button>
+              <button class="ac-btn ac-btn-primary" onclick="toggleLink('<%= link._id %>', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                <%= link.enabled ? (lang === 'ar' ? 'إيقاف' : 'Disable') : (lang === 'ar' ? 'تشغيل' : 'Enable') %>
+              </button>
+              <button class="ac-btn" style="color:var(--red);border-color:rgba(239,68,68,.25);" onclick="deleteLink('<%= link._id %>', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                <%= lang === 'ar' ? 'حذف' : 'Delete' %>
+              </button>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div><!-- /links-section -->
+
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Create modal -->
+<div class="modal-overlay" id="create-modal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3><%= lang === 'ar' ? 'إنشاء أتمتة جديدة' : 'Create New Automation' %></h3>
+      <button class="modal-close" id="create-modal-close" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p><%= lang === 'ar' ? 'اختر نوع الأتمتة التي تريد إنشاءها:' : 'Choose the type of automation you want to create:' %></p>
+      <div class="new-type-grid">
+        <a href="/dashboard/<%= guildId %>/components" class="new-type-card ntc-component">
+          <div class="ntc-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-l)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+          </div>
+          <div class="ntc-label">Component Message</div>
+          <div class="ntc-desc"><%= lang === 'ar' ? 'أزرار وقوائم تفاعلية مع action pipelines' : 'Interactive buttons & select menus with action pipelines' %></div>
+        </a>
+        <a href="/dashboard/<%= guildId %>/embeds" class="new-type-card ntc-embed">
+          <div class="ntc-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold-l)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.15V4a2 2 0 0 1 2-2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>
+          </div>
+          <div class="ntc-label">Embed Message</div>
+          <div class="ntc-desc"><%= lang === 'ar' ? 'رسائل Embed غنية مع state machine بصري' : 'Rich embed messages with visual state machine' %></div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Link creation modal -->
+<div class="modal-overlay" id="link-modal" role="dialog" aria-modal="true">
+  <div class="link-modal-box">
+    <div class="modal-head">
+      <h3 id="link-modal-title"><%= lang === 'ar' ? 'إنشاء رابط أتمتة' : 'New Automation Link' %></h3>
+      <button class="modal-close" id="link-modal-close" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="lm-body">
+      <!-- Link name -->
+      <div class="lm-field">
+        <label class="lm-label" for="lm-name"><%= lang === 'ar' ? 'اسم الرابط (اختياري)' : 'Link name (optional)' %></label>
+        <input class="lm-input" id="lm-name" type="text" placeholder="<%= lang === 'ar' ? 'مثال: زر البدء → رسالة الترحيب' : 'e.g. Start Button → Welcome Message' %>" autocomplete="off" />
+      </div>
+      <!-- Source -->
+      <div class="lm-row">
+        <div class="lm-field">
+          <label class="lm-label" for="lm-source-kind"><%= lang === 'ar' ? 'نوع المصدر' : 'Source type' %></label>
+          <select class="lm-select" id="lm-source-kind">
+            <option value="embed">Embed</option>
+            <option value="component">Component</option>
+          </select>
+        </div>
+        <div class="lm-field">
+          <label class="lm-label" for="lm-target-kind"><%= lang === 'ar' ? 'نوع الهدف' : 'Target type' %></label>
+          <select class="lm-select" id="lm-target-kind">
+            <option value="component">Component</option>
+            <option value="embed">Embed</option>
+          </select>
+        </div>
+      </div>
+      <!-- Source message select -->
+      <div class="lm-field">
+        <label class="lm-label" for="lm-source-id"><%= lang === 'ar' ? 'الرسالة المصدر (عند الضغط على زرها)' : 'Source message (button trigger)' %></label>
+        <select class="lm-select" id="lm-source-id"><option value="">-- <%= lang === 'ar' ? 'اختر رسالة' : 'Select a message' %> --</option></select>
+      </div>
+      <!-- Source button -->
+      <div class="lm-field">
+        <label class="lm-label" for="lm-source-btn"><%= lang === 'ar' ? 'الزر المحدد (اتركه فارغاً لأي زر)' : 'Specific button (leave blank for any button)' %></label>
+        <select class="lm-select" id="lm-source-btn">
+          <option value=""><%= lang === 'ar' ? 'أي زر في الرسالة' : 'Any button in the message' %></option>
+        </select>
+      </div>
+      <!-- Target message select -->
+      <div class="lm-field">
+        <label class="lm-label" for="lm-target-id"><%= lang === 'ar' ? 'الرسالة الهدف (ما يتم إرساله)' : 'Target message (what gets sent)' %></label>
+        <select class="lm-select" id="lm-target-id"><option value="">-- <%= lang === 'ar' ? 'اختر رسالة' : 'Select a message' %> --</option></select>
+      </div>
+      <!-- Send mode -->
+      <div class="lm-field">
+        <label class="lm-label" for="lm-send-mode"><%= lang === 'ar' ? 'طريقة الإرسال' : 'Send mode' %></label>
+        <select class="lm-select" id="lm-send-mode">
+          <option value="reply"><%= lang === 'ar' ? 'رد (مرئي للجميع)' : 'Reply (visible to all)' %></option>
+          <option value="reply_ephemeral"><%= lang === 'ar' ? 'رد سري (للضاغط فقط)' : 'Reply ephemeral (only for clicker)' %></option>
+          <option value="new_message"><%= lang === 'ar' ? 'رسالة جديدة في القناة' : 'New message in channel' %></option>
+          <option value="update_message"><%= lang === 'ar' ? 'تحديث الرسالة الأصلية' : 'Update original message' %></option>
+        </select>
+      </div>
+      <button class="lm-btn-save" id="lm-save-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span id="lm-save-label"><%= lang === 'ar' ? 'إنشاء الرابط' : 'Create Link' %></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script type="application/json" id="item-meta-data"><%- JSON.stringify(Object.fromEntries([
+  ...embedMessages.map(function(m){
+    var bSet = {};
+    (m.components || []).forEach(function(r) {
+      (r.buttons || []).forEach(function(b) { if (b && b.customId) bSet[b.customId] = 1; });
+      if (r.select && r.select.customId) bSet[r.select.customId] = 1;
+    });
+    Object.keys(m.interactions || {}).forEach(function(k) { bSet[k] = 1; });
+    return [String(m._id), { name: m.name || 'Untitled', kind: 'embed', buttonIds: Object.keys(bSet) }];
+  }),
+  ...componentMessages.map(function(m){ return [String(m._id), { name: m.name || 'Untitled', kind: 'component', buttonIds: m.componentIds || [] }]; })
+])) %></script>
+
+<script src="/js/lucide.min.js"></script>
+<%- include('partials/bg_particles') %>
+<script>
+(function() {
+  const GUILD_ID = '<%= guildId %>';
+  const isAR = '<%= lang %>' === 'ar';
+
+  // ── Lucide icons init ──
+  lucide.createIcons();
+
+  // ── Profile sidebar ──
+  const profSidebar  = document.getElementById('prof-sidebar');
+  const profBackdrop = document.getElementById('prof-backdrop');
+  document.getElementById('open-profile')?.addEventListener('click', () => {
+    profSidebar?.classList.add('open');
+    profBackdrop?.classList.add('open');
+  });
+  function closeProfile() { profSidebar?.classList.remove('open'); profBackdrop?.classList.remove('open'); }
+  document.getElementById('close-profile')?.addEventListener('click', closeProfile);
+  profBackdrop?.addEventListener('click', closeProfile);
+
+  // ── Mobile nav toggle ──
+  const navOverlay  = document.getElementById('nav-overlay');
+  const mgmtSidebar = document.querySelector('.mgmt-sidebar');
+  document.getElementById('menu-toggle')?.addEventListener('click', () => {
+    mgmtSidebar?.classList.toggle('open');
+    navOverlay?.classList.toggle('open');
+  });
+  navOverlay?.addEventListener('click', () => {
+    mgmtSidebar?.classList.remove('open');
+    navOverlay?.classList.remove('open');
+  });
+
+  // ── mgmt-section collapsible ──
+  document.querySelectorAll('.mgmt-section-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('open');
+      btn.nextElementSibling?.classList.toggle('open');
+    });
+  });
+
+  // ── Guild stats ──
+  const statsEl = document.getElementById('gmeta-stats');
+  if (statsEl) {
+    fetch('/dashboard/' + GUILD_ID + '/guild-stats')
+      .then(r => r.ok ? r.json() : null).then(d => {
+        if (!d) return;
+        const tv = document.getElementById('gms-total-val');
+        const ov = document.getElementById('gms-online-val');
+        if (tv) tv.textContent = d.total?.toLocaleString() || '—';
+        if (ov) ov.textContent = d.online?.toLocaleString() || '—';
+      }).catch(() => {});
+  }
+
+  // ── Language selector ──
+  const lcsWrap = document.getElementById('lcs-wrap');
+  const lcsBtn  = document.getElementById('lcs-btn');
+  const lcsMenu = document.getElementById('lcs-menu');
+  lcsBtn?.addEventListener('click', e => { e.stopPropagation(); lcsWrap?.classList.toggle('open'); });
+  document.addEventListener('click', () => lcsWrap?.classList.remove('open'));
+  lcsMenu?.querySelectorAll('.lcs-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const lang = item.dataset.value;
+      if (lang) fetch('/set-lang/' + lang, { method: 'POST' }).then(() => location.reload());
+    });
+    item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') item.click(); });
+  });
+
+  // ── Profile status fetch ──
+  fetch('/api/discord-status/' + '<%= user.id %>')
+    .then(r => r.ok ? r.json() : null).then(d => {
+      if (!d) return;
+      const dot = document.getElementById('prof-actdot');
+      const lbl = document.getElementById('prof-status-label');
+      const onl = document.getElementById('prof-online-dot');
+      const statusMap = { online: isAR ? 'متصل' : 'Online', idle: isAR ? 'غائب' : 'Idle', dnd: isAR ? 'لا تزعج' : 'Do Not Disturb', offline: isAR ? 'غير متصل' : 'Offline' };
+      const st = d.status || 'offline';
+      if (dot) { dot.className = 'prof-actdot status-' + st; }
+      if (lbl) lbl.textContent = statusMap[st] || st;
+      if (onl) onl.style.background = { online: 'var(--green)', idle: 'var(--yellow)', dnd: 'var(--red)', offline: 'rgba(255,255,255,.2)' }[st] || 'rgba(255,255,255,.2)';
+      if (d.customStatus && document.getElementById('prof-custom-status')) {
+        const cs = document.getElementById('prof-custom-status');
+        cs.textContent = (d.customStatus.emoji || '') + ' ' + (d.customStatus.text || '');
+        cs.style.display = 'block';
+      }
+    }).catch(() => {});
+
+  // ── Theme toggle ──
+  const saved = localStorage.getItem('theme') || 'dark';
+  if (saved === 'light') document.documentElement.classList.add('theme-light');
+  document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('theme-light');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      btn.querySelector('.ttb-badge').textContent = isLight ? (isAR ? 'فاتح' : 'Light') : (isAR ? 'داكن' : 'Dark');
+    });
+  });
+
+  // ── Copy User ID ──
+  document.getElementById('prof-copy-id')?.addEventListener('click', function() {
+    navigator.clipboard.writeText(this.dataset.uid || '').then(() => {
+      const lbl = document.getElementById('prof-copy-label');
+      if (lbl) { lbl.textContent = isAR ? '✓ تم النسخ' : '✓ Copied'; setTimeout(() => { lbl.textContent = isAR ? 'نسخ معرف المستخدم' : 'Copy User ID'; }, 2000); }
+    }).catch(() => {});
+  });
+
+  // ── Profile banner background ──
+  document.querySelectorAll('.prof-banner-solid[data-bg]').forEach(el => {
+    el.style.background = el.dataset.bg;
+  });
+
+  // ── Toast helper ──
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // ── Filter + Search logic ──
+  const cards       = Array.from(document.querySelectorAll('.auto-card'));
+  const noRes       = document.getElementById('no-results');
+  const linksSection = document.getElementById('links-section');
+  const autoGrid    = document.getElementById('auto-grid');
+  const searchI     = document.getElementById('search-input');
+  let activeFilter  = 'all';
+  let searchQ       = '';
+
+  function applyFilter() {
+    const isLink = activeFilter === 'link';
+    // Cards grid visibility
+    if (autoGrid) autoGrid.style.display = isLink ? 'none' : '';
+    if (linksSection) linksSection.style.display = (activeFilter === 'all' || isLink) ? '' : 'none';
+    if (noRes)        noRes.style.display = 'none';
+    if (!isLink) {
+      let visible = 0;
+      cards.forEach(c => {
+        const kind = c.dataset.kind;
+        const name = c.dataset.name || '';
+        const matchFilter = activeFilter === 'all' || kind === activeFilter;
+        const matchSearch = !searchQ || name.includes(searchQ.toLowerCase());
+        if (matchFilter && matchSearch) { c.style.display = ''; visible++; }
+        else c.style.display = 'none';
+      });
+      if (noRes) noRes.style.display = (visible === 0 && cards.length > 0) ? 'flex' : 'none';
+    }
+  }
+
+  document.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeFilter = pill.dataset.filter;
+      applyFilter();
+    });
+  });
+
+  searchI?.addEventListener('input', () => { searchQ = searchI.value.trim(); applyFilter(); });
+
+  // ── Create modal ──
+  const createModal = document.getElementById('create-modal');
+  function openCreate() { createModal?.classList.add('open'); }
+  function closeCreate() { createModal?.classList.remove('open'); }
+  document.getElementById('btn-create')?.addEventListener('click', openCreate);
+  document.getElementById('btn-create-empty')?.addEventListener('click', openCreate);
+  document.getElementById('create-modal-close')?.addEventListener('click', closeCreate);
+  createModal?.addEventListener('click', e => { if (e.target === createModal) closeCreate(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCreate(); });
+
+  // ── Ripple effect on nav links ──
+  document.querySelectorAll('[data-cn-ripple]').forEach(el => {
+    el.addEventListener('click', function(e) {
+      const rpl = document.createElement('span');
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      rpl.style.cssText = 'position:absolute;width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:rgba(124,58,237,.18);transform:scale(0);top:' + (e.clientY - rect.top - size/2) + 'px;left:' + (e.clientX - rect.left - size/2) + 'px;animation:rpl .55s ease-out forwards;pointer-events:none;';
+      this.style.position = 'relative';
+      this.style.overflow = 'hidden';
+      this.appendChild(rpl);
+      rpl.addEventListener('animationend', () => rpl.remove());
+    });
+  });
+  const rplStyle = document.createElement('style');
+  rplStyle.textContent = '@keyframes rpl{to{transform:scale(2.5);opacity:0;}}';
+  document.head.appendChild(rplStyle);
+
+  // ── Automation Links ──────────────────────────────────────────────────────
+
+  // Pre-built map: docId → { name, kind, buttonIds[] }
+  const ITEM_META = JSON.parse(document.getElementById('item-meta-data').textContent);
+
+  // ── Link modal ──
+  const linkModal = document.getElementById('link-modal');
+  const lmSourceKind = document.getElementById('lm-source-kind');
+  const lmTargetKind = document.getElementById('lm-target-kind');
+  const lmSourceId   = document.getElementById('lm-source-id');
+  const lmSourceBtn  = document.getElementById('lm-source-btn');
+  const lmTargetId   = document.getElementById('lm-target-id');
+
+  function openLinkModal() { linkModal?.classList.add('open'); populateLinkDropdowns(); }
+  function closeLinkModal() { linkModal?.classList.remove('open'); }
+  document.getElementById('btn-new-link')?.addEventListener('click', openLinkModal);
+  document.getElementById('link-modal-close')?.addEventListener('click', closeLinkModal);
+  linkModal?.addEventListener('click', e => { if (e.target === linkModal) closeLinkModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLinkModal(); });
+
+  function populateLinkDropdowns() {
+    const sk = lmSourceKind?.value || 'embed';
+    const tk = lmTargetKind?.value || 'component';
+    if (!lmSourceId || !lmTargetId) return;
+    const anyBtn = isAR ? 'أي زر في الرسالة' : 'Any button in the message';
+
+    // Source
+    lmSourceId.innerHTML = '<option value="">-- ' + (isAR ? 'اختر رسالة' : 'Select a message') + ' --</option>';
+    Object.entries(ITEM_META).forEach(([id, m]) => {
+      if (m.kind !== sk) return;
+      const o = document.createElement('option');
+      o.value = id; o.textContent = m.name;
+      lmSourceId.appendChild(o);
+    });
+
+    // Target
+    lmTargetId.innerHTML = '<option value="">-- ' + (isAR ? 'اختر رسالة' : 'Select a message') + ' --</option>';
+    Object.entries(ITEM_META).forEach(([id, m]) => {
+      if (m.kind !== tk) return;
+      const o = document.createElement('option');
+      o.value = id; o.textContent = m.name;
+      lmTargetId.appendChild(o);
+    });
+
+    // Reset button list
+    if (lmSourceBtn) {
+      lmSourceBtn.innerHTML = '<option value="">' + anyBtn + '</option>';
+    }
+  }
+
+  // Re-populate when kind changes
+  lmSourceKind?.addEventListener('change', populateLinkDropdowns);
+  lmTargetKind?.addEventListener('change', populateLinkDropdowns);
+
+  // Sync button list when source changes
+  lmSourceId?.addEventListener('change', function() {
+    if (!lmSourceBtn) return;
+    const anyBtn = isAR ? 'أي زر في الرسالة' : 'Any button in the message';
+    lmSourceBtn.innerHTML = '<option value="">' + anyBtn + '</option>';
+    const meta = ITEM_META[this.value];
+    if (meta?.buttonIds?.length) {
+      meta.buttonIds.forEach(bid => {
+        const o = document.createElement('option');
+        o.value = bid; o.textContent = bid;
+        lmSourceBtn.appendChild(o);
+      });
+    }
+  });
+
+  // Edit mode state
+  let _editLinkId = null;
+
+  // Open modal in edit mode
+  window.editLink = function(btn) {
+    const d = btn.dataset;
+    _editLinkId = d.id;
+    // Update modal title + button label
+    const titleEl = document.getElementById('link-modal-title');
+    const labelEl = document.getElementById('lm-save-label');
+    if (titleEl) titleEl.textContent = isAR ? 'تعديل رابط الأتمتة' : 'Edit Automation Link';
+    if (labelEl) labelEl.textContent = isAR ? 'حفظ التعديلات' : 'Save Changes';
+    // Pre-set kind selects before populateLinkDropdowns
+    if (lmSourceKind) lmSourceKind.value = d.sourceKind;
+    if (lmTargetKind) lmTargetKind.value = d.targetKind;
+    linkModal?.classList.add('open');
+    populateLinkDropdowns();
+    // Pre-select source message
+    if (lmSourceId) lmSourceId.value = d.sourceId;
+    // Populate button dropdown
+    var meta = ITEM_META[d.sourceId];
+    if (meta && lmSourceBtn) {
+      var anyBtn2 = isAR ? 'أي زر في الرسالة' : 'Any button in the message';
+      lmSourceBtn.innerHTML = '<option value="">' + anyBtn2 + '</option>';
+      (meta.buttonIds || []).forEach(function(bid) {
+        var o = document.createElement('option');
+        o.value = bid; o.textContent = bid;
+        lmSourceBtn.appendChild(o);
+      });
+    }
+    if (lmSourceBtn) lmSourceBtn.value = d.sourceBtn || '';
+    // Pre-select target
+    if (lmTargetId) lmTargetId.value = d.targetId;
+    // Pre-select send mode
+    var sm = document.getElementById('lm-send-mode');
+    if (sm) sm.value = d.sendMode || 'reply';
+    // Pre-fill name
+    var nm = document.getElementById('lm-name');
+    if (nm) nm.value = d.name || '';
+  };
+
+  // Reset modal to create mode when opening via the New Link button
+  var _origOpenLinkModal = openLinkModal;
+  openLinkModal = function() {
+    _editLinkId = null;
+    var titleEl = document.getElementById('link-modal-title');
+    var labelEl = document.getElementById('lm-save-label');
+    if (titleEl) titleEl.textContent = isAR ? 'إنشاء رابط أتمتة' : 'New Automation Link';
+    if (labelEl) labelEl.textContent = isAR ? 'إنشاء الرابط' : 'Create Link';
+    var nm = document.getElementById('lm-name');
+    if (nm) nm.value = '';
+    _origOpenLinkModal();
+  };
+
+  // Save link (create OR update)
+  document.getElementById('lm-save-btn')?.addEventListener('click', async function() {
+    const sourceKind     = lmSourceKind?.value;
+    const targetKind     = lmTargetKind?.value;
+    const sourceId       = lmSourceId?.value;
+    const targetId       = lmTargetId?.value;
+    const sourceButtonId = lmSourceBtn?.value || '';
+    const sendMode       = document.getElementById('lm-send-mode')?.value || 'reply';
+    const name           = document.getElementById('lm-name')?.value.trim() || '';
+
+    if (!sourceId || !targetId) {
+      toast(isAR ? '⚠️ اختر الرسالة المصدر والهدف' : '⚠️ Please select source and target messages');
+      return;
+    }
+
+    this.disabled = true;
+    const isEdit = !!_editLinkId;
+    const url  = isEdit
+      ? '/dashboard/' + GUILD_ID + '/automations/links/' + _editLinkId + '/update'
+      : '/dashboard/' + GUILD_ID + '/automations/links/save';
+    const method = isEdit ? 'PATCH' : 'POST';
+    try {
+      const r = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, sourceKind, sourceId, sourceButtonId, targetKind, targetId, sendMode }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        closeLinkModal();
+        toast(isEdit ? (isAR ? '✅ تم تعديل الرابط' : '✅ Link updated') : (isAR ? '✅ تم إنشاء الرابط' : '✅ Link created'));
+        setTimeout(() => location.reload(), 900);
+      } else {
+        toast('❌ ' + (d.error || 'Error'));
+      }
+    } catch { toast('❌ Network error'); }
+    finally { this.disabled = false; }
+  });
+
+  // Toggle link enabled/disabled (called from card button)
+  window.toggleLink = async function(linkId, btn) {
+    btn.disabled = true;
+    try {
+      const r = await fetch('/dashboard/' + GUILD_ID + '/automations/links/' + linkId + '/toggle', { method: 'PATCH' });
+      const d = await r.json();
+      if (d.ok) {
+        toast(d.enabled ? (isAR ? '✅ الرابط مفعّل' : '✅ Link enabled') : (isAR ? '⏸️ الرابط معطّل' : '⏸️ Link disabled'));
+        setTimeout(() => location.reload(), 700);
+      } else { toast('❌ ' + (d.error || 'Error')); }
+    } catch { toast('❌ Network error'); }
+    finally { btn.disabled = false; }
+  };
+
+  // Delete link (called from card button)
+  window.deleteLink = async function(linkId, btn) {
+    if (!confirm(isAR ? 'حذف هذا الرابط؟' : 'Delete this link?')) return;
+    btn.disabled = true;
+    try {
+      const r = await fetch('/dashboard/' + GUILD_ID + '/automations/links/' + linkId, { method: 'DELETE' });
+      const d = await r.json();
+      if (d.ok) {
+        toast(isAR ? '🗑️ تم الحذف' : '🗑️ Link deleted');
+        const card = document.querySelector('[data-link-id="' + linkId + '"]');
+        if (card) { card.style.transition = 'opacity .3s'; card.style.opacity = '0'; setTimeout(() => card.remove(), 300); }
+        // Update count badge
+        const badge = document.getElementById('links-count-badge');
+        if (badge) badge.textContent = Math.max(0, parseInt(badge.textContent || '0') - 1);
+        const statLinks = document.getElementById('stat-links');
+        if (statLinks) statLinks.textContent = Math.max(0, parseInt(statLinks.textContent || '0') - 1);
+      } else { toast('❌ ' + (d.error || 'Error')); }
+    } catch { toast('❌ Network error'); }
+    finally { btn.disabled = false; }
+  };
+
+  // ── Auto-open link modal when arriving via ?link=<id>&kind=<kind> ──
+  (function() {
+    const params  = new URLSearchParams(window.location.search);
+    const preId   = params.get('link');
+    const preKind = params.get('kind');
+    if (!preId || !preKind || !ITEM_META[preId]) return;
+
+    // Set source/target kinds before calling populateLinkDropdowns
+    if (lmSourceKind) lmSourceKind.value = preKind;
+    if (lmTargetKind) lmTargetKind.value = preKind === 'embed' ? 'component' : 'embed';
+
+    openLinkModal(); // internally calls populateLinkDropdowns()
+
+    // Pre-select the source message
+    if (lmSourceId) lmSourceId.value = preId;
+
+    // Populate the button dropdown for the pre-selected source
+    var meta = ITEM_META[preId];
+    if (meta && lmSourceBtn) {
+      var anyBtn = isAR ? 'أي زر في الرسالة' : 'Any button in the message';
+      lmSourceBtn.innerHTML = '<option value="">' + anyBtn + '</option>';
+      (meta.buttonIds || []).forEach(function(bid) {
+        var o = document.createElement('option');
+        o.value = bid; o.textContent = bid;
+        lmSourceBtn.appendChild(o);
+      });
+    }
+
+    // Switch filter pill to "link" so links section is visible behind modal
+    activeFilter = 'link';
+    applyFilter();
+    document.querySelectorAll('.filter-pill').forEach(function(p) {
+      p.classList.toggle('active', p.dataset.filter === 'link');
+    });
+
+    // Clean URL without reloading
+    history.replaceState(null, '', window.location.pathname);
+  })();
+
+})();
+</script>
+</body>
+</html>

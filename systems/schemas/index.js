@@ -47,8 +47,8 @@ async function connect() {
         logger.db('MongoDB reconnected')
     );
     mongoose.connection.on('error', err => {
-        // Suppress noisy monitor timeout logs
-        if (/timeout|monitor/i.test(err.message)) return;
+        // Suppress noisy transient errors (monitor timeouts, brief network resets)
+        if (/timeout|monitor|ECONNRESET|ETIMEDOUT|ENOTFOUND/i.test(err.message)) return;
         logger.error('MongoDB connection error', { category: 'db', error: err.message });
     });
 }
@@ -180,6 +180,9 @@ module.exports = {
     get StaffScore()       { return require('./StaffScore'); },
     get InteractionScore() { return require('./InteractionScore'); },
     get DashboardLog()     { return require('./DashboardLog'); },
+    get AutomationLink()   { return require('./AutomationLink'); },
+    get WelcomeJoin()      { return require('./WelcomeJoin'); },
+    get WelcomeImage()     { return require('./WelcomeImage'); },
 
     /** Re-export plugins for use in new schemas */
     plugins: {

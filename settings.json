@@ -695,25 +695,25 @@
     },
     "DASHBOARD": {
         "ENABLED": true,
-        "INTRO": false,
+        "INTRO": true,
         "SHIPS": [
-            "YOUR_DISCORD_USER_ID"
+            "756947441592303707"
         ],
         "OWNERS": [
-            "YOUR_DISCORD_USER_ID"
+            "756947441592303707"
         ],
         "SERVERS": {
             "ADD_BOT_ON_MANY_SERVER": false,
             "SERVER_ALLOWED": [],
             "LEAVE_AUTO": false
         },
-        "CODE_ACCESS": false,
+        "CODE_ACCESS": true,
         "CODE": "ADMIN",
         "WEBHOOK_LOG": {
             "URL": "",
             "COLOR": "#7c3aed"
         },
-        "ANYWARE": true
+        "ANYWARE": false
     },
     "LEVEL_SYSTEM": {
         "ENABLE": true,
@@ -742,5 +742,22 @@
         },
         "LEVELUP_CHANNEL": "",
         "LEVELUP_MESSAGE_ENABLED": true
+    },
+    "BACKUP": {
+        "targets": [
+            {
+                "id": "3b3ca7230b3eba0b",
+                "name": "test",
+                "uri_enc": "CHsMhohMFgd7eIVtJgLUJVCooST0khCkPY9+lWqDBjtM7rACCccuu3bADzPhB/fnK2L2tn3uwkSHsxanLhveTBIjV/bUkQpsrj85Xa5V/sryF+OFCjXjYgihcq9ZPchtr0gQvqSUFBjktKZe25HRu+HB8X0bl1j+4LKGzGGTnPzZ",
+                "mode": "changestream",
+                "scheduleMs": null,
+                "enabled": true,
+                "notifyWebhooks": [
+                    "https://discord.com/api/webhooks/1486574131808833816/Nhl0yig5f6eH7dL9yl3uZuhfBfnZwCEIPTyxgUOPFJEKIdMu_LmVueMVIOeedd4X1xjD"
+                ],
+                "lastRun": null,
+                "lastStatus": null
+            }
+        ]
     }
 }

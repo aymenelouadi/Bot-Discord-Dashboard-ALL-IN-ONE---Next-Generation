@@ -1296,6 +1296,18 @@ async function handleEscalateButton(interaction, ticketId) {
         return interaction.reply({ content: '❌ No escalation categories configured.', flags: MessageFlags.Ephemeral });
     }
 
+    // ── Role-based permission check ─────────────────────────────────
+    const allowedRoles = ticketData?.general?.ESCALATE_ROLES;
+    if (Array.isArray(allowedRoles) && allowedRoles.length > 0) {
+        const hasRole = interaction.member.roles.cache.some(r => allowedRoles.includes(r.id));
+        if (!hasRole) {
+            return interaction.reply({
+                content: '❌ You don\'t have permission to escalate this ticket.',
+                flags: MessageFlags.Ephemeral,
+            });
+        }
+    }
+
     // Resolve category names from guild channel cache
     const options = cats.slice(0, 125).map(id => {
         const ch = interaction.guild.channels.cache.get(id);

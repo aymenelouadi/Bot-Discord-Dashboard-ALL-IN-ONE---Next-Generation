@@ -7,6 +7,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v5.7.0] — 2026-03-30 ✨ Components Flow Builder + Full Audit
+
+### Added — Components Messages System (`/dashboard/:id/components`)
+
+A complete interactive flow-builder for Discord Components v2 messages — fully production-ready.
+
+#### 🏗️ Multi-State Flow Builder
+- **States sidebar** — create, rename, reorder (drag), and color-code states in the left panel
+- **Initial state indicator** — INIT badge marks the entry-point state; click any state’s dot to change color via native color picker
+- **State transitions** — IF/THEN action pipeline with `go_to_state` action to transition users between states
+- **Per-state snapshots** — each state carries its own content, components array, and actions map independently
+- **Auto-draft** — dirty builder state auto-saved to `localStorage` every 30 s (restored on next open)
+
+#### 🧩 Component Row Types
+- **Button Row** — up to 5 buttons per row; per-button: label, style (Primary / Secondary / Success / Danger / Link), emoji, URL, customId, disabled toggle
+- **Select Menu** — up to 25 options; per-option: label, value, description, emoji, default flag; placeholder text
+- **Text Display** — free-text markdown block (up to 4 000 chars)
+- **Separator** — divider line or spacing gap (Small / Large)
+- **Container** — accent-border wrapper (up to 10 nested children); supports all row types recursively
+- **Image** — URL + alt text with live inline preview
+- Collapse / Expand + Duplicate per row
+- SortableJS drag-to-reorder for both top-level rows and container children
+
+#### ⚡ IF/THEN Interaction Logic Builder
+- **Rule blocks** (IF / ELSE IF / ELSE) with drag-to-reorder support
+- **18 action types**: `go_to_state`, `update_message`, `reply`, `send_dm`, `send_to_channel`, `send_webhook`, `edit_message`, `add_role`, `remove_role`, `toggle_role`, `open_ticket`, `close_ticket`, `disable_component`, `enable_component`, `create_thread`, `award_points`, `kick_member`, `timeout_member`
+- **5 condition types**: `user_has_role`, `user_missing_role`, `channel_is`, `channel_is_not`, `selected_option`
+- AND / OR operator toggle between conditions
+- Old `steps[]` format auto-migrated to `rules[]` on open
+
+#### 🚀 Smart Triggers
+- **10 trigger types**: `slash_command`, `on_join`, `member_leave`, `role_add`, `role_remove`, `on_reaction`, `scheduled` (cron), `webhook`, `on_message` (regex), `on_channel_create`
+- Per-trigger parameter forms (command name, emoji, cron expression, regex pattern, role/category selectors)
+- **Webhook trigger** — auto-generated per-trigger secure token; one-click copy of full webhook URL
+- Channel context hint in save modal: `all_provided` / `some_provided` / `none_provided` / `no_triggers`
+
+#### 📡 Multi-Channel Send
+- Channel pills UI — add/remove multiple target channels with live search
+- All channels receive the message; primary channel’s `messageId` stored for edit mode
+
+#### ⏰ Scheduled Send
+- `datetime-local` picker; stored as ISO string; cleared with one click
+
+#### 💬 Pre-Mention Pings
+- Separate ping message sent before the component message
+- Supports roles, `@everyone`, `@here`; inline vs separate-message mode toggle
+
+#### 👁️ Live Preview
+- Discord mock shell renders content + all component rows in real time
+- **State preview tabs** — when multiple states exist, pin preview to any state without switching editor
+- Full Discord Markdown renderer (`**bold**`, `_italic_`, `__underline__`, `~~strike~~`, `||spoiler||`, `` `code` ``, `
+` → `<br>`)
+
+#### 💾 Save & Send Modal
+- Name + primary channel override fields
+- `Edit` vs `New` send-mode radio (pre-selects Edit when updating an existing message)
+- Context-aware title and description based on new vs existing document
+- Ctrl+S shortcut saves from anywhere in the builder
+
+#### 📄 Send Log
+- Every Discord send appended to `sentLog[]` (channelId, messageId, sentAt)
+- Log modal shows full history with timestamps
+
+#### 🔗 Slash Quick-Add Bar
+- Type `/text`, `/btn`, `/sel`, `/sep`, `/img`, `/cnt` + Enter to add rows without touching the mouse
+- Keyboard navigable (Arrow keys + Enter + Escape)
+
+#### 😀 Emoji Picker
+- Standard emoji grid (6 category groups) + server custom emoji tab
+- Fuzzy search; inserts at cursor position in the content textarea
+
+#### 🎬 Webhook Endpoint
+- `POST /api/webhook/components/:guildId/:triggerId?token=xxx` — public trigger endpoint secured by per-trigger token (min 8 chars)
+
+### Fixed
+- **`duplicateAutomation()` double event-listener attachment** — after calling `renderList()` (which attaches listeners internally), the function re-attached `_edit` / `_del` to every card again, causing handlers to fire N+1 times after N duplications. Removed the redundant attachment lines.
+- **`getAllCustomIds()` missing container children** — buttons and select menus nested inside Container rows were invisible to the Actions panel — no IF/THEN logic could be assigned to them. Fixed with recursive `collectFromRow()` helper.
+- **`_validateBeforeSave()` skipping container contents** — Link buttons with no URL and duplicate `customId` values inside containers bypassed pre-save validation, causing Discord API errors at send time. Fixed with recursive `checkRows()` helper.
+
+### Changed
+- Version bumped from `5.4.0-beta` to **`5.7.0`** — first stable non-beta release
+- Removed `Beta` label from all UI surfaces (`intro.ejs`, `login.ejs`), `package.json`, `Dockerfile`, `README.md`
+- `ComponentMessage` schema: `strict: false` on `StateSchema` and `ActionPipelineSchema` to accommodate future step properties without migration
+
+---
+
 ## [v5.4.0 Beta] — 2026-03-25 ✨ Embeds Flow Builder System
 
 ### Added — Embed Message Builder (`/dashboard/:id/embeds`)

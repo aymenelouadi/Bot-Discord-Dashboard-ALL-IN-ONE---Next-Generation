@@ -109,22 +109,65 @@ const ActionStepSchema = new Schema({
 // ── Action pipeline sub-schema ──────────────────────────────────────────────
 const ActionPipelineSchema = new Schema({
     customId: { type: String, required: true },
+    /** New format: array of conditional rule groups, each with steps */
+    rules:    { type: [Schema.Types.Mixed], default: [] },
+    /** Legacy flat format kept for backward compatibility */
     steps:    { type: [ActionStepSchema], default: [] },
+}, { _id: false, strict: false });
+
+// ── Trigger sub-schema ──────────────────────────────────────────────────────
+const TriggerSchema = new Schema({
+    id:     { type: String, required: true },
+    type:   { type: String, required: true },
+    params: { type: Schema.Types.Mixed, default: {} },
 }, { _id: false });
 
+// ── Sent-log entry sub-schema ────────────────────────────────────────────────
+const SentLogSchema = new Schema({
+    channelId:  { type: String, default: '' },
+    messageId:  { type: String, default: '' },
+    sentAt:     { type: Date, default: Date.now },
+}, { _id: false });
+// ── State sub-schema (one snapshot in a multi-state flow) ───────────────────
+const StateSchema = new Schema({
+    id:         { type: String, required: true },
+    label:      { type: String, default: 'State' },
+    color:      { type: String, default: '#5865f2' },
+    content:    { type: String, default: '', maxlength: 4000 },
+    components: { type: [ComponentRowSchema], default: [] },
+    actions:    { type: [ActionPipelineSchema], default: [] },
+}, { _id: false, strict: false });
 // ── Root ComponentMessage schema ────────────────────────────────────────────
 const ComponentMessageSchema = new Schema({
     guildId:   { type: String, required: true },
     name:      { type: String, required: true, maxlength: 100 },
     content:   { type: String, default: '', maxlength: 2000 },
     channelId: { type: String, default: '' },
+    channelIds:{ type: [String], default: [] },
     messageId: { type: String, default: null },
 
     components: { type: [ComponentRowSchema], default: [] },
     actions:    { type: [ActionPipelineSchema], default: [] },
 
+    /** Multi-state machine: each state has its own content + components + actions */
+    states:         { type: [StateSchema],  default: [] },
+    initialStateId: { type: String, default: '' },
+    /** Shared active-state for non-multiUser flows (updated on each interaction) */
+    activeStateId:  { type: String, default: '' },
+
     /** Flat index of all customIds for O(1) interaction lookup */
     componentIds: { type: [String], default: [] },
+
+    /** Automation flow metadata */
+    triggers:      { type: [TriggerSchema], default: [] },
+    scheduledAt:   { type: Date, default: null },
+    multiUser:     { type: Boolean, default: false },
+    timeout:       { type: Number, default: 0 },
+    preMentions:   { type: [Schema.Types.Mixed], default: [] },  // [{type:'role'|'special', id, label}]
+    sendMode:      { type: String, enum: ['new', 'edit'], default: 'new' },
+
+    /** Log of all Discord messages sent by this automation */
+    sentLog: { type: [SentLogSchema], default: [] },
 
     createdBy: { type: String, default: '' },
     updatedBy: { type: String, default: '' },
@@ -137,5 +180,7 @@ const ComponentMessageSchema = new Schema({
 ComponentMessageSchema.index({ guildId: 1 });
 ComponentMessageSchema.index({ guildId: 1, name: 1 }, { unique: true });
 ComponentMessageSchema.index({ guildId: 1, channelId: 1 });
+ComponentMessageSchema.index({ guildId: 1, componentIds: 1 });
+ComponentMessageSchema.index({ 'triggers.type': 1 });
 
 module.exports = model('ComponentMessage', ComponentMessageSchema);

@@ -1065,6 +1065,153 @@ app.post('/dashboard/:guildId/setting/bot-banner', require('./middleware/auth'),
     }
 });
 
+/* ── Automation Hub ─────────────────────────────────── */
+app.get('/dashboard/:guildId/automations', require('./middleware/auth'), async (req, res) => {
+    const guildDb   = require('./utils/guildDb');
+    const { getClient } = require('./utils/botClient');
+    const EmbedMessage     = require('../systems/schemas/EmbedMessage');
+    const ComponentMessage = require('../systems/schemas/ComponentMessage');
+    const AutomationLink   = require('../systems/schemas/AutomationLink');
+    const botClient = getClient();
+    const { guildId } = req.params;
+
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.redirect('/dashboard');
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : guildDb.exists(guildId);
+    if (!inBot) return res.redirect('/dashboard');
+
+    const guildInfo = raw.find(g => g.id === guildId);
+    const guilds    = raw.map(g => ({ ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id) }));
+    const botInfo   = botClient?.user
+        ? { username: botClient.user.username, avatar: botClient.user.displayAvatarURL({ size: 64 }) }
+        : { username: 'Bot', avatar: null };
+
+    let embedMessages = [], componentMessages = [], automationLinks = [];
+    try { embedMessages     = await EmbedMessage.find({ guildId }).sort({ updatedAt: -1 }).lean(); } catch (_) {}
+    try { componentMessages = await ComponentMessage.find({ guildId }).sort({ updatedAt: -1 }).lean(); } catch (_) {}
+    try { automationLinks   = await AutomationLink.find({ guildId }).sort({ createdAt: -1 }).lean(); } catch (_) {}
+
+    // Resolve source/target names for display in the UI
+    const docMap = {};
+    [...embedMessages, ...componentMessages].forEach(d => { docMap[d._id.toString()] = d; });
+    automationLinks = automationLinks.map(link => ({
+        ...link,
+        sourceName: docMap[link.sourceId]?.name || link.sourceId,
+        targetName: docMap[link.targetId]?.name || link.targetId,
+    }));
+
+    res.render('automations', {
+        user: req.session.user,
+        guildInfo,
+        guilds,
+        botInfo,
+        guildId,
+        embedMessages,
+        componentMessages,
+        automationLinks,
+        t: req.t,
+        lang: req.lang,
+        isShip: getIsShip(req.session.user?.id),
+    });
+});
+
+/* ── Automations: Link CRUD ─────────────────────────── */
+
+app.post('/dashboard/:guildId/automations/links/save', require('./middleware/auth'), async (req, res) => {
+    const AutomationLink = require('../systems/schemas/AutomationLink');
+    const { guildId } = req.params;
+
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'forbidden' });
+
+    try {
+        const { name, sourceKind, sourceId, sourceButtonId, targetKind, targetId, sendMode } = req.body;
+        if (!sourceKind || !sourceId || !targetKind || !targetId) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        const link = await AutomationLink.create({
+            guildId,
+            name:           (name || '').trim() || 'Untitled Link',
+            sourceKind,
+            sourceId,
+            sourceButtonId: (sourceButtonId || '').trim(),
+            targetKind,
+            targetId,
+            sendMode:       sendMode || 'reply',
+            createdBy:      req.session.user?.id || '',
+        });
+        res.json({ ok: true, link });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.patch('/dashboard/:guildId/automations/links/:id/toggle', require('./middleware/auth'), async (req, res) => {
+    const AutomationLink = require('../systems/schemas/AutomationLink');
+    const { guildId, id } = req.params;
+
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'forbidden' });
+
+    try {
+        const link = await AutomationLink.findOne({ _id: id, guildId });
+        if (!link) return res.status(404).json({ error: 'Not found' });
+        link.enabled = !link.enabled;
+        await link.save();
+        res.json({ ok: true, enabled: link.enabled });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/dashboard/:guildId/automations/links/:id', require('./middleware/auth'), async (req, res) => {
+    const AutomationLink = require('../systems/schemas/AutomationLink');
+    const { guildId, id } = req.params;
+
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'forbidden' });
+
+    try {
+        const result = await AutomationLink.deleteOne({ _id: id, guildId });
+        if (!result.deletedCount) return res.status(404).json({ error: 'Not found' });
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.patch('/dashboard/:guildId/automations/links/:id/update', require('./middleware/auth'), async (req, res) => {
+    const AutomationLink = require('../systems/schemas/AutomationLink');
+    const { guildId, id } = req.params;
+
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'forbidden' });
+
+    try {
+        const { name, sourceKind, sourceId, sourceButtonId, targetKind, targetId, sendMode } = req.body;
+        if (!sourceKind || !sourceId || !targetKind || !targetId) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        const link = await AutomationLink.findOneAndUpdate(
+            { _id: id, guildId },
+            {
+                name:           (name || '').trim() || 'Untitled Link',
+                sourceKind,
+                sourceId,
+                sourceButtonId: (sourceButtonId || '').trim(),
+                targetKind,
+                targetId,
+                sendMode:       sendMode || 'reply',
+            },
+            { new: true }
+        );
+        if (!link) return res.status(404).json({ error: 'Not found' });
+        res.json({ ok: true, link });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 /* ── Messaging: Embed Messages ──────────────────────── */
 app.get('/dashboard/:guildId/embeds', require('./middleware/auth'), async (req, res) => {
     const guildDb   = require('./utils/guildDb');
@@ -1540,11 +1687,16 @@ app.get('/dashboard/:guildId/components', require('./middleware/auth'), async (r
     const guilds    = raw.map(g => ({ ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id) }));
 
     let guildChannels = [];
+    let guildCategories = [];
     if (botClient) {
         const guild = botClient.guilds.cache.get(guildId);
         if (guild) {
             guildChannels = guild.channels.cache
                 .filter(c => c.type === 0)
+                .map(c => ({ id: c.id, name: c.name, parentId: c.parentId || null }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            guildCategories = guild.channels.cache
+                .filter(c => c.type === 4)
                 .map(c => ({ id: c.id, name: c.name }))
                 .sort((a, b) => a.name.localeCompare(b.name));
         }
@@ -1580,7 +1732,7 @@ app.get('/dashboard/:guildId/components', require('./middleware/auth'), async (r
 
     res.render('components_messages', {
         user: req.session.user, guildInfo, guilds,
-        guildChannels, guildRoles, guildEmojis, botInfo,
+        guildChannels, guildCategories, guildRoles, guildEmojis, botInfo,
         savedMessages,
         t: req.t, lang: req.lang, guildId,
         isShip: getIsShip(req.session.user?.id)
@@ -1620,10 +1772,13 @@ app.post('/dashboard/:guildId/components/api/save', require('./middleware/auth')
     const raw = req.session.guilds || [];
     if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
 
-    const { _id, name, content, channelId, components, actions } = req.body;
+    const { _id, name, content, channelId, channelIds, components, actions,
+            triggers, scheduledAt, multiUser, timeout, preMentions, sendMode,
+            states, initialStateId } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
-    if (!channelId)            return res.status(400).json({ error: 'Channel is required' });
+    // channelId is fully optional — triggers or runtime context supply it when absent
 
+    // Extract all customIds across every state (so O(1) interaction lookup works)
     const componentIds = [];
     function extractIds(rows) {
         for (const row of (rows || [])) {
@@ -1638,17 +1793,35 @@ app.post('/dashboard/:guildId/components/api/save', require('./middleware/auth')
             }
         }
     }
+    // Root-level components (initial state flat compat)
     extractIds(components || []);
+    // All states
+    for (const st of (states || [])) extractIds(st.components || []);
 
     try {
         let doc;
         const updateData = {
             name: name.trim(),
             content: (content || '').slice(0, 2000),
-            channelId,
+            channelId: channelId || '',
+            channelIds: Array.isArray(channelIds) ? channelIds : (channelId ? [channelId] : []),
             components: components || [],
             actions: actions || [],
-            componentIds,
+            /** Persist full multi-state flow */
+            states: (states || []).map(st => ({
+                id: st.id, label: st.label || 'State', color: st.color || '#5865f2',
+                content: (st.content || '').slice(0, 4000),
+                components: st.components || [],
+                actions: (st.actions || []),
+            })),
+            initialStateId: initialStateId || '',
+            componentIds: [...new Set(componentIds)],  // deduplicate
+            triggers: (triggers || []).map(t => ({ id: t.id || String(Date.now()), type: t.type, params: t.params || {} })),
+            scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+            multiUser: !!multiUser,
+            timeout: parseInt(timeout, 10) || 0,
+            preMentions: Array.isArray(preMentions) ? preMentions : [],
+            sendMode: sendMode === 'edit' ? 'edit' : 'new',
             updatedBy: req.session.user?.id || '',
         };
 
@@ -1667,33 +1840,66 @@ app.post('/dashboard/:guildId/components/api/save', require('./middleware/auth')
             });
         }
 
-        // Send or edit the live Discord message
+        // Send to Discord: use initial state's content, loop over all channelIds
         const botClient = getClient();
-        if (botClient && channelId) {
-            try {
-                const channel = await botClient.channels.fetch(channelId).catch(() => null);
-                if (channel) {
-                    const { buildComponentPayload } = require('./utils/componentBuilder');
-                    const payload = buildComponentPayload({ content: doc.content, components: doc.components });
+        const allChannelIds = Array.isArray(channelIds) && channelIds.length
+            ? channelIds
+            : (channelId ? [channelId] : []);
 
-                    // Require at least one component or content for a valid payload
-                    if (!payload.components.length && !payload.content) {
-                        logger.warn('components/save: payload is empty, skipping Discord send');
-                    } else if (doc.messageId) {
-                        const msg = await channel.messages.fetch(doc.messageId).catch(() => null);
-                        if (msg) {
-                            await msg.edit(payload);
-                        } else {
+        if (botClient && allChannelIds.length) {
+            try {
+                const { buildComponentPayload } = require('./utils/componentBuilder');
+                // Use initial state content if available
+                const initState = (states || []).find(s => s.id === initialStateId) || (states || [])[0];
+                const sendContent    = initState?.content    ?? doc.content    ?? '';
+                const sendComponents = initState?.components ?? doc.components ?? [];
+                const payload = buildComponentPayload({ content: sendContent, components: sendComponents });
+
+                if (!payload.components.length && !payload.content) {
+                    logger.warn('components/save: payload is empty, skipping Discord send');
+                } else {
+                    // Send preMentions as a separate ping message first
+                    const mentions = Array.isArray(preMentions) ? preMentions : [];
+                    const pingText = mentions.map(m => {
+                        if (!m) return '';
+                        if (typeof m === 'string') return m;
+                        if (m.type === 'special') return `@${m.id}`;
+                        if (m.type === 'role')    return `<@&${m.id}>`;
+                        return '';
+                    }).filter(Boolean).join(' ');
+
+                    for (const cid of allChannelIds) {
+                        try {
+                            const channel = await botClient.channels.fetch(cid).catch(() => null);
+                            if (!channel) continue;
+
+                            if (pingText) {
+                                await channel.send({ content: pingText, allowedMentions: { parse: ['roles', 'everyone', 'here'] } }).catch(() => null);
+                            }
+
+                            if (sendMode === 'edit' && doc.messageId && cid === (channelId || allChannelIds[0])) {
+                                // Edit mode: update the primary channel's existing message
+                                const existingMsg = await channel.messages.fetch(doc.messageId).catch(() => null);
+                                if (existingMsg) {
+                                    await existingMsg.edit(payload);
+                                    continue;
+                                }
+                            }
+                            // New mode: send fresh
                             const sent = await channel.send(payload);
-                            await ComponentMessage.findByIdAndUpdate(doc._id, { $set: { messageId: sent.id } });
-                            doc = doc.toObject ? doc.toObject() : { ...doc };
-                            doc.messageId = sent.id;
+                            const isPrimary = cid === (channelId || allChannelIds[0]);
+                            const dbUpdate = {
+                                $push: { sentLog: { channelId: channel.id, messageId: sent.id, sentAt: new Date() } },
+                            };
+                            if (isPrimary) dbUpdate.$set = { messageId: sent.id };
+                            await ComponentMessage.findByIdAndUpdate(doc._id, dbUpdate);
+                            if (isPrimary) {
+                                doc = doc.toObject ? doc.toObject() : { ...doc };
+                                doc.messageId = sent.id;
+                            }
+                        } catch (chErr) {
+                            logger.warn('components/save: channel send failed', { channelId: cid, error: chErr.message });
                         }
-                    } else {
-                        const sent = await channel.send(payload);
-                        await ComponentMessage.findByIdAndUpdate(doc._id, { $set: { messageId: sent.id } });
-                        doc = doc.toObject ? doc.toObject() : { ...doc };
-                        doc.messageId = sent.id;
                     }
                 }
             } catch (botErr) {
@@ -1719,6 +1925,63 @@ app.delete('/dashboard/:guildId/components/api/:id', require('./middleware/auth'
         if (!doc) return res.status(404).json({ error: 'Not found' });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/* ── Components Webhook Trigger ─────────────────────────────────────────────
+ *  POST /api/webhook/components/:guildId/:triggerId?token=xxx
+ *  Public endpoint (no session auth) — secured by per-trigger token.
+ */
+app.post('/api/webhook/components/:guildId/:triggerId', express.json({ limit: '64kb' }), async (req, res) => {
+    const ComponentMessage = require('../systems/schemas/ComponentMessage');
+    const { getClient } = require('./utils/botClient');
+    const { guildId, triggerId } = req.params;
+    const token = req.query.token || req.body?.token;
+
+    if (!token || typeof token !== 'string' || token.length < 8)
+        return res.status(401).json({ error: 'Missing or invalid token' });
+
+    try {
+        const doc = await ComponentMessage.findOne({
+            guildId,
+            triggers: { $elemMatch: { id: triggerId, type: 'webhook', 'params.token': token } },
+        }).lean();
+
+        if (!doc) return res.status(404).json({ error: 'Webhook not found' });
+
+        const botClient = getClient();
+        if (!botClient) return res.status(503).json({ error: 'Bot not connected' });
+
+        const allChannelIds = doc.channelIds?.length ? doc.channelIds : (doc.channelId ? [doc.channelId] : []);
+        if (!allChannelIds.length)
+            return res.status(422).json({ error: 'No target channel configured for this automation' });
+
+        const { buildComponentPayload } = require('./utils/componentBuilder');
+        const state = (doc.states?.find(s => s.id === doc.initialStateId) || doc.states?.[0])
+            || { content: doc.content, components: doc.components };
+        const payload = buildComponentPayload({ content: state.content || doc.content || '', components: state.components || doc.components || [] });
+
+        if (!payload.components.length && !payload.content)
+            return res.status(422).json({ error: 'Automation payload is empty' });
+
+        const sentChannels = [];
+        for (const cid of allChannelIds) {
+            try {
+                const channel = await botClient.channels.fetch(cid).catch(() => null);
+                if (!channel) continue;
+                const sent = await channel.send(payload);
+                await ComponentMessage.findByIdAndUpdate(doc._id, {
+                    $push: { sentLog: { channelId: channel.id, messageId: sent.id, sentAt: new Date() } },
+                });
+                sentChannels.push(channel.id);
+            } catch (chErr) {
+                logger.warn('components/webhook: channel send failed', { channelId: cid, error: chErr.message });
+            }
+        }
+        res.json({ success: true, sent: sentChannels.length });
+    } catch (e) {
+        logger.error('components/webhook: error', { error: e.message });
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.get('/dashboard/:guildId/levels', require('./middleware/auth'), (req, res) => {
@@ -1882,6 +2145,7 @@ function _defaultTicketData() {
             RULES_BTN_STYLE:      2,
             ESCALATE_ENABLED:     false,
             ESCALATE_CATEGORIES:  [],
+            ESCALATE_ROLES:       [],
         },
         panels: [],
         multiPanels: [],
@@ -3550,6 +3814,440 @@ app.post('/dashboard/:guildId/points/interactions/save', require('./middleware/a
     }
 });
 
+/* ── Welcome Messages ────────────────────────────────── */
+function _welcomeRoute(view) {
+    return [require('./middleware/auth'), (req, res) => {
+        const guildDb = require('./utils/guildDb');
+        const { getClient } = require('./utils/botClient');
+        const botClient = getClient();
+        const { guildId } = req.params;
+        const raw = req.session.guilds || [];
+        if (!raw.find(g => g.id === guildId)) return res.redirect('/dashboard');
+        const inBot = botClient ? botClient.guilds.cache.has(guildId) : guildDb.exists(guildId);
+        if (!inBot) return res.redirect('/dashboard');
+        const guildInfo = raw.find(g => g.id === guildId);
+        const guilds = raw.map(g => ({ ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : guildDb.exists(g.id) }));
+        res.render(view, { user: req.session.user, guildInfo, guilds, t: req.t, lang: req.lang, guildId, isShip: getIsShip(req.session.user?.id) });
+    }];
+}
+
+/* ── Welcome/Join — full featured ───────────────────── */
+app.get('/dashboard/:guildId/welcome/join', require('./middleware/auth'), async (req, res) => {
+    const db = require('../systems/schemas');
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.redirect('/dashboard');
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : false;
+    if (!inBot) return res.redirect('/dashboard');
+    const guildInfo = raw.find(g => g.id === guildId);
+    const guilds    = raw.map(g => ({ ...g, inBot: botClient ? botClient.guilds.cache.has(g.id) : false }));
+
+    let guildChannels = [];
+    let guildRoles = [];
+    if (botClient) {
+        const guild = botClient.guilds.cache.get(guildId);
+        if (guild) {
+            guildChannels = guild.channels.cache
+                .filter(c => c.type === 0)
+                .map(c => ({ id: c.id, name: c.name }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            guildRoles = guild.roles.cache
+                .filter(r => !r.managed && r.name !== '@everyone')
+                .map(r => ({ id: r.id, name: r.name, color: r.hexColor || '#99aab5', position: r.rawPosition }))
+                .sort((a, b) => b.position - a.position);
+        }
+    }
+
+    let welcomeConfig;
+    try {
+        welcomeConfig = await db.WelcomeJoin.getConfig(guildId);
+        logger.info('welcome/join loaded', {
+            category: 'dashboard',
+            guildId,
+            fromMongo: !!(welcomeConfig && welcomeConfig._id),
+            templateCount: Array.isArray(welcomeConfig?.templates) ? welcomeConfig.templates.length : 0,
+            enabled: welcomeConfig?.enabled,
+        });
+    } catch (err) {
+        logger.error('welcome/join getConfig failed', { category: 'dashboard', guildId, error: err.message });
+        welcomeConfig = {
+            guildId, enabled: false, welcomeText: false, dmWelcome: false, dmMessage: '',
+            sendDelay: 0, deleteDelay: 0, waitRules: false, ignoreBots: false, ignoreUsers: false,
+            templates: [], groups: [],
+        };
+    }
+
+    let imgConfig = { enabled: false, sendMode: 'embed', attachmentText: '', channelId: '', linkedTemplateId: '' };
+    try { imgConfig = await db.WelcomeImage.getConfig(guildId); } catch { /* use defaults */ }
+
+    const memberCount = botClient?.guilds.cache.get(guildId)?.memberCount ?? 0;
+
+    res.render('welcome_join', {
+        user: req.session.user, guildInfo, guilds,
+        guildChannels, guildRoles, welcomeConfig, imgConfig,
+        t: req.t, lang: req.lang, guildId,
+        memberCount, isShip: getIsShip(req.session.user?.id)
+    });
+});
+
+/* ── Welcome/Join Save ───────────────────────────────── */
+app.post('/dashboard/:guildId/welcome/join/save', require('./middleware/auth'), async (req, res) => {
+    const db = require('../systems/schemas');
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : false;
+    if (!inBot) return res.status(403).json({ error: 'Guild not found' });
+
+    try {
+        const allowed = ['enabled','welcomeText','dmWelcome','dmMessage',
+                         'sendDelay','deleteDelay','waitRules',
+                         'ignoreBots','ignoreUsers','templates','groups'];
+        const patch = {};
+        for (const key of allowed) {
+            if (key in req.body) patch[key] = req.body[key];
+        }
+        // Clamp numeric fields
+        if (typeof patch.sendDelay   === 'number') patch.sendDelay   = Math.max(0, Math.min(300,  patch.sendDelay));
+        if (typeof patch.deleteDelay === 'number') patch.deleteDelay = Math.max(0, Math.min(3600, patch.deleteDelay));
+
+        const saved = await db.WelcomeJoin.patch(guildId, patch);
+        const savedCount = Array.isArray(saved?.templates) ? saved.templates.length : (Array.isArray(patch?.templates) ? patch.templates.length : 0);
+        logger.info('welcome/join saved', {
+            category: 'dashboard',
+            guildId,
+            templateCount: savedCount,
+            enabled: patch.enabled,
+            mongoConnected: require('../systems/schemas').isConnected(),
+        });
+        res.json({ success: true, templateCount: savedCount });
+    } catch (err) {
+        logger.error('welcome/join/save failed', { category: 'dashboard', guildId, error: err.message, stack: err.stack });
+        res.status(500).json({ error: 'Failed to save', detail: err.message });
+    }
+});
+
+app.get('/dashboard/:guildId/welcome/leave',      ..._welcomeRoute('welcome_leave'));
+
+/* ── Welcome/Join Test Send ──────────────────────────── */
+app.post('/dashboard/:guildId/welcome/join/test-send', require('./middleware/auth'), async (req, res) => {
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : false;
+    if (!inBot) return res.status(403).json({ error: 'Guild not found' });
+    try {
+        const { template, targetChannelId } = req.body;
+        if (!template || typeof template !== 'object') return res.status(400).json({ error: 'No template provided' });
+        const guild  = botClient.guilds.cache.get(guildId);
+        const member = guild ? await guild.members.fetch(req.session.user.id).catch(() => null) : null;
+        if (!guild || !member) return res.status(400).json({ error: 'Could not find your member in this guild' });
+        // Resolve send target
+        const chId = targetChannelId || template.channelId;
+        let channel = null;
+        if (!chId || chId === 'dm') {
+            channel = await member.user.createDM().catch(() => null);
+        } else {
+            channel = guild.channels.cache.get(chId) || null;
+        }
+        if (!channel) return res.status(400).json({ error: 'Channel not found or bot lacks access' });
+        // Variable replacement — matches [variable] syntax used in templates
+        const today    = new Date();
+        const created  = member.user.createdAt;
+        const daysSince = Math.floor((Date.now() - created.getTime()) / 86_400_000);
+        const replace = s => (s || '')
+            .replace(/\[user\]/g,            member.toString())
+            .replace(/\[userName\]/g,        member.user.username)
+            .replace(/\[userCreatedDate\]/g, created.toLocaleDateString('en-GB'))
+            .replace(/\[userCreatedDays\]/g, String(daysSince))
+            .replace(/\[serverName\]/g,      guild.name)
+            .replace(/\[memberCount\]/g,     String(guild.memberCount))
+            .replace(/\[inviter\]/g,         member.toString())
+            .replace(/\[inviterName\]/g,     member.user.username)
+            .replace(/\[invitesCount\]/g,    '0')
+            .replace(/\[inviteCode\]/g,      'N/A');
+        const { EmbedBuilder } = require('discord.js');
+        const type = template.type || 'text';
+        if (type === 'embed') {
+            const eb = new EmbedBuilder();
+            const em = template.embed || {};
+            if (em.title)       eb.setTitle(replace(em.title).slice(0, 256));
+            if (em.description) eb.setDescription(replace(em.description).slice(0, 4096));
+            if (em.color)       { try { eb.setColor(em.color); } catch {} }
+            if (em.footer)      eb.setFooter({ text: replace(em.footer).slice(0, 2048) });
+            if (em.thumbnail)   { const t = replace(em.thumbnail); if (/^https?:\/\//.test(t)) eb.setThumbnail(t); }
+            await channel.send({ embeds: [eb] });
+        } else if (type === 'component') {
+            const { buildComponentPayload } = require('./utils/componentBuilder');
+            let parsed; try { parsed = JSON.parse(template.componentJson || '{}'); } catch { return res.status(400).json({ error: 'Invalid component JSON' }); }
+            const rows = Array.isArray(parsed.components) ? parsed.components : (Array.isArray(parsed) ? parsed : []);
+            await channel.send(buildComponentPayload({ content: '', components: rows }));
+        } else {
+            const text = replace(template.content || 'Test welcome message').slice(0, 2000);
+            await channel.send(text);
+        }
+        res.json({ success: true });
+    } catch (err) {
+        logger.error('welcome/join/test-send failed', { category: 'dashboard', error: err.message });
+        res.status(500).json({ error: err.message || 'Failed to send' });
+    }
+});
+
+/* ── Welcome/Join Dynamic Image Test Send ─────────────── */
+app.post('/dashboard/:guildId/welcome/join/image/test-send', require('./middleware/auth'), async (req, res) => {
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : false;
+    if (!inBot) return res.status(403).json({ error: 'Guild not found in bot cache' });
+    try {
+        const db      = require('../systems/schemas');
+        const guild   = botClient.guilds.cache.get(guildId);
+
+        // Use the dashboard user as the test member (their avatar/name used where relevant)
+        const member  = await guild.members.fetch(req.session.user.id).catch(() => null);
+        if (!member) return res.status(400).json({ error: 'Could not find your member in this guild' });
+
+        // Load saved WelcomeImage config; allow overriding linkedTemplateId from request
+        const imgConfig = await db.WelcomeImage.getConfig(guildId);
+        const { linkedTemplateName } = req.body;
+        if (linkedTemplateName) imgConfig.linkedTemplateId = linkedTemplateName;
+
+        const mode = imgConfig.sendMode || 'embed';
+
+        // Determine target channel
+        let channelId = imgConfig.channelId;
+        if (mode === 'embed' || mode === 'component') {
+            if (!imgConfig.linkedTemplateId) return res.status(400).json({ error: 'No linked template selected' });
+            const joinCfg   = await db.WelcomeJoin.findOne({ guildId }).lean();
+            const templates = Array.isArray(joinCfg?.templates) ? joinCfg.templates : [];
+            const linkedTpl = templates.find(t => t.name === imgConfig.linkedTemplateId);
+            if (!linkedTpl || !linkedTpl.channelId) return res.status(400).json({ error: `Template "${imgConfig.linkedTemplateId}" not found or has no channel` });
+            channelId = linkedTpl.channelId;
+        }
+
+        const channel = guild.channels.cache.get(channelId);
+        if (!channel) return res.status(400).json({ error: 'Channel not found or bot lacks access' });
+
+        // Render the image on-server via node-canvas
+        const { renderWelcomeImage } = require('../systems/welcome_image_renderer');
+        const imageBuffer = await renderWelcomeImage(imgConfig, { member, guild });
+        if (!imageBuffer || !imageBuffer.length) return res.status(500).json({ error: 'Image rendering produced empty output' });
+
+        const {
+            AttachmentBuilder, EmbedBuilder,
+            ContainerBuilder, MediaGalleryBuilder, MediaGalleryItemBuilder,
+            TextDisplayBuilder, MessageFlags,
+        } = require('discord.js');
+        const attachment = new AttachmentBuilder(imageBuffer, { name: 'welcome.png' });
+
+        // Variable resolver (same logic as welcome_join system)
+        const resolveVars = (s) => {
+            if (!s) return '';
+            const user    = member.user;
+            const created = user.createdAt;
+            const days    = Math.floor((Date.now() - created.getTime()) / 86_400_000);
+            return s
+                .replace(/\[user\]/g,            member.toString())
+                .replace(/\[userName\]/g,        user.username)
+                .replace(/\[userCreatedDate\]/g, created.toLocaleDateString('en-GB'))
+                .replace(/\[userCreatedDays\]/g, String(days))
+                .replace(/\[serverName\]/g,      guild.name)
+                .replace(/\[memberCount\]/g,     String(guild.memberCount))
+                .replace(/\[inviter\]/g,         member.toString())
+                .replace(/\[inviterName\]/g,     user.username)
+                .replace(/\[invitesCount\]/g,    '0')
+                .replace(/\[inviteCode\]/g,      'N/A');
+        };
+
+        if (mode === 'embed') {
+            const e    = new EmbedBuilder().setImage('attachment://welcome.png');
+            const opts = imgConfig.embedOptions || {};
+            if (opts.title)       e.setTitle(resolveVars(opts.title).slice(0, 256));
+            if (opts.description) e.setDescription(resolveVars(opts.description).slice(0, 4096));
+            if (opts.footer)      e.setFooter({ text: resolveVars(opts.footer).slice(0, 2048) });
+            if (opts.color)       { try { e.setColor(opts.color); } catch { /* invalid hex */ } }
+            await channel.send({ embeds: [e], files: [attachment] });
+
+        } else if (mode === 'component') {
+            const container     = new ContainerBuilder();
+            const componentText = resolveVars(imgConfig.componentText || '');
+            if (componentText.trim()) {
+                container.addTextDisplayComponents(new TextDisplayBuilder().setContent(componentText));
+            }
+            container.addMediaGalleryComponents(
+                new MediaGalleryBuilder().addItems(
+                    new MediaGalleryItemBuilder().setURL('attachment://welcome.png')
+                )
+            );
+            await channel.send({ components: [container], files: [attachment], flags: MessageFlags.IsComponentsV2 });
+
+        } else {
+            // attachment mode — standalone file with optional text
+            const text = resolveVars(imgConfig.attachmentText || '');
+            await channel.send({ content: text.trim() || undefined, files: [attachment] });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        logger.error('welcome/join/image/test-send failed', { category: 'dashboard', error: err.message });
+        res.status(500).json({ error: err.message || 'Failed to send' });
+    }
+});
+
+app.get('/dashboard/:guildId/welcome/boost',      ..._welcomeRoute('welcome_boost'));
+app.get('/dashboard/:guildId/welcome/assignment', ..._welcomeRoute('welcome_assignment'));
+
+/* ── Welcome/Join Activity Logs ──────────────────────── */
+app.get('/dashboard/:guildId/welcome/join/logs', require('./middleware/auth'), async (req, res) => {
+    const db = require('../systems/schemas');
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    try {
+        const cfg = await db.WelcomeJoin.findOne({ guildId }, { activityLog: 1 }).lean();
+        const logs = (cfg?.activityLog || []).slice().reverse().slice(0, 100);
+        res.json({ logs });
+    } catch (err) {
+        logger.error('welcome/join/logs GET failed', { category: 'dashboard', error: err.message });
+        res.status(500).json({ error: 'Failed to load logs' });
+    }
+});
+
+/* ── Welcome/Join Dynamic Image config ──────────────── */
+app.get('/dashboard/:guildId/welcome/join/image', require('./middleware/auth'), async (req, res) => {
+    const db = require('../systems/schemas');
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : false;
+    if (!inBot) return res.status(403).json({ error: 'Guild not found' });
+    try {
+        const config = await db.WelcomeImage.getConfig(guildId);
+        res.json(config);
+    } catch (err) {
+        logger.error('welcome/join/image GET failed', { category: 'dashboard', error: err.message });
+        res.status(500).json({ error: 'Failed to load' });
+    }
+});
+
+app.post('/dashboard/:guildId/welcome/join/image/save', require('./middleware/auth'), async (req, res) => {
+    const db = require('../systems/schemas');
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : false;
+    if (!inBot) return res.status(403).json({ error: 'Guild not found' });
+    try {
+        const allowed = ['enabled','channelId','width','height','bgColor','layers','sendMode','linkedTemplateId','attachmentText','uploadedBgUrl'];
+        const patch = {};
+        for (const key of allowed) {
+            if (key in req.body) patch[key] = req.body[key];
+        }
+        if (typeof patch.width  === 'number') patch.width  = Math.max(100, Math.min(2000, patch.width));
+        if (typeof patch.height === 'number') patch.height = Math.max(100, Math.min(2000, patch.height));
+        await db.WelcomeImage.patch(guildId, patch);
+        res.json({ success: true });
+    } catch (err) {
+        logger.error('welcome/join/image/save POST failed', { category: 'dashboard', error: err.message });
+        res.status(500).json({ error: 'Failed to save' });
+    }
+});
+
+/* ── Image Proxy (bypasses CORS for external URLs in canvas editor) ── */
+app.get('/dashboard/proxy-image', require('./middleware/auth'), (req, res) => {
+    const raw = decodeURIComponent(req.query.url || '');
+    if (!raw || !/^https?:\/\//i.test(raw)) return res.status(400).end('Bad URL');
+    try {
+        const mod = raw.startsWith('https') ? require('https') : require('http');
+        const request = mod.get(raw, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DashboardProxy/1.0)' } }, (upstream) => {
+            if (upstream.statusCode >= 400) { res.status(upstream.statusCode).end(); return; }
+            const ct = upstream.headers['content-type'] || 'image/jpeg';
+            if (!/^image\//i.test(ct)) { res.status(400).end('Not an image'); return; }
+            res.set('Content-Type', ct);
+            res.set('Cache-Control', 'public, max-age=3600');
+            res.set('Access-Control-Allow-Origin', '*');
+            upstream.pipe(res);
+        });
+        request.on('error', () => res.status(502).end('Upstream error'));
+    } catch (_err) {
+        res.status(500).end('Proxy error');
+    }
+});
+
+/* ── Welcome/Join Background Image Upload ─────────────── */
+const multerWiBg = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            const dir = path.join(UPLOADS_ROOT, 'wi-bg', req.params.guildId);
+            fs.mkdirSync(dir, { recursive: true });
+            cb(null, dir);
+        },
+        filename: (_req, _file, cb) => {
+            const ext = _file.originalname.split('.').pop().replace(/[^a-z0-9]/gi, '') || 'jpg';
+            cb(null, `bg_${Date.now()}.${ext}`);
+        },
+    }),
+    limits: { fileSize: 8 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+        cb(null, /^image\/(jpeg|jpg|png|webp|gif)$/.test(file.mimetype));
+    },
+});
+app.post('/dashboard/:guildId/welcome/join/image/upload-bg', require('./middleware/auth'), multerWiBg.single('file'), async (req, res) => {
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    if (!req.file) return res.status(400).json({ error: 'No valid image file provided (max 8 MB, jpg/png/webp)' });
+    try {
+        const relPath = `/uploads/wi-bg/${guildId}/${req.file.filename}`;
+        // Persist the uploaded bg URL in the WelcomeImage document so it survives saves
+        const db = require('../systems/schemas');
+        await db.WelcomeImage.patch(guildId, { uploadedBgUrl: relPath });
+        res.json({ success: true, url: relPath });
+    } catch (err) {
+        logger.error('welcome/join/image/upload-bg failed', { category: 'dashboard', guildId, error: err.message });
+        res.status(500).json({ error: 'Upload failed' });
+    }
+});
+
+/* ── Welcome image preview (renders PNG server-side) ── */
+app.get('/dashboard/:guildId/welcome/join/image/preview', require('./middleware/auth'), async (req, res) => {
+    const db = require('../systems/schemas');
+    const { renderWelcomeImage } = require('../systems/welcome_image_renderer');
+    const { getClient } = require('./utils/botClient');
+    const botClient = getClient();
+    const { guildId } = req.params;
+    const raw = req.session.guilds || [];
+    if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Forbidden' });
+    const inBot = botClient ? botClient.guilds.cache.has(guildId) : false;
+    if (!inBot) return res.status(403).json({ error: 'Guild not found' });
+    try {
+        const config = await db.WelcomeImage.getConfig(guildId);
+        const guild  = botClient ? botClient.guilds.cache.get(guildId) : null;
+        const member = guild ? await guild.members.fetch(req.session.user.id).catch(() => null) : null;
+        if (!guild || !member) return res.status(400).json({ error: 'Bot not in guild or member not found' });
+        const buf = await renderWelcomeImage(config, { member, guild });
+        res.set('Content-Type', 'image/png');
+        res.set('Cache-Control', 'no-store');
+        res.send(buf);
+    } catch (err) {
+        logger.error('welcome/join/image/preview failed', { category: 'dashboard', error: err.message });
+        res.status(500).json({ error: 'Render failed' });
+    }
+});
+
 /* ── 404 ─────────────────────────────────────────────── */
 app.use((req, res) => {
     res.status(404).redirect('/');
@@ -3557,6 +4255,17 @@ app.use((req, res) => {
 
 /* ── Start (called from index.js or standalone) ─────── */
 function start() {
+    // Ensure MongoDB is connected. When launched via index.js the main bootstrap
+    // calls dbSchemas.connect() shortly after — this is a no-op in that case.
+    // When run standalone (`node dashboard/server.js`) this guarantees a connection
+    // so all Mongoose queries (WelcomeJoin, embeds, etc.) persist to the database.
+    const _dbSchemas = require('../systems/schemas');
+    if (!_dbSchemas.isConnected()) {
+        _dbSchemas.connect().catch(err =>
+            logger.error('Dashboard: MongoDB connect failed', { category: 'db', error: err.message })
+        );
+    }
+
     const publicURL = IS_PROD
         ? new URL(process.env.QAUTH_LINK).origin
         : `http://localhost:${PORT}`;

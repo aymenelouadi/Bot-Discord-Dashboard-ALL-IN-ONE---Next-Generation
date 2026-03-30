@@ -4,7 +4,7 @@
  * https://discord.gg/BhJStSa89s
  */
 
-﻿const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const guard = require('../utils/cmdGuard');
 
 /* Components V2 */

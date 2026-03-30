@@ -207,8 +207,25 @@
     .color-hex-tag { font-size: .78rem; font-weight: 700; font-family: 'Orbitron', monospace; color: var(--purple-l); background: var(--surface); border: 1px solid rgba(255,255,255,.1); border-radius: 6px; padding: 4px 9px; letter-spacing: .04em; }
 
     /* Mobile */
-    @media (max-width: 860px) {
+    @media (max-width: 900px) {
       .menu-toggle { display: flex; }
+      .mgmt-sidebar { left: 0 !important; right: auto !important; width: 260px !important; z-index: 92; transform: translateX(-100%); }
+      [dir="rtl"] .mgmt-sidebar { left: auto !important; right: 0 !important; transform: translateX(100%); }
+      .mgmt-sidebar.open { transform: translateX(0) !important; }
+      .main { margin-left: var(--nav-w); margin-right: 0; padding: 20px 16px 80px; }
+      [dir="rtl"] .main { margin-left: 0; margin-right: var(--nav-w); }
+      .save-bar { left: var(--nav-w) !important; right: 0 !important; padding: 12px 16px; }
+      [dir="rtl"] .save-bar { left: 0 !important; right: var(--nav-w) !important; }
+      .topbar { padding: 0 12px; gap: 8px; }
+      .topbar-brand { display: none; }
+      .guild-meta-id { display: none !important; }
+      .guild-meta-name { max-width: 90px; }
+      .user-chip span { display: none; }
+      .user-chip { padding: 4px 7px; }
+      .topbar-sep { display: none; }
+    }
+    @media (max-width: 600px) {
+      :root { --nav-w: 0px; }
       .nav-sidebar { transform: translateX(-100%); width: 220px !important; align-items: stretch; overflow-x: unset; z-index: 95; transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1); }
       [dir="rtl"] .nav-sidebar { transform: translateX(100%); }
       .nav-sidebar.open { transform: translateX(0) !important; box-shadow: 4px 0 24px rgba(0,0,0,.5); }
@@ -218,21 +235,9 @@
       .nav-sidebar.open .nav-item-label { opacity: 1; visibility: visible; pointer-events: auto; }
       .nav-sidebar.open .nav-status { opacity: 0; }
       .nav-sidebar.open .nav-divider { width: calc(100% - 24px); }
-      .mgmt-sidebar { left: 0 !important; right: auto !important; width: 260px !important; z-index: 92; transform: translateX(-100%); }
-      [dir="rtl"] .mgmt-sidebar { left: auto !important; right: 0 !important; transform: translateX(100%); }
-      .mgmt-sidebar.open { transform: translateX(0) !important; }
-      .main { margin-left: 0 !important; margin-right: 0 !important; padding: 20px 16px 80px; }
-      [dir="rtl"] .main { margin-left: 0 !important; margin-right: 0 !important; }
-      .save-bar { left: 0 !important; right: 0 !important; padding: 12px 16px; }
+      .main { margin-left: 0 !important; margin-right: 0 !important; }
+      .save-bar { left: 0 !important; right: 0 !important; }
       [dir="rtl"] .save-bar { left: 0 !important; right: 0 !important; }
-      .topbar { padding: 0 12px; gap: 8px; }
-      .topbar-brand { display: none; }
-      .guild-meta-id { display: none !important; }
-      .guild-meta-name { max-width: 90px; }
-      .user-chip span { display: none; }
-      .user-chip { padding: 4px 7px; }
-      .topbar-sep { display: none; }
-      .lang-select { display: none; }
     }
     @media (max-width: 600px) {
       .page-header h2 { font-size: 1.2rem; }
@@ -918,6 +923,27 @@
 <% } %>
         </div>
 
+        <!-- Escalation Roles -->
+        <div class="form-row form-row-col" id="escalate-roles-row" <%- ticketSettings.ESCALATE_ENABLED ? '' : 'style="display:none"' %>>
+          <div class="form-row-left" style="width:100%">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;margin-right:5px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Allowed Roles
+            </label>
+            <p class="form-help">Only members with these roles can use the Escalate button. Leave empty to allow all users.</p>
+          </div>
+          <div class="esc-select-wrap">
+            <select id="ticket-escalate-roles-sel" class="form-select">
+              <option value="">-- Select a role --</option>
+<% guildRoles.forEach(function(r) { %>
+              <option value="<%= r.id %>"><%= r.name %></option>
+<% }); %>
+            </select>
+            <div class="esc-chips" id="esc-roles-chips-box"></div>
+          </div>
+          <input type="hidden" id="ticket-escalate-roles-json" value="<%= JSON.stringify(ticketSettings.ESCALATE_ROLES || []) %>" />
+        </div>
+
       </div>
     </div>
   </main>
@@ -1051,6 +1077,7 @@
       rulesBtnStyle:   document.getElementById('ticket-rules-style-val').value,
       escalateEnabled: document.getElementById('ticket-escalate-enabled').checked,
       escalateCats:    JSON.stringify(_getEscalateCats()),
+      escalateRoles:   document.getElementById('ticket-escalate-roles-json')?.value || '[]',
     };
 
     function isDirty() {
@@ -1097,7 +1124,8 @@
         document.getElementById('ticket-rules-emoji').value              !== originals.rulesEmoji          ||
         document.getElementById('ticket-rules-style-val').value          !== originals.rulesBtnStyle       ||
         document.getElementById('ticket-escalate-enabled').checked       !== originals.escalateEnabled     ||
-        JSON.stringify(_getEscalateCats()) !== originals.escalateCats
+        JSON.stringify(_getEscalateCats())   !== originals.escalateCats                                    ||
+        JSON.stringify(_getEscalateRoles())  !== originals.escalateRoles
       );
     }
 
@@ -1155,6 +1183,43 @@
       this.value = '';
       checkDirty();
     });
+    // ── Escalate roles helpers ──────────────────────────────────────
+    function _getEscalateRoles() {
+      return [...document.querySelectorAll('#esc-roles-chips-box .esc-chip')].map(c => c.dataset.val).sort();
+    }
+    function _addEscRoleChip(id, label) {
+      const box = document.getElementById('esc-roles-chips-box');
+      if (box.querySelector(`.esc-chip[data-val="${id}"]`)) return;
+      const chip = document.createElement('span');
+      chip.className = 'esc-chip'; chip.dataset.val = id;
+      chip.innerHTML = `${label}<button type="button" class="esc-chip-rm" title="Remove">&times;</button>`;
+      chip.querySelector('.esc-chip-rm').addEventListener('click', () => {
+        chip.remove();
+        const opt = document.querySelector(`#ticket-escalate-roles-sel option[value="${id}"]`);
+        if (opt) opt.disabled = false;
+        checkDirty();
+      });
+      box.appendChild(chip);
+      const opt = document.querySelector(`#ticket-escalate-roles-sel option[value="${id}"]`);
+      if (opt) opt.disabled = true;
+    }
+    // Init existing roles as chips
+    (function() {
+      const saved = JSON.parse(document.getElementById('ticket-escalate-roles-json')?.value || '[]');
+      const sel = document.getElementById('ticket-escalate-roles-sel');
+      saved.forEach(id => {
+        const opt = sel ? sel.querySelector(`option[value="${id}"]`) : null;
+        if (opt) _addEscRoleChip(id, opt.textContent.trim());
+      });
+    })();
+    document.getElementById('ticket-escalate-roles-sel')?.addEventListener('change', function() {
+      const id = this.value;
+      if (!id) return;
+      const label = this.options[this.selectedIndex].textContent.trim();
+      _addEscRoleChip(id, label);
+      this.value = '';
+      checkDirty();
+    });
     watchIds.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -1199,9 +1264,10 @@
         }
       });
     }
-    // Show/hide escalate categories row
+    // Show/hide escalate categories + roles rows
     document.getElementById('ticket-escalate-enabled').addEventListener('change', function () {
-      document.getElementById('escalate-cats-row').style.display = this.checked ? '' : 'none';
+      document.getElementById('escalate-cats-row').style.display  = this.checked ? '' : 'none';
+      document.getElementById('escalate-roles-row').style.display = this.checked ? '' : 'none';
     });
     // Show/hide required-role row when permission level changes
     document.getElementById('ticket-open-perm').addEventListener('change', function () {
@@ -1276,6 +1342,16 @@
         const opt = _escSel.querySelector(`option[value="${id}"]`);
         if (opt) _addEscChip(id, opt.textContent);
       });
+      document.getElementById('escalate-roles-row').style.display = originals.escalateEnabled ? '' : 'none';
+      const _savedRoles = JSON.parse(originals.escalateRoles);
+      const _rolesBox   = document.getElementById('esc-roles-chips-box');
+      const _rolesSel   = document.getElementById('ticket-escalate-roles-sel');
+      _rolesBox.innerHTML = '';
+      [..._rolesSel.options].forEach(o => { o.disabled = false; });
+      _savedRoles.forEach(id => {
+        const opt = _rolesSel.querySelector(`option[value="${id}"]`);
+        if (opt) _addEscRoleChip(id, opt.textContent.trim());
+      });
       document.getElementById('color-success-swatch').style.background = originals.colorSuccess;
       document.getElementById('color-failure-swatch').style.background = originals.colorFailure;
       document.getElementById('color-success-hex').textContent = originals.colorSuccess;
@@ -1336,6 +1412,7 @@
         RULES_BTN_STYLE:        parseInt(document.getElementById('ticket-rules-style-val').value, 10) || 2,
         ESCALATE_ENABLED:       document.getElementById('ticket-escalate-enabled').checked,
         ESCALATE_CATEGORIES:    _getEscalateCats(),
+        ESCALATE_ROLES:         _getEscalateRoles(),
       };
 
       try {
@@ -1390,6 +1467,7 @@
         originals.rulesBtnStyle   = document.getElementById('ticket-rules-style-val').value;
         originals.escalateEnabled = document.getElementById('ticket-escalate-enabled').checked;
         originals.escalateCats    = JSON.stringify(_getEscalateCats());
+        originals.escalateRoles   = JSON.stringify(_getEscalateRoles());
 
         saveBtn.textContent = savedLabel;
         saveBtn.classList.remove('btn-primary');

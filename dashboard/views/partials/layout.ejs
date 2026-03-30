@@ -488,15 +488,23 @@
           </div>
         </div>
 
-        <!-- ── Section: Messaging & Embeds ── -->
+        <!-- ── Section: Automation Studio ── -->
         <div class="mgmt-section">
           <button class="mgmt-section-btn open">
-            <span><%= lang === 'ar' ? 'الرسائل والـ Embeds' : 'Messaging & Embeds' %></span>
+            <span><%= lang === 'ar' ? 'استوديو الأتمتة' : 'Automation Studio' %></span>
             <svg class="mgmt-sec-chevron" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 18 18">
               <path d="M9.53,4.72c-.293-.293-.768-.293-1.061,0L2.22,10.97c-.293,.293-.293,.768,0,1.061s.768,.293,1.061,0l5.72-5.72,5.72,5.72c.146,.146,.338,.22,.53,.22s.384-.073,.53-.22c.293-.293,.293-.768,0-1.061l-6.25-6.25Z" fill="currentColor"/>
             </svg>
           </button>
           <div class="mgmt-sec-body open">
+            <!-- Automations Hub -->
+            <a href="/dashboard/<%= guildId %>/automations" class="mgmt-item <%= _ac('automations') %>nav-link">
+              <div class="mgmt-item-indicator"></div>
+              <div class="mgmt-item-icon">
+                <i data-lucide="zap" style="width:22px;height:22px;stroke:currentColor;fill:none;pointer-events:none;"></i>
+              </div>
+              <span class="mgmt-item-label"><%= lang === 'ar' ? 'مركز الأتمتة' : 'Automations Hub' %></span>
+            </a>
             <!-- Embed Messages -->
             <a href="/dashboard/<%= guildId %>/embeds" class="mgmt-item <%= _ac('embeds') %>nav-link">
               <div class="mgmt-item-indicator"></div>
@@ -689,6 +697,25 @@
                 <i data-lucide="zap" style="width:22px;height:22px;stroke:currentColor;fill:none;pointer-events:none;"></i>
               </div>
               <span class="mgmt-item-label"><%= lang === 'ar' ? 'نقاط التفاعل' : 'Interaction Points' %></span>
+            </a>
+          </div>
+        </div>
+
+        <!-- ── Section: Welcome Messages ── -->
+        <div class="mgmt-section">
+          <button class="mgmt-section-btn open">
+            <span><%= lang === 'ar' ? 'رسائل الترحيب' : 'Welcome Messages' %></span>
+            <svg class="mgmt-sec-chevron" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 18 18">
+              <path d="M9.53,4.72c-.293-.293-.768-.293-1.061,0L2.22,10.97c-.293,.293-.293,.768,0,1.061s.768,.293,1.061,0l5.72-5.72,5.72,5.72c.146,.146,.338,.22,.53,.22s.384-.073,.53-.22c.293-.293,.293-.768,0-1.061l-6.25-6.25Z" fill="currentColor"/>
+            </svg>
+          </button>
+          <div class="mgmt-sec-body open">
+            <a href="/dashboard/<%= guildId %>/welcome/join" class="mgmt-item <%= _ac('welcome-join') %>nav-link">
+              <div class="mgmt-item-indicator"></div>
+              <div class="mgmt-item-icon">
+                <i data-lucide="door-open" style="width:22px;height:22px;stroke:currentColor;fill:none;pointer-events:none;"></i>
+              </div>
+              <span class="mgmt-item-label"><%= lang === 'ar' ? 'رسائل الانضمام' : 'Join Messages' %></span>
             </a>
           </div>
         </div>

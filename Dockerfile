@@ -8,7 +8,7 @@ FROM node:20-alpine
 
 # Metadata
 LABEL maintainer="Next Generation Team <https://discord.gg/BhJStSa89s>"
-LABEL version="5.3.3-beta"
+LABEL version="5.7.0"
 LABEL description="Discord Bot Dashboard ALL-IN-ONE — Next Generation"
 
 # Create app directory

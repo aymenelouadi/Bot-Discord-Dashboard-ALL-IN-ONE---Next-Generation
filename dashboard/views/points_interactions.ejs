@@ -238,8 +238,24 @@
     .tip svg{flex-shrink:0;margin-top:1px;color:var(--purple-l);}
     /* Responsive */
     @media (max-width: 900px) {
-      :root{--nav-w:0px;}
       .menu-toggle{display:flex;}
+      .mgmt-sidebar{transform:translateX(-110%);}
+      [dir="rtl"] .mgmt-sidebar{transform:translateX(110%);}
+      .mgmt-sidebar.open{transform:translateX(0);}
+      .main{margin-left:var(--nav-w);margin-right:0;padding:24px 16px 100px;}
+      [dir="rtl"] .main{margin-left:0;margin-right:var(--nav-w);}
+      .topbar{padding:0 12px;gap:8px;}
+      .topbar-brand{display:none;}
+      .guild-meta-id{display:none!important;}
+      .guild-meta-name{max-width:90px;}
+      .user-chip span{display:none;}
+      .user-chip{padding:4px 7px;}
+      .topbar-sep{display:none;}
+      .save-bar{left:var(--nav-w)!important;right:0!important;}
+      [dir="rtl"] .save-bar{left:0!important;right:var(--nav-w)!important;}
+    }
+    @media (max-width: 600px) {
+      :root{--nav-w:0px;}
       .nav-sidebar{transform:translateX(-100%);width:220px!important;align-items:stretch;overflow-x:unset;z-index:95;transition:transform 350ms cubic-bezier(0.4,0,0.2,1);}
       [dir="rtl"] .nav-sidebar{transform:translateX(100%);}
       .nav-sidebar.open{transform:translateX(0)!important;box-shadow:4px 0 24px rgba(0,0,0,.5);}
@@ -249,18 +265,7 @@
       .nav-sidebar.open .nav-item-label{opacity:1;visibility:visible;pointer-events:auto;}
       .nav-sidebar.open .nav-status{opacity:0;}
       .nav-sidebar.open .nav-divider{width:calc(100% - 24px);}
-      .mgmt-sidebar{transform:translateX(-110%);}
-      [dir="rtl"] .mgmt-sidebar{transform:translateX(110%);}
-      .mgmt-sidebar.open{transform:translateX(0);}
-      .main{margin-left:0;margin-right:0;padding:24px 16px 100px;}
-      .topbar{padding:0 12px;gap:8px;}
-      .topbar-brand{display:none;}
-      .guild-meta-id{display:none!important;}
-      .guild-meta-name{max-width:90px;}
-      .user-chip span{display:none;}
-      .user-chip{padding:4px 7px;}
-      .topbar-sep{display:none;}
-      .lang-select{display:none;}
+      .main{margin-left:0!important;margin-right:0!important;}
       .save-bar{left:0!important;right:0!important;}
     }
     @media (max-width: 768px) {

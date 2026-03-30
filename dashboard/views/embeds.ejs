@@ -1413,6 +1413,8 @@
           + '<%= t.embeds.jsEdit %></button>'
           + '<button class="btn btn-ghost btn-xs btnDupMsg" data-id="' + m._id + '" title="<%= t.embeds.jsDuplicate %>">'
           + '<i data-lucide="copy-plus" style="width:12px;height:12px;"></i></button>'
+          + '<a class="btn btn-ghost btn-xs" href="/dashboard/' + GUILD_ID + '/automations?link=' + m._id + '&kind=embed" title="Link \u2192 Component" style="text-decoration:none;">'
+          + '<i data-lucide="link" style="width:12px;height:12px;"></i></a>'
           + '<button class="btn btn-danger btn-xs btnDelMsg" data-id="' + m._id + '">'
           + '<i data-lucide="trash-2" style="width:12px;height:12px;"></i></button>'
           + '</div>'
@@ -1614,7 +1616,6 @@
       _undoStack.length = 0; _redoStack.length = 0;
       clearDirty(); _updateUndoButtons();
       _multiSel.clear();
-      _multiSel.clear();
       if (id) {
         const doc = savedMessages.find(m => m._id === id);
         if (!doc) return;
@@ -1734,10 +1735,10 @@
       for (const s of Object.values(machine.states)) {
         for (const [eid, tr] of Object.entries(s.on || {})) {
           if (tr.target === selectedStateId) delete s.on[eid];
-      _multiSel.clear();
         }
       }
       delete machine.states[selectedStateId];
+      _multiSel.clear();
       if (machine.initial === selectedStateId) machine.initial = Object.keys(machine.states)[0];
       selectedStateId = machine.initial;
       markDirty();
@@ -3785,7 +3786,12 @@
         $modalChannel.value = '';
         $modeNew.checked    = true;
       }
-      $sendModeGroup.classList.add('visible');
+      // Only show send-mode toggle when there is an existing Discord message to choose between editing or resending
+      if (currentDoc?.messageId) {
+        $sendModeGroup.classList.add('visible');
+      } else {
+        $sendModeGroup.classList.remove('visible');
+      }
       lucide.createIcons();
       validateModal();
       $saveModal.classList.add('open');
@@ -4073,6 +4079,7 @@
         return;
       }
       _pendingTplMachine = JSON.parse(JSON.stringify(machine));
+      _pendingTplMachine.multiUser = multiUser || undefined;
       const title = $builderTitle.textContent || '';
       document.getElementById('tplSaveName').value = title.replace(/^[^:]+:\s*/, '') || '';
       document.getElementById('tplSaveDesc').value  = '';

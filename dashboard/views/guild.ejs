@@ -1238,10 +1238,48 @@
       /* On smaller desktops, shrink mgmt sidebar */
       :root { --mgmt-w: 200px; }
     }
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       /* Hamburger visible */
       .menu-toggle { display: flex !important; }
 
+      /* Management sidebar: slides in from left */
+      .mgmt-sidebar {
+        left: 0 !important; right: auto !important;
+        transform: translateX(-100%);
+        width: 260px !important;
+        z-index: 92;
+      }
+      [dir="rtl"] .mgmt-sidebar {
+        left: auto !important; right: 0 !important;
+        transform: translateX(100%);
+      }
+      .mgmt-sidebar.open { transform: translateX(0) !important; }
+
+      /* Main: offset by nav icon width */
+      .main {
+        margin-left: var(--nav-w); margin-right: 0;
+        padding: 24px 16px 48px; max-width: 100%;
+      }
+      [dir="rtl"] .main { margin-left: 0; margin-right: var(--nav-w); }
+
+      /* Topbar */
+      .topbar { padding: 0 12px; gap: 8px; }
+      .topbar-brand { display: none; }
+      .guild-meta-id { display: none !important; }
+      .guild-meta-name { max-width: 90px; }
+      .user-chip span { display: none; }
+      .user-chip { padding: 4px 7px; }
+      .topbar-sep { display: none; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .server-banner-bg, .server-banner-gradient { height: 90px; }
+      .server-header-inner { flex-direction: row; flex-wrap: wrap; margin-top: -28px; padding: 0 16px 18px; gap: 12px; }
+      .server-header-icon, .server-header-icon-fallback { width: 60px; height: 60px; }
+      .server-header-name { font-size: 1rem; }
+      .health-grid { grid-template-columns: 1fr 1fr; }
+      .community-body { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 600px) {
+      :root { --nav-w: 0px; }
       /* Server-icon sidebar: off-screen by default, toggled by sort button */
       .nav-sidebar {
         transform: translateX(-100%);
@@ -1262,42 +1300,7 @@
       .nav-sidebar.open .nav-item-label { opacity: 1; visibility: visible; pointer-events: auto; }
       .nav-sidebar.open .nav-status { opacity: 0; }
       .nav-sidebar.open .nav-divider { width: calc(100% - 24px); }
-
-      /* Management sidebar: slides in from left */
-      .mgmt-sidebar {
-        left: 0 !important; right: auto !important;
-        transform: translateX(-100%);
-        width: 260px !important;
-        z-index: 92;
-      }
-      [dir="rtl"] .mgmt-sidebar {
-        left: auto !important; right: 0 !important;
-        transform: translateX(100%);
-      }
-      .mgmt-sidebar.open { transform: translateX(0) !important; }
-
-      /* Main & footer: full width */
-      .main {
-        margin-left: 0 !important; margin-right: 0 !important;
-        padding: 24px 16px 48px; max-width: 100%;
-      }
-
-      /* Topbar */
-      .topbar { padding: 0 12px; gap: 8px; }
-      .topbar-brand { display: none; }
-      .guild-meta-id { display: none !important; }
-      .guild-meta-name { max-width: 90px; }
-      .user-chip span { display: none; }
-      .user-chip { padding: 4px 7px; }
-      .topbar-sep { display: none; }
-      .lang-select { display: none; }
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-      .server-banner-bg, .server-banner-gradient { height: 90px; }
-      .server-header-inner { flex-direction: row; flex-wrap: wrap; margin-top: -28px; padding: 0 16px 18px; gap: 12px; }
-      .server-header-icon, .server-header-icon-fallback { width: 60px; height: 60px; }
-      .server-header-name { font-size: 1rem; }
-      .health-grid { grid-template-columns: 1fr 1fr; }
-      .community-body { flex-direction: column; align-items: flex-start; }
+      .main { margin-left: 0 !important; margin-right: 0 !important; }
     }
     @media (max-width: 480px) {
       .stats-grid { grid-template-columns: 1fr; }

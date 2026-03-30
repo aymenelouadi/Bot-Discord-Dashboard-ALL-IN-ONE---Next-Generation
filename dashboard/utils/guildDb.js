@@ -80,7 +80,11 @@ const GUILD_FIELD_MAP = {
     suggestions_config: 'suggestionsConfig',
 };
 
+const _TRANSIENT_ERR = /ECONNRESET|ETIMEDOUT|ENOTFOUND|ECONNREFUSED|MongoNetworkError|MongoNotConnectedError/i;
+
 async function _writeToMongo(guildId, filename, data) {
+    const MAX_RETRIES = 2;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
         const mongoose = require('mongoose');
         if (mongoose.connection.readyState < 1) return;
@@ -214,9 +218,16 @@ async function _writeToMongo(guildId, filename, data) {
         }
 
         // Other filenames (ticket_cooldowns, etc.) — JSON only, no MongoDB mapping needed
+        return; // success
     } catch (e) {
+        if (attempt < MAX_RETRIES && _TRANSIENT_ERR.test(e.message)) {
+            await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+            continue;
+        }
         logger.error(`[guildDb] MongoDB write error (${guildId}/${filename}):`, e.message);
+        return;
     }
+    } // end retry loop
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────

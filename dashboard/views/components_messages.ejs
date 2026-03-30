@@ -16,16 +16,38 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #040010; --surface: rgba(255,255,255,.04); --surface-2: rgba(255,255,255,.07);
-      --card: rgba(10,3,30,.78); --purple: #7c3aed; --purple-l: #a78bfa;
+      --bg: #040010; --surface: rgba(255,255,255,.04); --surface-2: rgba(255,255,255,.07); --surface-3: rgba(255,255,255,.10);
+      --card: rgba(10,3,30,.78); --card-hover: rgba(16,6,40,.85);
+      --purple: #7c3aed; --purple-d: #5b21b6; --purple-l: #a78bfa;
       --cyan: #06b6d4; --cyan-l: #67e8f9; --gold: #d97706; --gold-l: #fcd34d;
       --green: #22c55e; --red: #ef4444; --orange: #f97316; --yellow: #eab308;
-      --border: rgba(124,58,237,.2); --border-h: rgba(124,58,237,.5);
+      --border: rgba(124,58,237,.2); --border-h: rgba(124,58,237,.45); --border-focus: rgba(124,58,237,.6);
       --muted: rgba(203,194,255,.5); --white: #f8fafc;
-      --nav-w: 64px; --mgmt-w: 220px;
+      --nav-w: 64px; --mgmt-w: 220px; --topbar-h: 60px; --insp-w: 380px;
+      /* Spacing */
+      --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px;
+      --sp-6:24px; --sp-8:32px; --sp-10:40px; --sp-12:48px; --sp-16:64px;
+      /* Radii */
+      --r-sm:6px; --r-md:10px; --r-lg:14px; --r-xl:18px; --r-full:9999px;
+      /* Typography */
+      --fs-xs:.68rem; --fs-sm:.76rem; --fs-base:.84rem; --fs-md:.92rem;
+      --fs-lg:1.05rem; --fs-xl:1.25rem; --fs-2xl:1.5rem;
+      --fw-normal:400; --fw-medium:500; --fw-semibold:600; --fw-bold:700; --fw-black:800;
+      /* Shadows */
+      --sh-sm:0 2px 8px rgba(0,0,0,.25); --sh-md:0 4px 20px rgba(0,0,0,.35);
+      --sh-lg:0 8px 40px rgba(0,0,0,.5); --sh-glow:0 0 20px rgba(124,58,237,.2);
+      /* Transitions */
+      --ease-out:cubic-bezier(.22,1,.36,1); --ease-spring:cubic-bezier(.34,1.56,.64,1);
+      --dur-fast:.15s; --dur-normal:.25s; --dur-slow:.35s;
     }
-    html, body { min-height: 100%; overflow-x: hidden; }
-    body { background: var(--bg); color: var(--white); font-family: '<%= t.fontBody %>', 'Tajawal', 'Inter', system-ui, sans-serif; line-height: 1.6; overflow-x: hidden; }
+    html, body { min-height: 100%; min-height: 100dvh; overflow-x: hidden; }
+    body { background: var(--bg); color: var(--white); font-family: '<%= t.fontBody %>', 'Tajawal', 'Inter', system-ui, sans-serif; line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    ::selection { background: rgba(124,58,237,.35); color: #fff; }
+    :focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; border-radius: var(--r-sm); }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(124,58,237,.22); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,.4); }
     #c { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
     .glow { position: fixed; border-radius: 50%; pointer-events: none; z-index: 1; filter: blur(120px); animation: glow-drift 22s ease-in-out infinite alternate; }
     .glow-a { width: min(600px,80vw); height: min(600px,80vw); top: -20%; right: -16%; background: radial-gradient(circle,rgba(124,58,237,.28) 0%,transparent 65%); }
@@ -139,12 +161,27 @@
     .mgmt-footer-dots:hover { background: rgba(255,255,255,.18); }
 
     /* Main */
-    .main { position: relative; z-index: 10; min-height: calc(100vh - 60px); margin-top: 60px; margin-left: calc(var(--nav-w) + var(--mgmt-w)); padding: 36px 32px 60px; max-width: calc(1200px + var(--nav-w) + var(--mgmt-w)); }
+    .main { position: relative; z-index: 10; min-height: calc(100vh - var(--topbar-h)); margin-top: var(--topbar-h); margin-left: calc(var(--nav-w) + var(--mgmt-w)); padding: var(--sp-8) var(--sp-8) var(--sp-16); max-width: calc(1200px + var(--nav-w) + var(--mgmt-w)); }
     [dir="rtl"] .main { margin-left: 0; margin-right: calc(var(--nav-w) + var(--mgmt-w)); }
 
     /* Mobile */
-    @media (max-width: 860px) {
+    @media (max-width: 900px) {
       .menu-toggle { display: flex; }
+      .mgmt-sidebar { left: 0 !important; right: auto !important; width: 260px !important; z-index: 92; transform: translateX(-100%); }
+      [dir="rtl"] .mgmt-sidebar { left: auto !important; right: 0 !important; transform: translateX(100%); }
+      .mgmt-sidebar.open { transform: translateX(0) !important; }
+      .main { margin-left: var(--nav-w); margin-right: 0; padding: 20px 16px 40px; }
+      [dir="rtl"] .main { margin-left: 0; margin-right: var(--nav-w); }
+      .topbar { padding: 0 12px; gap: 8px; }
+      .topbar-brand { display: none; }
+      .guild-meta-id { display: none !important; }
+      .guild-meta-name { max-width: 90px; }
+      .user-chip span { display: none; }
+      .user-chip { padding: 4px 7px; }
+      .topbar-sep { display: none; }
+    }
+    @media (max-width: 600px) {
+      :root { --nav-w: 0px; }
       .nav-sidebar { transform: translateX(-100%); width: 220px !important; align-items: stretch; overflow-x: unset; z-index: 95; transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1); }
       [dir="rtl"] .nav-sidebar { transform: translateX(100%); }
       .nav-sidebar.open { transform: translateX(0) !important; box-shadow: 4px 0 24px rgba(0,0,0,.5); }
@@ -154,19 +191,7 @@
       .nav-sidebar.open .nav-item-label { opacity: 1; visibility: visible; pointer-events: auto; }
       .nav-sidebar.open .nav-status { opacity: 0; }
       .nav-sidebar.open .nav-divider { width: calc(100% - 24px); }
-      .mgmt-sidebar { left: 0 !important; right: auto !important; width: 260px !important; z-index: 92; transform: translateX(-100%); }
-      [dir="rtl"] .mgmt-sidebar { left: auto !important; right: 0 !important; transform: translateX(100%); }
-      .mgmt-sidebar.open { transform: translateX(0) !important; }
-      .main { margin-left: 0 !important; margin-right: 0 !important; padding: 20px 16px 40px; }
-      [dir="rtl"] .main { margin-left: 0 !important; margin-right: 0 !important; }
-      .topbar { padding: 0 12px; gap: 8px; }
-      .topbar-brand { display: none; }
-      .guild-meta-id { display: none !important; }
-      .guild-meta-name { max-width: 90px; }
-      .user-chip span { display: none; }
-      .user-chip { padding: 4px 7px; }
-      .topbar-sep { display: none; }
-      .lang-select { display: none; }
+      .main { margin-left: 0 !important; margin-right: 0 !important; }
     }
     /* ── Profile Sidebar ─────────────────────────────── */
     .profile-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0); pointer-events: none; transition: background .28s; }
@@ -216,10 +241,10 @@
     .page-header-right   { display: flex; gap: 8px; flex-shrink: 0; }
 
     /* ── Common Buttons ── */
-    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 10px; font-size: .82rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; font-family: inherit; transition: all .18s; }
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--r-md); font-size: var(--fs-base); font-weight: var(--fw-semibold); cursor: pointer; border: 1px solid transparent; font-family: inherit; transition: all var(--dur-fast); }
     .btn:active { transform: scale(.97); }
-    .btn-primary { background: var(--purple); color: var(--white); border-color: rgba(124,58,237,.5); }
-    .btn-primary:hover { background: #8b5cf6; box-shadow: 0 4px 20px rgba(124,58,237,.35); }
+    .btn-primary { background: linear-gradient(135deg,var(--purple),var(--purple-d)); color: var(--white); border-color: rgba(124,58,237,.4); box-shadow: 0 2px 12px rgba(124,58,237,.25); }
+    .btn-primary:hover { filter: brightness(1.12); box-shadow: 0 4px 24px rgba(124,58,237,.4),var(--sh-glow); transform: translateY(-1px); }
     .btn-ghost { background: var(--surface); color: var(--muted); border-color: rgba(255,255,255,.08); }
     .btn-ghost:hover { background: var(--surface-2); color: var(--white); }
     .btn-danger { background: rgba(239,68,68,.12); color: #fca5a5; border-color: rgba(239,68,68,.25); }
@@ -228,15 +253,17 @@
 
     /* ── Cards Grid (list view) ── */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-    .msg-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color .18s, box-shadow .18s; }
-    .msg-card:hover { border-color: var(--border-h); box-shadow: 0 4px 24px rgba(124,58,237,.12); }
+    .msg-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 18px; display: flex; flex-direction: column; gap: 12px; transition: border-color var(--dur-normal), box-shadow var(--dur-normal), transform var(--dur-normal); position: relative; overflow: hidden; }
+    .msg-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(124,58,237,.06) 0%,transparent 60%); opacity: 0; transition: opacity var(--dur-normal); pointer-events: none; }
+    .msg-card:hover { border-color: var(--border-h); box-shadow: var(--sh-md),var(--sh-glow); transform: translateY(-2px); }
+    .msg-card:hover::before { opacity: 1; }
     .msg-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .msg-card-name { font-size: .92rem; font-weight: 700; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .msg-card-date { font-size: .65rem; color: var(--muted); white-space: nowrap; }
     .msg-card-preview { font-size: .78rem; color: var(--muted); line-height: 1.45; max-height: 42px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     .msg-card-meta { display: flex; gap: 8px; flex-wrap: wrap; }
     .msg-card-tag { display: inline-flex; align-items: center; gap: 4px; font-size: .65rem; font-weight: 600; color: var(--muted); background: var(--surface); border-radius: 6px; padding: 3px 8px; }
-    .msg-card-actions { display: flex; gap: 6px; margin-top: auto; }
+    .msg-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
     .msg-card-actions .btn { flex: 1; justify-content: center; }
 
     /* ── Empty state ── */
@@ -247,10 +274,10 @@
       margin-top: 8px;
     }
     .empty-state-icon {
-      width: 64px; height: 64px; border-radius: 16px;
-      background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.2);
+      width: 64px; height: 64px; border-radius: var(--r-lg);
+      background: rgba(124,58,237,.12); border: 1px dashed rgba(124,58,237,.3);
       display: flex; align-items: center; justify-content: center;
-      color: var(--purple-l);
+      color: var(--purple-l); animation: pulse-icon 3s ease-in-out infinite;
     }
     .empty-state h3  { font-size: 1.1rem; font-weight: 700; color: var(--white); }
     .empty-state p   { font-size: .83rem; color: var(--muted); max-width: 360px; line-height: 1.55; }
@@ -258,7 +285,7 @@
     /* ── Builder ── */
     .builder { display: none; }
     .builder.active { display: grid; grid-template-columns: 196px 1fr 380px; column-gap: 24px; align-items: start; }
-    .bld-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,.07); flex-wrap: wrap; grid-column: 1 / -1; }
+    .bld-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding: 12px 16px; flex-wrap: wrap; grid-column: 1 / -1; position: sticky; top: var(--topbar-h); z-index: 50; background: rgba(8,2,22,.94); backdrop-filter: blur(20px); border-radius: var(--r-lg); border: 1px solid rgba(255,255,255,.08); box-shadow: var(--sh-md); }
     /* ── Flow Automation — States Sidebar ── */
     .fl-states-sidebar { position: sticky; top: 84px; max-height: calc(100vh - 100px); display: flex; flex-direction: column; gap: 0; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; overflow: hidden; }
     .fl-sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.06); flex-shrink: 0; }
@@ -285,7 +312,17 @@
     .fl-trg-btn-wrap { display: flex; align-items: center; gap: 6px; }
     .fl-trg-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--purple); color: var(--white); font-size: .6rem; font-weight: 700; }
     /* ── Multi-user toggle ── */
-    .fl-setting-row { display: flex; align-items: center; gap: 14px; padding: 8px 10px; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.05); border-radius: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+    .fl-setting-row { display: none; }
+    /* ── Builder Settings Card ── */
+    .bld-settings-card { background: var(--card); border: 1px solid rgba(255,255,255,.08); border-radius: var(--r-lg); overflow: visible; margin-bottom: 10px; }
+    .bld-settings-sec { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; }
+    .bld-settings-sec + .bld-settings-sec { border-top: 1px solid rgba(255,255,255,.05); }
+    .bld-settings-sec-label { font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--muted); letter-spacing: .07em; text-transform: uppercase; flex-shrink: 0; white-space: nowrap; }
+    .bld-cfg-group { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    .bld-cfg-divider { width: 1px; height: 18px; background: rgba(255,255,255,.08); flex-shrink: 0; }
+    /* ── Components section header ── */
+    .bld-section-hd { display: flex; align-items: center; justify-content: space-between; padding: 0 2px 8px; border-bottom: 1px solid rgba(255,255,255,.05); margin-bottom: 4px; }
+    .bld-section-hd-label { font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
     .fl-toggle-wrap { display: flex; align-items: center; gap: 7px; }
     .fl-toggle-label { font-size: .72rem; font-weight: 600; color: var(--muted); }
     .fl-toggle { position: relative; width: 34px; height: 19px; flex-shrink: 0; }
@@ -298,9 +335,80 @@
     .bld-name-input::placeholder { color: var(--muted); font-weight: 400; }
     .bld-name-input:focus { border-bottom-color: var(--purple); }
     .bld-header-btns { display: flex; gap: 8px; flex-shrink: 0; }
-    .bld-body { width: 100%; max-width: 100%; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    .bld-body { width: 100%; max-width: 100%; margin: 0; display: flex; flex-direction: column; gap: 10px; padding: 0 0 8px; }
+    #compRows { display: flex; flex-direction: column; gap: 6px; }
     .bld-meta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
     .bld-meta-label { font-size: .72rem; font-weight: 600; color: var(--muted); letter-spacing: .03em; flex-shrink: 0; }
+    /* ── Multi-channel pills ── */
+    .ch-pills-wrap { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; flex: 1; min-width: 0; }
+    .ch-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px 3px 10px; background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3); border-radius: 99px; font-size: .71rem; font-weight: 600; color: var(--purple-l); max-width: 160px; }
+    .ch-pill-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ch-pill-del { width: 14px; height: 14px; border-radius: 50%; border: none; background: rgba(255,255,255,.08); color: var(--muted); cursor: pointer; font-size: .65rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; transition: background .12s, color .12s; }
+    .ch-pill-del:hover { background: rgba(239,68,68,.25); color: #f87171; }
+    .ch-add-dropdown-wrap { position: relative; flex-shrink: 0; }
+    .ch-add-btn { display: flex; align-items: center; gap: 4px; padding: 4px 11px; background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.15); border-radius: 99px; color: var(--muted); font-size: .7rem; font-family: inherit; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .ch-add-btn:hover { background: rgba(124,58,237,.1); border-color: rgba(124,58,237,.4); color: var(--purple-l); }
+    .ch-add-menu { position: absolute; top: calc(100% + 5px); left: 0; background: rgba(10,3,30,.97); border: 1px solid var(--border); border-radius: 10px; padding: 6px; min-width: 210px; max-height: 230px; overflow-y: auto; z-index: 400; display: none; box-shadow: 0 8px 32px rgba(0,0,0,.55); scrollbar-width: thin; }
+    .ch-add-menu.open { display: block; }
+    .ch-add-menu-search { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 7px; padding: 5px 9px; color: var(--white); font-size: .72rem; font-family: inherit; outline: none; margin-bottom: 5px; box-sizing: border-box; }
+    .ch-add-menu-item { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 7px; font-size: .74rem; color: var(--muted); cursor: pointer; transition: background .12s, color .12s; }
+    .ch-add-menu-item:hover { background: rgba(255,255,255,.07); color: var(--white); }
+    /* ── Scheduled send ── */
+    input.bld-datetime { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; color: var(--white); padding: 4px 8px; font-size: .72rem; font-family: inherit; outline: none; color-scheme: dark; transition: border-color .18s; }
+    input.bld-datetime:focus { border-color: var(--purple); }
+    .sched-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.3); border-radius: 99px; font-size: .62rem; font-weight: 700; color: #fbbf24; letter-spacing: .04em; }
+    /* ── Mention popover ── */
+    .mention-anchor { position: relative; display: inline-flex; }
+    .mention-pop { position: fixed; min-width: 240px; max-width: 280px; background: rgba(10,3,30,.98); border: 1px solid var(--border); border-radius: 12px; padding: 10px; z-index: 3000; box-shadow: 0 8px 40px rgba(0,0,0,.75); display: none; }
+    .mention-pop.open { display: block; }
+    .mention-mode-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+    .mention-mode-tab { flex: 1; padding: 5px 6px; border-radius: 7px; border: 1px solid rgba(255,255,255,.07); background: transparent; color: var(--muted); font-size: .65rem; font-weight: 700; cursor: pointer; text-align: center; transition: all .15s; font-family: inherit; }
+    .mention-mode-tab.active { background: rgba(124,58,237,.2); border-color: rgba(124,58,237,.4); color: var(--purple-l); }
+    .mention-search { width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 7px; padding: 5px 9px; color: var(--white); font-size: .72rem; font-family: inherit; outline: none; margin-bottom: 6px; box-sizing: border-box; }
+    .mention-list { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.2) transparent; }
+    .mention-item { display: flex; align-items: center; gap: 7px; padding: 6px 8px; border-radius: 7px; font-size: .74rem; color: var(--muted); cursor: pointer; transition: background .12s, color .12s; }
+    .mention-item:hover { background: rgba(255,255,255,.07); color: var(--white); }
+    .mention-item-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    /* ── Send log modal ── */
+    .send-log-modal-box { min-width: 400px; max-width: 560px; max-height: 80vh; overflow-y: auto; }
+    .send-log-empty { text-align: center; color: var(--muted); font-size: .79rem; padding: 28px 0; }
+    .send-log-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid rgba(255,255,255,.06); border-radius: 8px; margin-bottom: 5px; }
+    .send-log-ch { font-size: .74rem; font-weight: 600; color: var(--white); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .send-log-date { font-size: .65rem; color: var(--muted); flex-shrink: 0; }
+    .send-log-link { font-size: .7rem; color: var(--purple-l); cursor: pointer; flex-shrink: 0; text-decoration: none; padding: 2px 7px; border: 1px solid rgba(124,58,237,.3); border-radius: 6px; transition: background .12s; }
+    .send-log-link:hover { background: rgba(124,58,237,.15); text-decoration: none; }
+    /* ── Save confirmation modal ── */
+    .modal.save-modal-box { min-width: min(440px, 94vw); max-width: 480px; width: 100%; background: rgba(20,10,40,.98); box-shadow: var(--sh-lg), var(--sh-glow); }
+    .modal.save-modal-box h3 { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--white); margin: 0 0 var(--sp-2); }
+    .modal-desc { font-size: var(--fs-base); color: var(--muted); margin: 0 0 var(--sp-5); line-height: 1.55; }
+    .form-group { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-4); }
+    .form-group:last-of-type { margin-bottom: 0; }
+    .form-label { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .form-input, .form-select { width: 100%; padding: 10px 14px; border-radius: var(--r-md); background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); color: var(--white); font-size: var(--fs-base); font-family: inherit; transition: border-color var(--dur-fast), box-shadow var(--dur-fast); outline: none; box-sizing: border-box; }
+    .form-input:focus, .form-select:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
+    .form-input::placeholder { color: rgba(203,194,255,.3); }
+    .form-select { cursor: pointer; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; background-color: #0f0a1e; color-scheme: dark; }
+    .form-select option { background: #0a0022; color: var(--white); }
+    .send-mode-group { display: none; flex-direction: column; gap: 6px; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; padding: 10px; margin-bottom: 20px; }
+    .send-mode-group.visible { display: flex; }
+    .send-mode-opt { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 9px; cursor: pointer; border: 1.5px solid transparent; background: rgba(255,255,255,.03); transition: background .15s, border-color .15s; }
+    .send-mode-opt:hover { background: rgba(255,255,255,.06); }
+    .send-mode-opt input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+    .send-mode-opt:has(input:checked) { border-color: rgba(124,58,237,.55); background: rgba(124,58,237,.1); }
+    .send-mode-opt-icon { display: flex; align-items: center; gap: 8px; font-size: .8rem; font-weight: 700; color: var(--white); }
+    .send-mode-opt-icon svg { flex-shrink: 0; opacity: .85; }
+    .send-mode-opt-desc { font-size: .7rem; color: var(--muted); padding-inline-start: 24px; line-height: 1.4; }
+    /* sm-form-* aliases kept for backward compat */
+    .sm-form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .sm-form-label { font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .sm-form-input, .sm-form-select { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; color: var(--white); font-size: .82rem; font-family: inherit; padding: 8px 12px; outline: none; width: 100%; box-sizing: border-box; transition: border-color .15s; }
+    .sm-form-input:focus, .sm-form-select:focus { border-color: var(--purple); }
+    .sm-form-select option { background: #12051e; color: var(--white); }
+    /* Smart channel context hint */
+    .sm-channel-hint { display: none; font-size: .72rem; font-weight: 600; padding: 7px 11px; border-radius: 8px; margin-bottom: 14px; line-height: 1.4; }
+    .sm-channel-hint.hint-ok   { display: block; background: rgba(34,197,94,.08);  border: 1px solid rgba(34,197,94,.25);  color: #4ade80; }
+    .sm-channel-hint.hint-warn { display: block; background: rgba(251,191,36,.07); border: 1px solid rgba(251,191,36,.22); color: #fbbf24; }
+    .sm-channel-hint.hint-info { display: block; background: rgba(124,58,237,.07); border: 1px solid rgba(124,58,237,.2);  color: var(--purple-l); }
 
     /* ── Component rows (Discord-style) ── */
     .bld-comp-row { display: flex; gap: 6px; align-items: flex-start; }
@@ -320,6 +428,20 @@
     [dir="rtl"] .bld-textarea-adornment { right: auto; left: 10px; }
     .bld-emoji-btn { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 5px; border: none; background: none; color: var(--muted); cursor: pointer; transition: color .15s, background .15s; padding: 0; }
     .bld-emoji-btn:hover { color: var(--yellow); background: rgba(255,255,255,.06); }
+    /* ── Emoji Picker ── */
+    .bld-emoji-picker { position: fixed; width: 300px; max-width: calc(100vw - 16px); background: rgba(8,2,22,.98); border: 1px solid rgba(124,58,237,.35); border-radius: 14px; z-index: 9999; box-shadow: 0 16px 48px rgba(0,0,0,.65); display: flex; flex-direction: column; max-height: 300px; }
+    .epk-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.07); flex-shrink: 0; }
+    .epk-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 0; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-size: .76rem; font-weight: 600; cursor: pointer; transition: color .15s; font-family: inherit; }
+    .epk-tab svg { width: 14px; height: 14px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .epk-tab.active { color: var(--purple-l); border-bottom-color: var(--purple); }
+    .epk-search { padding: 7px 10px 4px; flex-shrink: 0; }
+    .epk-search input { width: 100%; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 5px 10px; color: #fff; font-size: .78rem; font-family: inherit; outline: none; box-sizing: border-box; }
+    .epk-search input:focus { border-color: var(--purple); }
+    .epk-grid { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 8px 10px; overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.3) transparent; }
+    .epk-btn { background: none; border: none; cursor: pointer; font-size: 1.35rem; padding: 4px; border-radius: 6px; transition: background .12s; line-height: 1; user-select: none; }
+    .epk-btn:hover { background: rgba(124,58,237,.2); }
+    .epk-btn.custom-e img { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; }
+    .epk-empty { color: var(--muted); font-size: .78rem; padding: 18px; text-align: center; width: 100%; }
     .bld-char-counter { font-size: .65rem; color: var(--muted); white-space: nowrap; }
 
     /* ── Button row card ── */
@@ -474,22 +596,31 @@
     /* ── Modal overlay ── */
     .modal-overlay { position: fixed; inset: 0; z-index: 500; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .2s; }
     .modal-overlay.open { opacity: 1; pointer-events: auto; }
-    .modal { background: rgba(10,3,30,.97); border: 1px solid var(--border); border-radius: 16px; padding: 24px; min-width: 380px; max-width: 90vw; max-height: 85vh; overflow-y: auto; box-shadow: 0 12px 60px rgba(0,0,0,.7); }
+    .modal { background: rgba(10,3,30,.97); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 24px; min-width: 380px; max-width: 90vw; max-height: 85vh; overflow-y: auto; box-shadow: var(--sh-lg); animation: modal-in var(--dur-normal) var(--ease-out); }
     .modal h3 { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 16px; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
 
     /* ── Toast ── */
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); z-index: 9000; padding: 10px 20px; border-radius: 10px; font-size: .82rem; font-weight: 600; background: var(--card); border: 1px solid var(--border); color: var(--white); pointer-events: none; opacity: 0; transition: all .3s; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); z-index: 9000; padding: 10px 20px; border-radius: var(--r-md); font-size: var(--fs-base); font-weight: var(--fw-semibold); background: var(--card); border: 1px solid var(--border); color: var(--white); pointer-events: none; opacity: 0; transition: all .3s; backdrop-filter: blur(12px); }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(34,197,94,.4); box-shadow: var(--sh-lg),0 0 20px rgba(34,197,94,.15); }
+    .toast.error { border-color: rgba(239,68,68,.4); box-shadow: var(--sh-lg),0 0 20px rgba(239,68,68,.15); }
 
     /* Page-in animation */
     @keyframes pIn  { from { opacity:1; } to { opacity: 0; pointer-events: none; } }
     @keyframes pOut { from { opacity:0; } to { opacity: 1; } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes modal-in { from{opacity:0;transform:translateY(12px) scale(.97);} to{opacity:1;transform:translateY(0) scale(1);} }
+    @keyframes pulse-icon { 0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.15);} 50%{box-shadow:0 0 0 12px rgba(124,58,237,0);} }
     #ov { position:fixed;inset:0;z-index:9999;background:#040010;animation:pIn .45s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none; }
 
+    /* ── Right Panel (Settings + Preview) ── */
+    .bld-right-panel { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 100px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; }
+    .bld-right-panel::-webkit-scrollbar { width: 3px; }
+    .bld-right-panel::-webkit-scrollbar-thumb { background: rgba(124,58,237,.3); border-radius: 3px; }
+    .bld-right-panel .bld-settings-card { flex-shrink: 0; margin-bottom: 0; }
     /* ── Live Preview Panel ── */
-    .bld-preview-col { position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.25) transparent; }
+    .bld-preview-col { flex-shrink: 0; }
     .bld-preview-col::-webkit-scrollbar { width: 3px; }
     .bld-preview-col::-webkit-scrollbar-thumb { background: rgba(124,58,237,.3); border-radius: 3px; }
     .bld-preview-header { font-size: .65rem; font-weight: 700; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; padding: 0 0 10px; display: flex; align-items: center; gap: 6px; }
@@ -511,7 +642,7 @@
     .dc-bot-name { font-size: .9375rem; font-weight: 600; color: #ffffff; cursor: pointer; }
     .dc-bot-name:hover { text-decoration: underline; }
     .dc-bot-badge { font-size: .55rem; font-weight: 700; background: #5865f2; color: #fff; border-radius: 3px; padding: 2px 5px; text-transform: uppercase; letter-spacing: .02em; }
-    .dc-bot-time { font-size: .72rem; color: #949ba4; margin-top: 3px; }
+    .dc-bot-time { font-size: .72rem; color: #949ba4; }
     /* V2 components */
     .dc-v2-content { display: flex; flex-direction: column; gap: 2px; }
     .dc-text-display { font-size: .9375rem; line-height: 1.375; color: #dcddde; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; }
@@ -540,7 +671,24 @@
     .dc-empty-prev { padding: 24px 12px; text-align: center; color: #949ba4; font-size: .8rem; line-height: 1.6; }
     @media (max-width: 1200px) { .builder.active { grid-template-columns: 180px 1fr 300px; } }
     @media (max-width: 1000px) { .builder.active { grid-template-columns: 1fr 280px; } .fl-states-sidebar { display: none; } }
-    @media (max-width: 860px)  { .builder.active { grid-template-columns: 1fr; } .bld-preview-col { display: none; } }
+    @media (max-width: 860px)  { .builder.active { grid-template-columns: 1fr; } .bld-right-panel { position: static; max-height: none; overflow-y: visible; flex-direction: row; flex-wrap: wrap; align-items: flex-start; } .bld-right-panel .bld-settings-card { flex: 1; min-width: 280px; } .bld-right-panel .bld-preview-col { display: none; } .bld-cfg-divider { display: none; } .bld-cfg-group { flex-wrap: wrap; } .bld-settings-sec { gap: 8px; } .bld-header { position: relative; top: auto; border-radius: var(--r-md); } }
+    @media (max-width: 600px) { .bld-right-panel { flex-direction: column; } .bld-settings-sec { flex-direction: column; align-items: flex-start; gap: 6px; } .bld-cfg-group { flex-wrap: wrap; } .bld-header { flex-direction: column; align-items: flex-start; gap: 10px; } .bld-header-btns { width: 100%; overflow-x: auto; padding-bottom: 2px; } }
+    @media (max-width: 480px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .msg-card-actions .btn { flex: 1 1 auto; min-width: calc(50% - 6px); justify-content: center; font-size: .71rem; }
+      .bld-header-btns { flex-wrap: wrap; }
+      .bld-name-input { font-size: .92rem; min-width: 120px; }
+      .bld-comp-row-aside { display: none; }
+      .bld-comp-row-grip { display: none; }
+      .bld-comp-row { gap: 2px; }
+      .fl-trg-modal-box { max-width: 100vw; border-radius: 16px 16px 0 0; }
+      .fl-trg-type-picker { gap: 4px; margin: 8px 12px 4px; }
+      .fl-trg-type-btn { font-size: .68rem; padding: 5px 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+      .empty-state-icon { animation: none; }
+    }
     /* ── Smart Triggers Modal ── */
     .fl-trg-modal-box { width: 520px; max-width: 95vw; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; }
     .fl-trg-modal-head { padding: 20px 22px 12px; border-bottom: 1px solid rgba(255,255,255,.07); flex-shrink: 0; }
@@ -608,6 +756,7 @@
 
   <!-- Data injections -->
   <script type="application/json" id="_data_channels"><%- JSON.stringify(guildChannels || []) %></script>
+  <script type="application/json" id="_data_categories"><%- JSON.stringify(guildCategories || []) %></script>
   <script type="application/json" id="_data_roles"><%- JSON.stringify(guildRoles || []) %></script>
   <script type="application/json" id="_data_emojis"><%- JSON.stringify(guildEmojis || []) %></script>
   <script type="application/json" id="_data_botInfo"><%- JSON.stringify(botInfo || {}) %></script>
@@ -684,34 +833,16 @@
         <div class="fl-state-list" id="stateList"></div>
       </div>
 
-      <!-- Main body -->
+      <!-- Main body (pure editor) -->
       <div class="bld-body">
 
-        <!-- Channel + flow settings row -->
-        <div class="bld-meta-row">
-          <span class="bld-meta-label"><%= lang === 'ar' ? 'القناة:' : 'Channel:' %></span>
-          <select class="bld-select" id="msgChannel" style="max-width:200px;">
-            <option value=""><%= lang === 'ar' ? 'اختر قناة...' : 'Select channel...' %></option>
-          </select>
+        <!-- Components section header -->
+        <div class="bld-section-hd">
+          <span class="bld-section-hd-label">
+            <i data-lucide="blocks" style="width:11px;height:11px;stroke:currentColor;"></i>
+            <%= lang === 'ar' ? 'المكونات' : 'Components' %>
+          </span>
         </div>
-        <div class="fl-setting-row" id="flowSettingsRow">
-          <div class="fl-toggle-wrap">
-            <span class="fl-toggle-label"><%= lang === 'ar' ? 'متعدد المستخدمين' : 'Multi-user' %></span>
-            <label class="fl-toggle">
-              <input type="checkbox" id="multiUserToggle">
-              <span class="fl-toggle-slider"></span>
-            </label>
-          </div>
-          <span class="bld-meta-label"><%= lang === 'ar' ? 'الانتهاء:' : 'Timeout:' %></span>
-          <select class="bld-select" id="flowTimeout" style="max-width:130px;font-size:.74rem;">
-            <option value="0"><%= lang === 'ar' ? 'بلا توقف' : 'No timeout' %></option>
-            <option value="300"><%= lang === 'ar' ? '5 دقائق' : '5 minutes' %></option>
-            <option value="600"><%= lang === 'ar' ? '10 دقائق' : '10 minutes' %></option>
-            <option value="3600"><%= lang === 'ar' ? 'ساعة' : '1 hour' %></option>
-            <option value="86400"><%= lang === 'ar' ? '24 ساعة' : '24 hours' %></option>
-          </select>
-        </div>
-
         <!-- All component rows (content row first, then dynamic rows) -->
         <div id="compRows">
 
@@ -740,6 +871,20 @@
                       <path d="M11.897 10.757C11.743 10.603 11.531 10.536 11.314 10.568C9.782 10.807 8.202 10.806 6.676 10.567C6.462 10.535 6.255 10.602 6.104 10.752C5.95 10.905 5.877 11.128 5.911 11.35C6.141 12.861 7.469 14 9 14C10.531 14 11.86 12.86 12.089 11.347C12.122 11.131 12.05 10.91 11.897 10.757Z" fill="currentColor"></path>
                     </svg>
                   </button>
+                  <div class="mention-anchor" id="mentionAnchor">
+                    <button class="bld-emoji-btn" type="button" id="mentionBtn"
+                      style="font-size:.95rem;font-weight:800;letter-spacing:-.02em;"
+                      title="<%= lang === 'ar' ? 'إدراج ذكر' : 'Insert mention' %>">@</button>
+                    <div class="mention-pop" id="mentionPop">
+                      <div class="mention-mode-tabs">
+                        <button class="mention-mode-tab active" data-mode="inline" type="button"><%= lang === 'ar' ? 'في الرسالة' : 'Inline' %></button>
+                        <button class="mention-mode-tab" data-mode="separate" type="button"><%= lang === 'ar' ? 'رسالة منفصلة' : 'Separate msg' %></button>
+                      </div>
+                      <input class="mention-search" id="mentionSearch"
+                        placeholder="<%= lang === 'ar' ? 'بحث عن رتبة...' : 'Search roles...' %>" autocomplete="off">
+                      <div class="mention-list" id="mentionList"></div>
+                    </div>
+                  </div>
                   <span class="bld-char-counter"><span id="contentCount">0</span>/2000</span>
                 </div>
               </div>
@@ -836,8 +981,57 @@
         <div style="padding-bottom:50px;"></div>
       </div>
 
-      <!-- ── LIVE PREVIEW PANEL ── -->
-      <div class="bld-preview-col" id="previewCol">
+      <!-- ── RIGHT PANEL: Settings + Preview ── -->
+      <div class="bld-right-panel">
+
+        <!-- Settings card -->
+        <div class="bld-settings-card">
+          <!-- Channels -->
+          <div class="bld-settings-sec">
+            <span class="bld-settings-sec-label"><%= lang === 'ar' ? 'القنوات' : 'Channels' %></span>
+            <div class="ch-pills-wrap" id="chPillsWrap"></div>
+            <div class="ch-add-dropdown-wrap" id="chAddWrap">
+              <button class="ch-add-btn" id="chAddBtn" type="button">＋ <%= lang === 'ar' ? 'إضافة قناة' : 'Add channel' %></button>
+              <div class="ch-add-menu" id="chAddMenu">
+                <input class="ch-add-menu-search" id="chAddSearch" autocomplete="off"
+                  placeholder="<%= lang === 'ar' ? 'بحث...' : 'Search...' %>">
+                <div id="chAddItems"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Flow config -->
+          <div class="bld-settings-sec" id="flowSettingsRow">
+            <div class="bld-cfg-group">
+              <span class="bld-settings-sec-label"><%= lang === 'ar' ? 'متعدد' : 'Multi-user' %></span>
+              <label class="fl-toggle">
+                <input type="checkbox" id="multiUserToggle">
+                <span class="fl-toggle-slider"></span>
+              </label>
+            </div>
+            <div class="bld-cfg-divider"></div>
+            <div class="bld-cfg-group">
+              <span class="bld-settings-sec-label"><%= lang === 'ar' ? 'الانتهاء' : 'Timeout' %></span>
+              <select class="bld-select" id="flowTimeout" style="max-width:130px;font-size:.74rem;">
+                <option value="0"><%= lang === 'ar' ? 'بلا توقف' : 'No timeout' %></option>
+                <option value="300"><%= lang === 'ar' ? '5 دقائق' : '5 minutes' %></option>
+                <option value="600"><%= lang === 'ar' ? '10 دقائق' : '10 minutes' %></option>
+                <option value="3600"><%= lang === 'ar' ? 'ساعة' : '1 hour' %></option>
+                <option value="86400"><%= lang === 'ar' ? '24 ساعة' : '24 hours' %></option>
+              </select>
+            </div>
+            <div class="bld-cfg-divider"></div>
+            <div class="bld-cfg-group" style="margin-inline-start:auto;">
+              <span class="bld-settings-sec-label"><%= lang === 'ar' ? 'جدولة' : 'Schedule' %></span>
+              <input type="datetime-local" class="bld-datetime" id="flowScheduledAt">
+              <button class="btn btn-ghost" id="clearScheduleBtn" type="button" style="font-size:.65rem;padding:2px 6px;" title="<%= lang === 'ar' ? 'إزالة' : 'Clear' %>">&#x2715;</button>
+            </div>
+          </div>
+        </div>
+        <select id="msgChannel" style="display:none;"></select>
+        <div id="preMentionTags" style="display:none;"></div>
+
+        <!-- ── LIVE PREVIEW PANEL ── -->
+        <div class="bld-preview-col" id="previewCol">
         <div class="bld-preview-header">
           <div class="bld-preview-pulse"></div>
           <%= lang === 'ar' ? 'معاينة مباشرة' : 'Live Preview' %>
@@ -845,12 +1039,10 @@
         <div class="dc-mock">
           <div class="dc-msg-header">
             <div class="dc-bot-av" id="dcBotAv"></div>
-            <div>
-              <div class="dc-msg-meta">
-                <span class="dc-bot-name" id="dcBotName">Bot</span>
-                <span class="dc-bot-badge">BOT</span>
-              </div>
-              <div class="dc-bot-time" id="dcBotTime"></div>
+            <div class="dc-msg-meta">
+              <span class="dc-bot-name" id="dcBotName">Bot</span>
+              <span class="dc-bot-badge">BOT</span>
+              <span class="dc-bot-time" id="dcBotTime"></span>
             </div>
           </div>
           <div class="dc-v2-content" id="previewContent">
@@ -858,6 +1050,7 @@
           </div>
         </div>
       </div>
+      </div><!-- /.bld-right-panel -->
 
     </div>
 
@@ -1001,6 +1194,67 @@
   </div>
 
   <%- include('partials/promo_card') %>
+
+  <!-- ═══ SAVE CONFIRMATION MODAL ═══ -->
+  <div class="modal-overlay" id="saveConfirmModal">
+    <div class="modal save-modal-box">
+      <div class="send-mode-group" id="sendModeGroup">
+        <label class="send-mode-opt">
+          <input type="radio" name="sendMode" id="modeEdit" value="edit" checked>
+          <span class="send-mode-opt-icon">
+            <i data-lucide="pencil" style="width:14px;height:14px;stroke:currentColor;"></i>
+            <%= lang === 'ar' ? 'تعديل الرسالة الحالية' : 'Edit existing' %>
+          </span>
+          <span class="send-mode-opt-desc"><%= lang === 'ar' ? 'يعدل رسالة Discord المرسلة مسبقاً في مكانها' : 'Edits the already-sent Discord message in-place' %></span>
+        </label>
+        <label class="send-mode-opt">
+          <input type="radio" name="sendMode" id="modeNew" value="new">
+          <span class="send-mode-opt-icon">
+            <i data-lucide="send" style="width:14px;height:14px;stroke:currentColor;"></i>
+            <%= lang === 'ar' ? 'إرسال رسالة جديدة' : 'Send as new' %>
+          </span>
+          <span class="send-mode-opt-desc"><%= lang === 'ar' ? 'يرسل رسالة جديدة إلى القناة المحددة' : 'Sends a brand-new message to the selected channel' %></span>
+        </label>
+      </div>
+      <h3 id="saveModalTitle"><%= lang === 'ar' ? 'حفظ الأتمتة' : 'Save Automation' %></h3>
+      <p class="modal-desc" id="saveModalDesc"><%= lang === 'ar' ? 'راجع الاسم والقناة قبل الإرسال.' : 'Review the name and channel before sending.' %></p>
+      <div class="form-group">
+        <label class="form-label" for="modalName"><%= lang === 'ar' ? 'الاسم' : 'Name' %></label>
+        <input class="form-input" id="modalName" maxlength="100" placeholder="<%= lang === 'ar' ? 'مثال: رسالة الترحيب' : 'e.g. Welcome Message' %>">
+      </div>
+      <div id="smChannelHint" class="sm-channel-hint"></div>
+      <div class="form-group" id="smChannelGroup">
+        <label class="form-label" id="smChannelLabel" for="modalChannel"><%= lang === 'ar' ? 'القناة الأساسية' : 'Primary Channel' %></label>
+        <select class="form-select" id="modalChannel">
+          <option value="">-- <%= lang === 'ar' ? 'بدون' : 'None' %> --</option>
+          <% (guildChannels || []).forEach(function(ch) { %>
+            <option value="<%= ch.id %>">#<%= ch.name %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="smCancel" type="button">
+          <i data-lucide="x" style="width:13px;height:13px;stroke:currentColor;"></i>
+          <%= lang === 'ar' ? 'إلغاء' : 'Cancel' %>
+        </button>
+        <button class="btn btn-primary btn-sm" id="smSave" type="button">
+          <i data-lucide="save" style="width:13px;height:13px;stroke:currentColor;"></i>
+          <%= lang === 'ar' ? 'حفظ وإرسال' : 'Save & Send' %>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SEND LOG MODAL ═══ -->
+  <div class="modal-overlay" id="sendLogModal">
+    <div class="modal send-log-modal-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h3 style="margin:0;font-size:1rem;" id="sendLogTitle"><%= lang === 'ar' ? 'سجل الإرسال' : 'Send Log' %></h3>
+        <button class="btn btn-ghost btn-sm" id="sendLogClose" type="button">✕</button>
+      </div>
+      <div id="sendLogBody"></div>
+    </div>
+  </div>
   <%- include('partials/footer') %>
 
   <div class="toast" id="toast"></div>
@@ -1123,8 +1377,9 @@
 
       /* ── Parse injected JSON ── */
       function parseJSON(id) { try { return JSON.parse(document.getElementById(id)?.textContent || '[]'); } catch { return []; } }
-      const channels = parseJSON('_data_channels');
-      const roles    = parseJSON('_data_roles');
+      const channels   = parseJSON('_data_channels');
+      const categories = parseJSON('_data_categories');
+      const roles      = parseJSON('_data_roles');
       const emojis   = parseJSON('_data_emojis');
       const botInfo  = (() => { try { return JSON.parse(document.getElementById('_data_botInfo')?.textContent || '{}'); } catch { return {}; } })();
       let   saved    = parseJSON('_data_saved');
@@ -1134,10 +1389,8 @@
         const avEl = document.getElementById('dcBotAv');
         const nmEl = document.getElementById('dcBotName');
         const tmEl = document.getElementById('dcBotTime');
-        if (avEl && botInfo.id) {
-          const avUrl = botInfo.avatar
-            ? 'https://cdn.discordapp.com/avatars/' + botInfo.id + '/' + botInfo.avatar + '.webp?size=64'
-            : 'https://cdn.discordapp.com/embed/avatars/0.png';
+        if (avEl) {
+          const avUrl = botInfo.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
           avEl.innerHTML = '<img src="' + avUrl + '" alt="Bot" onerror="this.style.display=\'none\'">';
         }
         if (nmEl && botInfo.username) nmEl.textContent = botInfo.username;
@@ -1169,6 +1422,13 @@
       const trgCountBadge  = document.getElementById('trgCountBadge');
       const multiUserToggle = document.getElementById('multiUserToggle');
       const flowTimeoutSel  = document.getElementById('flowTimeout');
+      const chPillsWrap    = document.getElementById('chPillsWrap');
+      const chAddBtn       = document.getElementById('chAddBtn');
+      const chAddMenu      = document.getElementById('chAddMenu');
+      const chAddSearch    = document.getElementById('chAddSearch');
+      const chAddItems     = document.getElementById('chAddItems');
+      const mentionPop     = document.getElementById('mentionPop');
+      const sendLogModal   = document.getElementById('sendLogModal');
 
       /* ── Modal refs ── */
       const btnEditModal   = document.getElementById('btnEditModal');
@@ -1195,6 +1455,11 @@
       let flowTriggers    = [];     // Array<{ id, type, params:{} }>
       let flowMultiUser   = false;
       let flowTimeout     = 0;
+      let flowChannelIds  = [];     // multi-channel array
+      let flowScheduledAt = null;   // ISO datetime string or null
+      let flowPreMentions = [];     // Array<{ type:'role'|'special', id, label }> — separate-message pings
+      let _mentionMode    = 'inline';  // 'inline' | 'separate'
+      let _sendLogCtx     = null;
 
       /* ── Utility ── */
       function uid() { return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
@@ -1235,9 +1500,13 @@
           const btnCount   = allComps.reduce((n, r) => n + (r.type === 'buttons' ? (r.buttons?.length || 0) : 0), 0);
           const selCount   = allComps.filter(r => r.type === 'select').length;
           const trgCount   = (msg.triggers || []).length;
-          const chName     = channels.find(c => c.id === msg.channelId)?.name || '—';
+          const channelIds  = msg.channelIds?.length ? msg.channelIds : (msg.channelId ? [msg.channelId] : []);
+          const chName     = channelIds.map(cid => channels.find(c => c.id === cid)?.name || cid).filter(Boolean).map(n => '#'+n).join(', ') || '—';
           const date       = msg.updatedAt ? new Date(msg.updatedAt).toLocaleDateString(isAR ? 'ar' : 'en', { month: 'short', day: 'numeric' }) : '';
           const previewTxt = msg.states ? (msg.states.find(s => s.id === msg.initialStateId) || msg.states[0])?.content || '' : msg.content || '';
+          const schedBadge = msg.scheduledAt && new Date(msg.scheduledAt) > new Date()
+            ? '<span class="sched-badge">⏰ ' + (isAR ? 'مجدول' : 'Scheduled') + '</span>'
+            : '';
 
           card.innerHTML =
             '<div class="msg-card-head">' +
@@ -1251,6 +1520,7 @@
               (btnCount ? '<span class="msg-card-tag"><i data-lucide="square" style="width:10px;height:10px;stroke:currentColor;"></i> ' + btnCount + ' ' + (isAR ? 'أزرار' : 'btns') + '</span>' : '') +
               (selCount ? '<span class="msg-card-tag"><i data-lucide="list" style="width:10px;height:10px;stroke:currentColor;"></i> ' + selCount + ' ' + (isAR ? 'قوائم' : 'selects') + '</span>' : '') +
               (trgCount ? '<span class="msg-card-tag" style="color:#4ade80;border-color:rgba(34,197,94,.3);"><i data-lucide="zap" style="width:10px;height:10px;stroke:currentColor;"></i> ' + trgCount + ' ' + (isAR ? 'مُشغِّل' : 'trigger' + (trgCount !== 1 ? 's' : '')) + '</span>' : '') +
+              schedBadge +
             '</div>' +
             '<div class="msg-card-actions">' +
               '<button class="btn btn-ghost btn-sm _edit" data-id="' + msg._id + '">' +
@@ -1259,6 +1529,12 @@
               '<button class="btn btn-ghost btn-sm _dup" data-id="' + msg._id + '" data-name="' + esc(msg.name) + '">' +
                 '<i data-lucide="copy" style="width:12px;height:12px;stroke:currentColor;"></i> ' + (isAR ? 'نسخ' : 'Duplicate') +
               '</button>' +
+              '<button class="btn btn-ghost btn-sm _log" data-id="' + msg._id + '">' +
+                '<i data-lucide="clock" style="width:12px;height:12px;stroke:currentColor;"></i> ' + (isAR ? 'السجل' : 'Log') +
+              '</button>' +
+              '<a class="btn btn-ghost btn-sm" href="/dashboard/' + GUILD_ID + '/automations?link=' + msg._id + '&kind=component" title="' + (isAR ? 'ربط بـ Embed' : 'Link to Embed') + '" style="text-decoration:none;">' +
+                '<i data-lucide="link" style="width:12px;height:12px;stroke:currentColor;"></i> ' + (isAR ? 'ربط' : 'Link') +
+              '</a>' +
               '<button class="btn btn-danger btn-sm _del" data-id="' + msg._id + '" data-name="' + esc(msg.name) + '">' +
                 '<i data-lucide="trash-2" style="width:12px;height:12px;stroke:currentColor;"></i> ' + (isAR ? 'حذف' : 'Delete') +
               '</button>' +
@@ -1269,6 +1545,7 @@
 
         cardsGrid.querySelectorAll('._edit').forEach(btn => btn.addEventListener('click', () => openEditor(btn.dataset.id)));
         cardsGrid.querySelectorAll('._dup').forEach(btn => btn.addEventListener('click', () => duplicateAutomation(btn.dataset.id, btn.dataset.name)));
+        cardsGrid.querySelectorAll('._log').forEach(btn => btn.addEventListener('click', () => openSendLog(btn.dataset.id)));
         cardsGrid.querySelectorAll('._del').forEach(btn => btn.addEventListener('click', () => confirmDelete(btn.dataset.id, btn.dataset.name)));
       }
 
@@ -1284,9 +1561,152 @@
           if (data.success) { saved.unshift(data.data); renderList(); toast(isAR ? 'تم النسخ' : 'Duplicated'); }
           else { toast(data.error || 'Error', 4000); }
         } catch(e) { toast('Network error', 4000); }
+      }
 
-        cardsGrid.querySelectorAll('._edit').forEach(btn => btn.addEventListener('click', () => openEditor(btn.dataset.id)));
-        cardsGrid.querySelectorAll('._del').forEach(btn => btn.addEventListener('click', () => confirmDelete(btn.dataset.id, btn.dataset.name)));
+      /* ═══ MULTI-CHANNEL PILLS ═══ */
+      function renderChannelPills() {
+        if (!chPillsWrap) return;
+        chPillsWrap.innerHTML = '';
+        flowChannelIds.forEach(cid => {
+          const ch = channels.find(c => c.id === cid);
+          if (!ch) return;
+          const pill = document.createElement('span');
+          pill.className = 'ch-pill';
+          pill.innerHTML = '<span class="ch-pill-name"># ' + esc(ch.name) + '</span>' +
+            '<button class="ch-pill-del" data-cid="' + esc(cid) + '" type="button">×</button>';
+          pill.querySelector('.ch-pill-del').addEventListener('click', () => {
+            flowChannelIds = flowChannelIds.filter(id => id !== cid);
+            markDirty(); renderChannelPills();
+          });
+          chPillsWrap.appendChild(pill);
+        });
+        if (!flowChannelIds.length) {
+          chPillsWrap.innerHTML = '<span style="font-size:.71rem;color:var(--muted);font-style:italic;">' + (isAR ? 'لا قنوات مختارة' : 'No channels selected') + '</span>';
+        }
+      }
+      function renderChAddItems(query) {
+        if (!chAddItems) return;
+        const q = (query || '').toLowerCase();
+        const available = channels.filter(c => !flowChannelIds.includes(c.id) && (!q || c.name.toLowerCase().includes(q)));
+        chAddItems.innerHTML = '';
+        if (!available.length) {
+          chAddItems.innerHTML = '<div style="padding:8px;font-size:.72rem;color:var(--muted);text-align:center;">' + (isAR ? 'لا نتائج' : 'No results') + '</div>';
+          return;
+        }
+        available.forEach(ch => {
+          const item = document.createElement('div');
+          item.className = 'ch-add-menu-item';
+          item.innerHTML = '# ' + esc(ch.name);
+          item.addEventListener('click', () => {
+            flowChannelIds.push(ch.id);
+            markDirty(); renderChannelPills(); renderChAddItems(chAddSearch?.value || '');
+            chAddMenu.classList.remove('open');
+          });
+          chAddItems.appendChild(item);
+        });
+      }
+
+      /* ═══ MENTION POPOVER ═══ */
+      function renderMentionList(query) {
+        const listEl = document.getElementById('mentionList');
+        if (!listEl) return;
+        const q = (query || '').toLowerCase();
+        const specials = [
+          { type: 'special', id: 'everyone', label: '@everyone', color: '#fbbf24' },
+          { type: 'special', id: 'here',     label: '@here',     color: '#34d399' },
+        ];
+        const allItems = [
+          ...specials.filter(s => !q || s.label.includes(q)),
+          ...roles.filter(r => !q || r.name.toLowerCase().includes(q))
+                  .map(r => {
+                    const c = r.color;
+                    const hex = typeof c === 'number'
+                      ? '#' + c.toString(16).padStart(6, '0')
+                      : (typeof c === 'string' && c ? (c.startsWith('#') ? c : '#' + c) : '#808080');
+                    return { type: 'role', id: r.id, label: r.name, color: hex };
+                  }),
+        ];
+        listEl.innerHTML = '';
+        if (!allItems.length) {
+          listEl.innerHTML = '<div style="padding:8px;font-size:.72rem;color:var(--muted);text-align:center;">' + (isAR ? 'لا نتائج' : 'No results') + '</div>';
+          return;
+        }
+        allItems.forEach(item => {
+          const el = document.createElement('div');
+          el.className = 'mention-item';
+          el.innerHTML = '<span class="mention-item-dot" style="background:' + esc(item.color || '#5865f2') + '"></span>' + esc(item.label);
+          el.addEventListener('click', () => {
+            insertMention(item);
+            mentionPop?.classList.remove('open');
+          });
+          listEl.appendChild(el);
+        });
+      }
+      function insertMention(item) {
+        const text = item.type === 'role' ? '<@&' + item.id + '>' : '@' + item.id;
+        if (_mentionMode === 'inline') {
+          const start = msgContent.selectionStart;
+          const end   = msgContent.selectionEnd;
+          msgContent.value = msgContent.value.slice(0, start) + text + msgContent.value.slice(end);
+          msgContent.selectionStart = msgContent.selectionEnd = start + text.length;
+          msgContent.focus();
+          contentCount.textContent = msgContent.value.length;
+          markDirty();
+        } else {
+          if (!flowPreMentions.find(m => m.id === item.id)) {
+            flowPreMentions.push({ type: item.type, id: item.id, label: item.label });
+            markDirty(); renderPreMentionBadges();
+          }
+        }
+      }
+      function renderPreMentionBadges() {
+        const el = document.getElementById('preMentionTags');
+        if (!el) return;
+        if (!flowPreMentions.length) { el.style.display = 'none'; return; }
+        el.style.display = 'flex';
+        el.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:5px 10px;background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.15);border-radius:8px;font-size:.7rem;margin-bottom:4px;';
+        el.innerHTML = '<span style="font-size:.67rem;font-weight:700;color:#fbbf24;margin-inline-end:4px;">' + (isAR ? 'إشعار منفصل:' : 'Ping separately:') + '</span>' +
+          flowPreMentions.map((m, i) =>
+            '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);border-radius:99px;color:#fbbf24;">' +
+              esc(m.type === 'role' ? '@' + m.label : '@' + m.id) +
+              '<button type="button" style="background:none;border:none;cursor:pointer;color:inherit;padding:0 0 0 3px;font-size:.7rem;line-height:1;" data-mi="' + i + '">×</button>' +
+            '</span>'
+          ).join('');
+        el.querySelectorAll('[data-mi]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            flowPreMentions.splice(parseInt(btn.dataset.mi), 1);
+            markDirty(); renderPreMentionBadges();
+          });
+        });
+      }
+
+      /* ═══ SEND LOG MODAL ═══ */
+      function openSendLog(id) {
+        const msg = saved.find(m => m._id === id);
+        if (!msg) return;
+        _sendLogCtx = id;
+        document.getElementById('sendLogTitle').textContent = (isAR ? 'سجل إرسال: ' : 'Send Log: ') + (msg.name || '');
+        const body = document.getElementById('sendLogBody');
+        const log  = msg.sentLog || [];
+        if (!log.length) {
+          body.innerHTML = '<div class="send-log-empty">' +
+            (isAR ? 'لا سجل إرسال بعد. اضغط "حفظ وإرسال" لإرسال الأتمتة إلى Discord.' : 'No send history yet. Click "Save &amp; Send" to dispatch the automation to Discord.') +
+          '</div>';
+        } else {
+          body.innerHTML = log.map(entry => {
+            const ch   = channels.find(c => c.id === (entry.channelId || ''));
+            const date = entry.sentAt ? new Date(entry.sentAt).toLocaleString(isAR ? 'ar-SA' : 'en-US', { dateStyle:'medium', timeStyle:'short' }) : '—';
+            const link = entry.messageId
+              ? 'https://discord.com/channels/' + GUILD_ID + '/' + (entry.channelId || '') + '/' + entry.messageId
+              : null;
+            return '<div class="send-log-item">' +
+              '<span class="send-log-ch">' + esc(ch ? '#' + ch.name : entry.channelId || '—') + '</span>' +
+              '<span class="send-log-date">' + esc(date) + '</span>' +
+              (link ? '<a class="send-log-link" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">\uD83D\uDD17 Discord</a>' : '') +
+            '</div>';
+          }).join('');
+        }
+        sendLogModal.classList.add('open');
       }
 
       /* ═══ STATE COLORS ═══ */
@@ -1486,6 +1906,7 @@
           const stateId = 'state_1';
           msgData = {
             name: '', channelId: '',
+            channelIds: [], scheduledAt: null, preMentions: [],
             states: [{ id: stateId, label: isAR ? 'الحالة الأولى' : 'Initial', color: '#5865f2', content: '', components: [], actions: [] }],
             initialStateId: stateId, multiUser: false, timeout: 0, triggers: []
           };
@@ -1496,11 +1917,17 @@
         flowTriggers   = JSON.parse(JSON.stringify(msgData.triggers || []));
         flowMultiUser  = msgData.multiUser || false;
         flowTimeout    = msgData.timeout   || 0;
+        flowChannelIds  = msgData.channelIds || (msgData.channelId ? [msgData.channelId] : []);
+        flowScheduledAt = msgData.scheduledAt || null;
+        flowPreMentions = JSON.parse(JSON.stringify(msgData.preMentions || []));
 
         msgName.value    = msgData.name      || '';
-        msgChannel.value = msgData.channelId || '';
         if (multiUserToggle) multiUserToggle.checked = flowMultiUser;
         if (flowTimeoutSel)  flowTimeoutSel.value    = String(flowTimeout);
+        const schedEl = document.getElementById('flowScheduledAt');
+        if (schedEl) schedEl.value = flowScheduledAt ? flowScheduledAt.slice(0,16) : '';
+        renderChannelPills();
+        renderPreMentionBadges();
 
         // Load initial state into editor
         currentStateId = null; // reset so loadStateData doesn't double-save
@@ -2155,15 +2582,18 @@
 
       function getAllCustomIds() {
         const ids = [];
-        compRows.forEach(row => {
+        function collectFromRow(row) {
           if (row.type === 'buttons') {
             (row.buttons || []).forEach(b => {
               if (b.style !== 'Link' && b.customId) ids.push({ customId: b.customId, label: b.emoji ? b.emoji + ' ' + b.label : b.label || 'Button' });
             });
           } else if (row.type === 'select' && row.select?.customId) {
             ids.push({ customId: row.select.customId, label: row.select.placeholder || 'Select Menu' });
+          } else if (row.type === 'container') {
+            (row.children || []).forEach(collectFromRow);
           }
-        });
+        }
+        compRows.forEach(collectFromRow);
         return ids;
       }
 
@@ -2700,56 +3130,72 @@
       });
 
       /* ═══ SAVE ═══ */
-      saveBtn.addEventListener('click', async () => {
-        const name      = msgName.value.trim();
-        const channelId = msgChannel.value;
-        if (!name) { toast(isAR ? 'أدخل اسم الأتمتة' : 'Enter an automation name'); msgName.focus(); return; }
-        if (!channelId) { toast(isAR ? 'اختر قناة' : 'Select a channel'); msgChannel.focus(); return; }
-        // Validate: initial state must have content or at least 1 component
-        saveCurrentStateData(); // flush first
-        const initSt = flowStates.find(s => s.id === initialStateId) || flowStates[0];
-        if (!initSt?.content?.trim() && !(initSt?.components?.length)) {
-          toast(isAR ? 'أضف محتوى أو مكونات للحالة الأولى' : 'Add content or components to the initial state');
-          return;
-        }
+      const saveConfirmModal = document.getElementById('saveConfirmModal');
+      const modalName        = document.getElementById('modalName');
+      const modalChannel     = document.getElementById('modalChannel');
+      const sendModeGroup    = document.getElementById('sendModeGroup');
 
-        // Deep validation across all states
+      // Validation helper — only enforces constraints that Discord itself would reject.
+      // Nothing about channels, content, or empty states is forced here.
+      function _validateBeforeSave() {
+        const name = mgName.value.trim();
+        if (!name) { toast(isAR ? 'أدخل اسم الأتمتة' : 'Enter an automation name'); mgName.focus(); return false; }
+        saveCurrentStateData();
+        // Validate Discord API constraints only (duplicate customIds + Link URLs)
         for (const st of flowStates) {
           const seenIds = new Set();
-          for (const row of (st.components || [])) {
-            if (row.type === 'buttons') {
-              for (const btn of (row.buttons || [])) {
-                if (btn.style === 'Link' && !btn.url?.trim()) {
-                  toast(isAR ? 'زر Link في "' + st.label + '" يحتاج رابطاً' : 'Link button in "' + st.label + '" needs a URL');
-                  return;
-                }
-                if (btn.customId && btn.style !== 'Link') {
-                  if (seenIds.has(btn.customId)) {
-                    toast(isAR ? 'معرف مكرر في "' + st.label + '": ' + btn.customId : 'Duplicate customId in "' + st.label + '": ' + btn.customId);
-                    return;
+          function checkRows(rows) {
+            for (const row of (rows || [])) {
+              if (row.type === 'buttons') {
+                for (const btn of (row.buttons || [])) {
+                  if (btn.style === 'Link' && !btn.url?.trim()) {
+                    toast(isAR ? 'زر Link في "' + st.label + '" يحتاج رابطاً' : 'Link button in "' + st.label + '" needs a URL');
+                    return false;
                   }
-                  seenIds.add(btn.customId);
+                  if (btn.customId && btn.style !== 'Link') {
+                    if (seenIds.has(btn.customId)) {
+                      toast(isAR ? 'معرف مكرر في "' + st.label + '": ' + btn.customId : 'Duplicate customId in "' + st.label + '": ' + btn.customId);
+                      return false;
+                    }
+                    seenIds.add(btn.customId);
+                  }
                 }
               }
-            }
-            if (row.type === 'select' && row.select?.customId) {
-              if (seenIds.has(row.select.customId)) {
-                toast(isAR ? 'معرف مكرر في "' + st.label + '": ' + row.select.customId : 'Duplicate customId in "' + st.label + '": ' + row.select.customId);
-                return;
+              if (row.type === 'select' && row.select?.customId) {
+                if (seenIds.has(row.select.customId)) {
+                  toast(isAR ? 'معرف مكرر في "' + st.label + '": ' + row.select.customId : 'Duplicate customId in "' + st.label + '": ' + row.select.customId);
+                  return false;
+                }
+                seenIds.add(row.select.customId);
               }
-              seenIds.add(row.select.customId);
+              if (row.type === 'container') {
+                const ok = checkRows(row.children || []);
+                if (ok === false) return false;
+              }
             }
-            if (row.type === 'container' && !(row.children?.length)) {
-              toast(isAR ? 'حاوية فارغة في الحالة "' + st.label + '"' : 'Empty container in state "' + st.label + '"');
-              return;
-            }
+            return true;
           }
+          if (checkRows(st.components || []) === false) return false;
+        }
+        return true;
+      }
+      const mgName = msgName; // alias used inside _validateBeforeSave
+
+      async function _doActualSave(sendMode) {
+        const smBtn = document.getElementById('smSave');
+        if (smBtn) { smBtn.disabled = true; smBtn.textContent = isAR ? 'جاري الحفظ...' : 'Saving...'; }
+        saveBtn.disabled = true;
+
+        // Apply any name / channel overrides from the modal
+        const finalName = (modalName?.value.trim()) || msgName.value.trim();
+        msgName.value = finalName;
+        // Only promote the modal channel value if one was actually chosen
+        const modalChVal = modalChannel?.value;
+        if (modalChVal && flowChannelIds[0] !== modalChVal) {
+          // Move selected channel to front, preserving the rest
+          flowChannelIds = [modalChVal, ...flowChannelIds.filter(id => id !== modalChVal)];
         }
 
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;stroke:currentColor;animation:spin 1s linear infinite;"></i> ' + (isAR ? 'جاري الحفظ...' : 'Saving...');
-
-        // Serialize all states (migrate rules format in each state's actions)
         const serializedStates = flowStates.map(st => ({
           id: st.id, label: st.label, color: st.color,
           content: st.content || '',
@@ -2762,23 +3208,25 @@
 
         try {
           const body = {
-            name, channelId,
+            name: finalName,
+            channelId:  flowChannelIds[0] || '',
+            channelIds: flowChannelIds,
+            scheduledAt: flowScheduledAt || null,
+            preMentions: flowPreMentions,
+            sendMode: sendMode || 'new',
             states:        serializedStates,
             initialStateId,
             multiUser:     flowMultiUser,
             timeout:       flowTimeout,
             triggers:      flowTriggers,
-            // Legacy compat fields from initial state for backend
             content:    (flowStates.find(s => s.id === initialStateId) || flowStates[0])?.content || '',
             components: (flowStates.find(s => s.id === initialStateId) || flowStates[0])?.components || [],
             actions:    (flowStates.find(s => s.id === initialStateId) || flowStates[0])?.actions   || [],
           };
           if (editingId) body._id = editingId;
 
-          const res = await fetch(API + '/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
+          const res  = await fetch(API + '/save', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
           });
           const data = await res.json();
           if (data.success) {
@@ -2792,16 +3240,79 @@
             dirty = false;
             saveBtn.classList.remove('dirty');
             try { localStorage.removeItem('draft_cm_' + GUILD_ID); } catch(e) {}
+            saveConfirmModal?.classList.remove('open');
             toast(isAR ? 'تم حفظ الأتمتة وإطلاقها!' : 'Flow automation saved & sent!');
           } else {
             toast(data.error || 'Error', 4000);
           }
-        } catch (e) {
+        } catch(e) {
           toast('Network error', 4000);
         }
 
         saveBtn.disabled = false;
         saveBtn.innerHTML = '<i data-lucide="save" style="width:14px;height:14px;stroke:currentColor;"></i> ' + (isAR ? 'حفظ وإرسال' : 'Save & Send');
+        if (smBtn) { smBtn.disabled = false; smBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg> ' + (isAR ? 'حفظ وإرسال' : 'Save & Send'); }
+        lucide.createIcons();
+      }
+
+      saveBtn.addEventListener('click', () => {
+        if (!_validateBeforeSave()) return;
+        // Pre-fill modal
+        if (modalName)    modalName.value = msgName.value.trim();
+        if (modalChannel) modalChannel.value = flowChannelIds[0] || '';
+        // Show send-mode group always (edit vs new choice)
+        if (sendModeGroup) {
+          sendModeGroup.classList.add('visible');
+          const modeEdit = document.getElementById('modeEdit');
+          const modeNew  = document.getElementById('modeNew');
+          if (editingId && modeEdit) modeEdit.checked = true;
+          else if (modeNew) modeNew.checked = true;
+        }
+        // Smart channel context hint
+        const ctx        = _triggerChannelCtx();
+        const hintEl     = document.getElementById('smChannelHint');
+        const chLabelEl  = document.getElementById('smChannelLabel');
+        const baseLabel  = isAR ? 'القناة الأساسية' : 'Primary Channel';
+        if (hintEl) {
+          if (ctx === 'all_provided') {
+            hintEl.className = 'sm-channel-hint hint-ok';
+            hintEl.textContent = (isAR
+              ? '✓ جميع المُشغِّلات النشطة توفر قناة تلقائياً — اختيارية'
+              : '✓ All active triggers auto-provide a channel — field is optional');
+          } else if (ctx === 'some_provided') {
+            hintEl.className = 'sm-channel-hint hint-warn';
+            hintEl.textContent = (isAR
+              ? '⚠ بعض المُشغِّلات تحتاج قناة محددة (scheduled / webhook / on_join)'
+              : '⚠ Some triggers (scheduled / webhook / on_join) need an explicit channel');
+          } else if (ctx === 'none_provided') {
+            hintEl.className = 'sm-channel-hint hint-warn';
+            hintEl.textContent = (isAR
+              ? '⚠ المُشغِّلات النشطة لا توفر قناة — حدد قناة لتفعيلها'
+              : '⚠ Active triggers rely on an explicit channel to know where to send');
+          } else {
+            hintEl.className = 'sm-channel-hint hint-info';
+            hintEl.textContent = (isAR
+              ? 'ℹ اتركها فارغة واستخدم المُشغِّلات، أو اختر قناة للإرسال الفوري'
+              : 'ℹ Leave empty and rely on triggers, or select a channel for an immediate send');
+          }
+        }
+        if (chLabelEl) {
+          const suffix = ctx === 'all_provided'
+            ? (isAR ? ' (اختياري)' : ' (optional)')
+            : ctx === 'no_triggers'
+              ? (isAR ? ' (للإرسال الفوري)' : ' (for immediate send)')
+              : '';
+          chLabelEl.textContent = baseLabel + suffix;
+        }
+        const titleEl = document.getElementById('saveModalTitle');
+        const descEl  = document.getElementById('saveModalDesc');
+        if (titleEl) titleEl.textContent = editingId
+          ? (isAR ? 'تحديث الأتمتة' : 'Update Automation')
+          : (isAR ? 'إطلاق الأتمتة'  : 'Launch Automation');
+        if (descEl) descEl.textContent = editingId
+          ? (isAR ? 'راجع الإعدادات ثم اختر طريقة الإرسال.' : 'Review settings and choose how to send.')
+          : (isAR ? 'راجع الإعدادات قبل الإطلاق — كل شيء اختياري.' : 'Review settings before launching — everything except the name is optional.');
+        saveConfirmModal?.classList.add('open');
         lucide.createIcons();
       });
 
@@ -2830,14 +3341,48 @@
       });
 
       // ═══ SMART TRIGGERS MODAL ═══
+      // providesChannel: true  → trigger supplies the Discord channel at runtime (no explicit channel needed)
+      // providesChannel: false → trigger fires but relies on the configured Primary Channel to know where to send
+      // Generate a cryptographically-random 32-hex-char webhook token
+      function _genWebhookToken() {
+        if (window.crypto?.getRandomValues) {
+          const arr = new Uint8Array(16);
+          window.crypto.getRandomValues(arr);
+          return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        return Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      }
+
       const TRIGGER_TYPES = [
-        { value: 'slash_command', label: isAR ? 'أمر Slash'   : 'Slash Command', icon: '⚡', params: [{ key: 'name', label: isAR ? 'اسم الأمر' : 'Command name', placeholder: '/menu' }] },
-        { value: 'on_join',       label: isAR ? 'انضمام عضو' : 'Member Joins',   icon: '👋', params: [] },
-        { value: 'on_reaction',   label: isAR ? 'تفاعل'       : 'Reaction Added', icon: '✨', params: [{ key: 'emoji', label: isAR ? 'الإيموجي' : 'Emoji', placeholder: '👍' }] },
-        { value: 'scheduled',     label: isAR ? 'مجدول'        : 'Scheduled',      icon: '🕐', params: [{ key: 'cron', label: isAR ? 'Cron' : 'Cron expression', placeholder: '0 9 * * *' }] },
-        { value: 'webhook',       label: isAR ? 'Webhook'      : 'Webhook',        icon: '🔗', params: [] },
-        { value: 'on_message',    label: isAR ? 'رسالة تطابق' : 'Message Pattern', icon: '💬', params: [{ key: 'pattern', label: isAR ? 'النمط (regex)' : 'Pattern (regex)', placeholder: '^!start' }] },
+        { value: 'slash_command',    label: isAR ? 'أمر Slash'       : 'Slash Command',           icon: 'terminal',       providesChannel: true,  params: [{ key: 'name',       label: isAR ? 'اسم الأمر'      : 'Command name',    placeholder: '/menu'    }] },
+        { value: 'on_join',          label: isAR ? 'انضمام عضو'     : 'Member Joins',             icon: 'user-plus',      providesChannel: false, params: [] },
+        { value: 'member_leave',     label: isAR ? 'مغادرة عضو'     : 'Member Leaves',            icon: 'user-minus',     providesChannel: false, params: [] },
+        { value: 'role_add',         label: isAR ? 'حصل على رتبة'   : 'Role Assigned',            icon: 'shield-plus',    providesChannel: false, params: [{ key: 'roleId', label: isAR ? 'الرتبة (اختياري)' : 'Role (optional)', type: 'select', getOptions: () => roles.map(r => ({ id: r.id, name: r.name })) }] },
+        { value: 'role_remove',      label: isAR ? 'أُزيلت رتبته'   : 'Role Removed',             icon: 'shield-minus',   providesChannel: false, params: [{ key: 'roleId', label: isAR ? 'الرتبة (اختياري)' : 'Role (optional)', type: 'select', getOptions: () => roles.map(r => ({ id: r.id, name: r.name })) }] },
+        { value: 'on_reaction',      label: isAR ? 'تفاعل'           : 'Reaction Added',           icon: 'smile-plus',     providesChannel: true,  params: [{ key: 'emoji',      label: isAR ? 'الإيموجي'       : 'Emoji',           placeholder: '👍'     }] },
+        { value: 'scheduled',        label: isAR ? 'مجدول'            : 'Scheduled',                icon: 'clock',          providesChannel: false, params: [{ key: 'cron',       label: isAR ? 'Cron'           : 'Cron expression', placeholder: '0 9 * * *' }] },
+        { value: 'webhook',          label: isAR ? 'Webhook'          : 'Webhook',                  icon: 'webhook',        providesChannel: false, params: [{ key: 'token', label: isAR ? 'رابط الـ Webhook' : 'Webhook URL', type: 'webhook_url' }] },
+        { value: 'on_message',       label: isAR ? 'رسالة تطابق'     : 'Message Pattern',          icon: 'message-square', providesChannel: true,  params: [{ key: 'pattern',    label: isAR ? 'النمط (regex)' : 'Pattern (regex)', placeholder: '^!start' }] },
+        { value: 'on_channel_create',label: isAR ? 'قناة جديدة'      : 'New Channel in Category',  icon: 'folder-plus',    providesChannel: true,  params: [{ key: 'categoryId', label: isAR ? 'الكاتيغوري'    : 'Category',        type: 'select', getOptions: () => categories }] },
       ];
+
+      /**
+       * Returns the channel-context status based on active triggers:
+       *  'all_provided'  — every active trigger provides its own channel at runtime
+       *  'some_provided' — mixed: some need an explicit channel, some don't
+       *  'none_provided' — all active triggers need an explicit channel
+       *  'no_triggers'   — no triggers at all (optional immediate send)
+       */
+      function _triggerChannelCtx() {
+        if (!flowTriggers.length) return 'no_triggers';
+        const provided = flowTriggers.filter(t => {
+          const def = TRIGGER_TYPES.find(tt => tt.value === t.type);
+          return def?.providesChannel === true;
+        });
+        if (provided.length === flowTriggers.length) return 'all_provided';
+        if (provided.length > 0)                     return 'some_provided';
+        return 'none_provided';
+      }
 
       function renderTriggersModal() {
         const picker = document.getElementById('trgTypePicker');
@@ -2845,16 +3390,19 @@
         if (!picker || !list) return;
         // Type add buttons
         picker.innerHTML = TRIGGER_TYPES.map(t =>
-          '<button class="fl-trg-type-btn _add-trg" data-ttype="' + t.value + '" type="button">' + t.icon + ' ' + t.label + '</button>'
+          '<button class="fl-trg-type-btn _add-trg" data-ttype="' + t.value + '" type="button"><i data-lucide="' + t.icon + '" style="width:13px;height:13px;stroke:currentColor;flex-shrink:0;vertical-align:-2px;"></i> ' + t.label + '</button>'
         ).join('');
         picker.querySelectorAll('._add-trg').forEach(btn => {
           btn.addEventListener('click', () => {
             const tt = TRIGGER_TYPES.find(t => t.value === btn.dataset.ttype);
             if (!tt) return;
-            flowTriggers.push({ id: uid(), type: tt.value, params: {} });
+            const defaultParams = {};
+            if (tt.value === 'webhook') defaultParams.token = _genWebhookToken();
+            flowTriggers.push({ id: uid(), type: tt.value, params: defaultParams });
             renderTriggersModal();
           });
         });
+        lucide.createIcons();
         // Render trigger items
         list.innerHTML = '';
         if (!flowTriggers.length) {
@@ -2867,13 +3415,35 @@
           item.className = 'fl-trg-item';
           let paramsHtml = '';
           tt.params.forEach(p => {
-            paramsHtml +=
-              '<label>' + esc(p.label) + '</label>' +
-              '<input type="text" data-trgid="' + trg.id + '" data-key="' + esc(p.key) + '" value="' + esc(trg.params[p.key] || '') + '" placeholder="' + esc(p.placeholder || '') + '">';
+            if (p.type === 'webhook_url') {
+              // Auto-generate token if missing (e.g. loaded from old save)
+              if (!trg.params[p.key]) trg.params[p.key] = _genWebhookToken();
+              const token = trg.params[p.key];
+              const webhookUrl = window.location.origin + '/api/webhook/components/' + GUILD_ID + '/' + trg.id + '?token=' + encodeURIComponent(token);
+              paramsHtml +=
+                '<label>' + esc(p.label) + '</label>' +
+                '<div style="display:flex;gap:6px;align-items:center;margin-top:4px;">' +
+                  '<input type="text" readonly value="' + esc(webhookUrl) + '" class="_wh-url" data-trgid="' + trg.id + '" style="flex:1;font-size:.65rem;background:rgba(255,255,255,.04);color:var(--muted);cursor:text;">' +
+                  '<button type="button" class="btn btn-ghost btn-sm _copy-webhook" data-url="' + esc(webhookUrl) + '" style="flex-shrink:0;font-size:.68rem;padding:3px 10px;white-space:nowrap;">' + (isAR ? 'نسخ' : 'Copy') + '</button>' +
+                '</div>';
+            } else if (p.type === 'select') {
+              const opts = (typeof p.getOptions === 'function' ? p.getOptions() : [])
+                .map(o => '<option value="' + esc(o.id) + '"' + (trg.params[p.key] === o.id ? ' selected' : '') + '>' + esc(o.name) + '</option>')
+                .join('');
+              paramsHtml +=
+                '<label>' + esc(p.label) + '</label>' +
+                '<select data-trgid="' + trg.id + '" data-key="' + esc(p.key) + '" class="bld-select" style="font-size:.74rem;width:100%;margin-top:4px;">' +
+                  '<option value="">' + (isAR ? '— اختر —' : '— Any —') + '</option>' + opts +
+                '</select>';
+            } else {
+              paramsHtml +=
+                '<label>' + esc(p.label) + '</label>' +
+                '<input type="text" data-trgid="' + trg.id + '" data-key="' + esc(p.key) + '" value="' + esc(trg.params[p.key] || '') + '" placeholder="' + esc(p.placeholder || '') + '">';
+            }
           });
           item.innerHTML =
             '<div class="fl-trg-item-head">' +
-              '<span class="fl-trg-icon">' + tt.icon + '</span>' +
+              '<span class="fl-trg-icon"><i data-lucide="' + tt.icon + '" style="width:16px;height:16px;stroke:currentColor;"></i></span>' +
               '<span class="fl-trg-label">' + esc(tt.label) + '</span>' +
               '<span class="fl-trg-badge active">active</span>' +
               '<button class="fl-trg-del-btn _del-trg" data-ti="' + ti + '" type="button">×</button>' +
@@ -2885,16 +3455,32 @@
               if (trgItem) trgItem.params[inp.dataset.key] = inp.value;
             });
           });
+          item.querySelectorAll('.fl-trg-params select').forEach(sel => {
+            sel.addEventListener('change', () => {
+              const trgItem = flowTriggers.find(t => t.id === sel.dataset.trgid);
+              if (trgItem) trgItem.params[sel.dataset.key] = sel.value;
+            });
+          });
+          item.querySelectorAll('._copy-webhook').forEach(copyBtn => {
+            copyBtn.addEventListener('click', () => {
+              navigator.clipboard.writeText(copyBtn.dataset.url || '').catch(() => {
+                // Fallback for non-secure contexts
+                const ta = document.createElement('textarea');
+                ta.value = copyBtn.dataset.url || '';
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+              });
+              const orig = copyBtn.textContent;
+              copyBtn.textContent = isAR ? '✓ تم' : '✓ Copied';
+              setTimeout(() => { copyBtn.textContent = orig; }, 2000);
+            });
+          });
           item.querySelector('._del-trg')?.addEventListener('click', () => {
             flowTriggers.splice(ti, 1);
-        // Ctrl/Cmd+S → save
-        if ((e.ctrlKey || e.metaKey) && e.key === 's' && builderView.classList.contains('active')) {
-          e.preventDefault(); saveBtn.click(); return;
-        }
             renderTriggersModal();
           });
           list.appendChild(item);
         });
+        lucide.createIcons();
       }
 
       document.getElementById('triggersBtn')?.addEventListener('click', () => {
@@ -2917,7 +3503,9 @@
         }));
         try {
           localStorage.setItem('draft_cm_' + GUILD_ID, JSON.stringify({
-            editingId, name: draftName, channelId: msgChannel.value,
+            editingId, name: draftName,
+            channelId: flowChannelIds[0] || '', channelIds: flowChannelIds,
+            scheduledAt: flowScheduledAt, preMentions: flowPreMentions,
             states: draftStates, initialStateId,
             multiUser: flowMultiUser, timeout: flowTimeout, triggers: flowTriggers,
             savedAt: Date.now()
@@ -2928,9 +3516,174 @@
 
       document.getElementById('trgModalSave')?.addEventListener('click', () => { markDirty(); triggersModal.classList.remove('open'); renderStatesSidebar(); toast(isAR ? 'تم حفظ المُشغِّلات' : 'Triggers saved'); });
 
-      // Close modals on escape
+      /* ═══ MULTI-CHANNEL ADD DROPDOWN ═══ */
+      chAddBtn?.addEventListener('click', e => {
+        e.stopPropagation();
+        renderChAddItems(chAddSearch?.value || '');
+        chAddMenu.classList.toggle('open');
+      });
+      chAddSearch?.addEventListener('input', () => renderChAddItems(chAddSearch.value));
+      document.addEventListener('click', e => {
+        if (!e.target.closest('#chAddWrap')) chAddMenu?.classList.remove('open');
+      });
+
+      /* ═══ SCHEDULED SEND ═══ */
+      document.getElementById('flowScheduledAt')?.addEventListener('change', e => {
+        flowScheduledAt = e.target.value ? new Date(e.target.value).toISOString() : null;
+        markDirty();
+      });
+      document.getElementById('clearScheduleBtn')?.addEventListener('click', () => {
+        const el = document.getElementById('flowScheduledAt');
+        if (el) el.value = '';
+        flowScheduledAt = null;
+        markDirty();
+      });
+
+      /* ═══ EMOJI PICKER ═══ */
+      const _EMOJI_GROUPS = [
+        ['😀','😁','😂','🤣','😃','😄','😅','😆','😇','😈','😉','😊','😋','😌','😍','🥰','😎','🤓','🤗','🤔','😑','😜','🤫','😞','😟','😢','😭','😔','😕','🤥','😖','😪','😫','🤤','😝','😤','😡','🤬','😠','😮','😯','😲','🤯','😳','😵','😶','😷','🤢','🤕','🤑','🤩','🥳','🤪','🤨'],
+        ['👍','👎','👌','🤌','✌️','🤏','🤞','🤘','👈','👉','👆','👇','☝️','👏','🖐️','🖖','💪','🙏','🤝','✍️'],
+        ['❤️','🧡','💛','💚','💙','💜','🤎','💞','🖤','💔','❣️','💕','💖','💗','💘','💝','💟','♥️'],
+        ['🎉','🎊','🎈','🎆','🎇','🥳','🎂','🎁','🏆','🧨','🍾','🎶','🔥','✨'],
+        ['✨','⭐','🔥','⚡','💫','✅','❌','❗','❓','💯','🔄','♻️','✔️','💎','🔮','🌈'],
+        ['🌱','🌲','🌳','🌴','🌵','🌷','🌸','🌹','🌺','🌻','🌼','🌿','☘️','🍀','🍁','🍂','🍃','🍄','🐢','🐣','🐱','🐶','🐼','🦋'],
+      ];
+      let _epkTarget = null;
+      function _buildEmojiPicker(targetId, triggerBtn) {
+        const old = document.getElementById('_bld-epk');
+        if (old) { old.remove(); _epkTarget = null; return; }
+        _epkTarget = targetId;
+        const picker = document.createElement('div');
+        picker.id = '_bld-epk';
+        picker.className = 'bld-emoji-picker';
+        picker.innerHTML =
+          '<div class="epk-tabs">' +
+            '<button class="epk-tab active" data-ep="unicode" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> ' + (isAR ? 'قياسي' : 'Standard') + '</button>' +
+            '<button class="epk-tab" data-ep="custom" type="button"><svg viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg> ' + (isAR ? 'السيرفر' : 'Server') + '</button>' +
+          '</div>' +
+          '<div class="epk-search"><input type="text" placeholder="' + (isAR ? 'بحث...' : 'Search emoji...') + '" autocomplete="off" /></div>' +
+          '<div class="epk-grid" id="_epk-grid"></div>';
+        document.body.appendChild(picker);
+        // Position near trigger button using fixed coords
+        const r = triggerBtn.getBoundingClientRect();
+        const pw = Math.min(300, window.innerWidth - 16);
+        let left = Math.max(8, Math.min(r.right - pw, window.innerWidth - pw - 8));
+        picker.style.width = pw + 'px';
+        picker.style.left = left + 'px';
+        if (r.top > 310) {
+          picker.style.top = 'auto';
+          picker.style.bottom = (window.innerHeight - r.top + 6) + 'px';
+        } else {
+          picker.style.top = (r.bottom + 6) + 'px';
+          picker.style.bottom = 'auto';
+        }
+        let activePanel = 'unicode';
+        function _renderEpkGrid(q) {
+          const grid = picker.querySelector('#_epk-grid');
+          grid.innerHTML = '';
+          q = (q || '').toLowerCase();
+          if (activePanel === 'unicode') {
+            _EMOJI_GROUPS.forEach(arr => arr.forEach(em => {
+              const b = document.createElement('button');
+              b.type = 'button'; b.className = 'epk-btn'; b.textContent = em;
+              b.addEventListener('mousedown', ev => { ev.preventDefault(); _epkInsert(em, targetId); });
+              grid.appendChild(b);
+            }));
+          } else {
+            const list = emojis.filter(e => !q || e.name.toLowerCase().includes(q));
+            if (!list.length) { grid.innerHTML = '<span class="epk-empty">' + (isAR ? 'لا يوجد' : 'No custom emojis') + '</span>'; return; }
+            list.forEach(e => {
+              const b = document.createElement('button');
+              b.type = 'button'; b.className = 'epk-btn custom-e'; b.title = ':' + e.name + ':';
+              b.innerHTML = '<img src="' + e.url + '" alt=":' + e.name + ':" />';
+              b.addEventListener('mousedown', ev => { ev.preventDefault(); _epkInsert('<:' + e.name + ':' + e.id + '>', targetId); });
+              grid.appendChild(b);
+            });
+          }
+        }
+        picker.querySelectorAll('.epk-tab').forEach(tab => {
+          tab.addEventListener('click', e => { e.stopPropagation(); picker.querySelectorAll('.epk-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); activePanel = tab.dataset.ep; picker.querySelector('.epk-search input').value = ''; _renderEpkGrid(''); });
+        });
+        picker.querySelector('.epk-search input').addEventListener('input', e => { e.stopPropagation(); _renderEpkGrid(e.target.value); });
+        picker.addEventListener('click', e => e.stopPropagation());
+        _renderEpkGrid('');
+      }
+      function _epkInsert(emoji, targetId) {
+        const ta = document.getElementById(targetId);
+        if (!ta) return;
+        const s = ta.selectionStart || 0, e2 = ta.selectionEnd || 0;
+        ta.value = ta.value.slice(0, s) + emoji + ta.value.slice(e2);
+        ta.selectionStart = ta.selectionEnd = s + emoji.length;
+        ta.focus(); ta.dispatchEvent(new Event('input'));
+        const epk = document.getElementById('_bld-epk');
+        if (epk) { epk.remove(); _epkTarget = null; }
+      }
+      // Wire the emoji smiley button (not the @ mention one)
+      document.querySelector('.bld-emoji-btn:not(#mentionBtn)')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        _buildEmojiPicker('msgContent', this);
+      });
+      document.addEventListener('click', () => { const epk = document.getElementById('_bld-epk'); if (epk) { epk.remove(); _epkTarget = null; } });
+
+      /* ═══ MENTION POPOVER ═══ */
+      document.getElementById('mentionBtn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        if (mentionPop?.classList.contains('open')) { mentionPop.classList.remove('open'); return; }
+        renderMentionList('');
+        // Position using fixed coords to escape any overflow:hidden parent
+        const r = e.currentTarget.getBoundingClientRect();
+        const popW = 260;
+        const left = Math.max(8, Math.min(r.right - popW, window.innerWidth - popW - 8));
+        const spaceAbove = r.top - 8;
+        const spaceBelow = window.innerHeight - r.bottom - 8;
+        if (mentionPop) {
+          mentionPop.style.left = left + 'px';
+          if (spaceAbove >= 280 || spaceAbove > spaceBelow) {
+            mentionPop.style.bottom = (window.innerHeight - r.top + 6) + 'px';
+            mentionPop.style.top = 'auto';
+          } else {
+            mentionPop.style.top = (r.bottom + 6) + 'px';
+            mentionPop.style.bottom = 'auto';
+          }
+          mentionPop.classList.add('open');
+        }
+      });
+      document.getElementById('mentionSearch')?.addEventListener('input', e => renderMentionList(e.target.value));
+      document.querySelectorAll('.mention-mode-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          _mentionMode = btn.dataset.mode;
+          document.querySelectorAll('.mention-mode-tab').forEach(b => b.classList.toggle('active', b === btn));
+        });
+      });
+      document.addEventListener('click', e => {
+        if (!e.target.closest('#mentionAnchor')) mentionPop?.classList.remove('open');
+      });
+
+      /* ═══ SEND LOG MODAL ═══ */
+      document.getElementById('sendLogClose')?.addEventListener('click', () => {
+        sendLogModal?.classList.remove('open'); _sendLogCtx = null;
+      });
+      sendLogModal?.addEventListener('click', e => {
+        if (e.target === sendLogModal) { sendLogModal.classList.remove('open'); _sendLogCtx = null; }
+      });
+
+      /* ═══ SAVE CONFIRM MODAL ═══ */
+      document.getElementById('smCancel')?.addEventListener('click', () => saveConfirmModal?.classList.remove('open'));
+      saveConfirmModal?.addEventListener('click', e => { if (e.target === saveConfirmModal) saveConfirmModal.classList.remove('open'); });
+      document.getElementById('smSave')?.addEventListener('click', () => {
+        const mode = document.querySelector('input[name="sendMode"]:checked')?.value || 'new';
+        _doActualSave(mode);
+      });
+
+      // Close modals on escape / Ctrl+S to save
       document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's' && builderView.classList.contains('active')) {
+          e.preventDefault(); saveBtn.click(); return;
+        }
         if (e.key === 'Escape') {
+          if (saveConfirmModal?.classList.contains('open')) { saveConfirmModal.classList.remove('open'); return; }
+          if (sendLogModal?.classList.contains('open')) { sendLogModal.classList.remove('open'); _sendLogCtx = null; return; }
+          if (mentionPop?.classList.contains('open'))  { mentionPop.classList.remove('open'); return; }
           if (btnEditModal.classList.contains('open')) { btnEditModal.classList.remove('open'); _btnEditCtx = null; }
           if (optEditModal.classList.contains('open')) { optEditModal.classList.remove('open'); _optEditCtx = null; }
           if (actionModal.classList.contains('open')) { actionModal.classList.remove('open'); _actionCtx = null; }

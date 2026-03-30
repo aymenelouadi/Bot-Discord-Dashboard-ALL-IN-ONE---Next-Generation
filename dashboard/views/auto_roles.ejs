@@ -353,8 +353,26 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Responsive ── */
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       .menu-toggle { display: flex !important; }
+      .mgmt-sidebar { left: 0 !important; right: auto !important; transform: translateX(-100%); width: 260px !important; z-index: 92; }
+      [dir="rtl"] .mgmt-sidebar { left: auto !important; right: 0 !important; transform: translateX(100%); }
+      .mgmt-sidebar.open { transform: translateX(0) !important; }
+      .main { margin-left: var(--nav-w); margin-right: 0; padding: 24px 16px 48px; }
+      [dir="rtl"] .main { margin-left: 0; margin-right: var(--nav-w); }
+      .save-bar { left: var(--nav-w) !important; right: 0 !important; }
+      [dir="rtl"] .save-bar { left: 0 !important; right: var(--nav-w) !important; }
+      .invite-row { grid-template-columns: 1fr; }
+      .invite-remove { width: 100%; }
+      .topbar { padding: 0 12px; gap: 8px; }
+      .topbar-brand { display: none; }
+      .guild-meta-id { display: none !important; }
+      .guild-meta-name { max-width: 90px; }
+      .user-chip span { display: none; }
+      .topbar-sep { display: none; }
+    }
+    @media (max-width: 600px) {
+      :root { --nav-w: 0px; }
       .nav-sidebar { transform: translateX(-100%); width: 220px !important; align-items: stretch; overflow-x: unset; z-index: 95; transition: transform 350ms cubic-bezier(0.4,0,0.2,1); }
       [dir="rtl"] .nav-sidebar { transform: translateX(100%); }
       .nav-sidebar.open { transform: translateX(0) !important; }
@@ -364,20 +382,8 @@
       .nav-sidebar.open .nav-item-label { opacity: 1; visibility: visible; pointer-events: auto; }
       .nav-sidebar.open .nav-status { opacity: 0; }
       .nav-sidebar.open .nav-divider { width: calc(100% - 24px); }
-      .mgmt-sidebar { left: 0 !important; right: auto !important; transform: translateX(-100%); width: 260px !important; z-index: 92; }
-      [dir="rtl"] .mgmt-sidebar { left: auto !important; right: 0 !important; transform: translateX(100%); }
-      .mgmt-sidebar.open { transform: translateX(0) !important; }
-      .main { margin-left: 0 !important; margin-right: 0 !important; padding: 24px 16px 48px; }
+      .main { margin-left: 0 !important; margin-right: 0 !important; }
       .save-bar { left: 0 !important; right: 0 !important; padding: 12px 16px; }
-      .invite-row { grid-template-columns: 1fr; }
-      .invite-remove { width: 100%; }
-      .topbar { padding: 0 12px; gap: 8px; }
-      .topbar-brand { display: none; }
-      .guild-meta-id { display: none !important; }
-      .guild-meta-name { max-width: 90px; }
-      .user-chip span { display: none; }
-      .topbar-sep { display: none; }
-      .lang-select { display: none; }
     }
   </style>
 </head>

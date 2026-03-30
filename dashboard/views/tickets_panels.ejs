@@ -1757,12 +1757,92 @@
         }
 
         /* Mobile */
-        @media (max-width: 860px) {
+        @media (max-width: 900px) {
           .menu-toggle {
             display: flex;
           }
 
-          /* Nav sidebar: off-screen by default, slides in when sort btn pressed */
+          .mgmt-sidebar {
+            left: 0 !important;
+            right: auto !important;
+            width: 260px !important;
+            z-index: 92;
+            transform: translateX(-100%);
+          }
+
+          [dir="rtl"] .mgmt-sidebar {
+            left: auto !important;
+            right: 0 !important;
+            transform: translateX(100%);
+          }
+
+          .mgmt-sidebar.open {
+            transform: translateX(0) !important;
+          }
+
+          .main {
+            margin-left: var(--nav-w);
+            margin-right: 0;
+            padding: 20px 16px 100px;
+          }
+
+          [dir="rtl"] .main {
+            margin-left: 0;
+            margin-right: var(--nav-w);
+          }
+
+          .save-bar {
+            left: var(--nav-w) !important;
+            right: 0 !important;
+            padding: 12px 16px;
+          }
+
+          [dir="rtl"] .save-bar {
+            left: 0 !important;
+            right: var(--nav-w) !important;
+          }
+
+          .hours-grid {
+            grid-template-columns: 90px 1fr 1fr;
+            gap: 8px;
+          }
+
+          .form-input-wide {
+            width: 100%;
+          }
+
+          .topbar {
+            padding: 0 12px;
+            gap: 8px;
+          }
+
+          .topbar-brand {
+            display: none;
+          }
+
+          .guild-meta-id {
+            display: none !important;
+          }
+
+          .guild-meta-name {
+            max-width: 90px;
+          }
+
+          .user-chip span {
+            display: none;
+          }
+
+          .user-chip {
+            padding: 4px 7px;
+          }
+
+          .topbar-sep {
+            display: none;
+          }
+        }
+
+        @media (max-width: 600px) {
+          :root { --nav-w: 0px; }
           .nav-sidebar {
             transform: translateX(-100%);
             width: 220px !important;
@@ -1814,31 +1894,7 @@
             width: calc(100% - 24px);
           }
 
-          .mgmt-sidebar {
-            left: 0 !important;
-            right: auto !important;
-            width: 260px !important;
-            z-index: 92;
-            transform: translateX(-100%);
-          }
-
-          [dir="rtl"] .mgmt-sidebar {
-            left: auto !important;
-            right: 0 !important;
-            transform: translateX(100%);
-          }
-
-          .mgmt-sidebar.open {
-            transform: translateX(0) !important;
-          }
-
           .main {
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            padding: 20px 16px 100px;
-          }
-
-          [dir="rtl"] .main {
             margin-left: 0 !important;
             margin-right: 0 !important;
           }
@@ -1846,54 +1902,11 @@
           .save-bar {
             left: 0 !important;
             right: 0 !important;
-            padding: 12px 16px;
           }
 
           [dir="rtl"] .save-bar {
             left: 0 !important;
             right: 0 !important;
-          }
-
-          .hours-grid {
-            grid-template-columns: 90px 1fr 1fr;
-            gap: 8px;
-          }
-
-          .form-input-wide {
-            width: 100%;
-          }
-
-          .topbar {
-            padding: 0 12px;
-            gap: 8px;
-          }
-
-          .topbar-brand {
-            display: none;
-          }
-
-          .guild-meta-id {
-            display: none !important;
-          }
-
-          .guild-meta-name {
-            max-width: 90px;
-          }
-
-          .user-chip span {
-            display: none;
-          }
-
-          .user-chip {
-            padding: 4px 7px;
-          }
-
-          .topbar-sep {
-            display: none;
-          }
-
-          .lang-select {
-            display: none;
           }
         }
 
