@@ -66,21 +66,26 @@ Protection · Moderation · Tickets · Embeds Flow Builder · Auto Roles · Leve
 ## ✨ Features
 
 | Category | Highlights |
-|----------|-----------|
-| 🛡️ **Protection** | Anti-Ban, Anti-Kick, Anti-Bots, Anti-Webhooks, Anti-Channel Create/Delete, Anti-Role Add/Delete |
-| ⚖️ **Moderation** | Ban, Kick, Mute, Warn, Jail, Clear, Lock/Unlock, Slowmode, Rename |
+|----------|------------|
+| 🛡️ **Protection** | Anti-Ban, Anti-Kick, Anti-Bots, Anti-Webhooks, Anti-Channel Create/Delete, Anti-Role Add/Create/Delete |
+| ⚖️ **Moderation** | Ban, Kick, Mute, Warn, Jail, Clear, Lock/Unlock, Slowmode, Rename, Unban All |
+| 👋 **Welcome & Leave** | Customizable join/leave/boost messages with image cards and welcome role assignment |
+| ✅ **Verification** | Member verification gate with automatic role assignment on completion |
 | 👥 **Roles** | Auto-Role (members / bots / invite), Temp Role, Multi-Role, Permission Control |
-| 🎟️ **Tickets** | Multi-panel, HTML transcripts, Feedback, Stats, Ticket Points |
+| 🎟️ **Tickets** | Multi-panel, categories, HTML transcripts, Feedback system, Stats, Ticket Points |
 | 🤖 **Auto Responder** | Keyword-triggered auto-replies with exact / contains / regex match modes |
+| ⚡ **Automations** | Event-driven automation rules triggered by Discord events (joins, roles, reactions, …) |
+| 📩 **Embeds Builder** | Visual rich-embed builder with image, thumbnail, fields, footer, and color picker |
+| 🧩 **Components Builder** | Drag-and-drop interactive message builder — buttons, select menus, modals; custom ID routing and flow transitions |
 | 💡 **Suggestions** | Member suggestion submissions with approve/reject dashboard controls |
+| 📈 **Levels** | XP-based leveling system with rank cards, leaderboard, and configurable role rewards |
 | ⭐ **Staff Points** | Reward staff activity with a points system and leaderboard |
 | 💬 **Interaction Points** | Track member engagement (messages, voice) with role-reward thresholds |
 | 📊 **Activity Stats** | Hourly guild activity tracking (joins, leaves, messages, voice) with ApexCharts |
-| 📊 **Utility** | Server/User info, Avatar, Banners, Ping, AFK, Help |
-| 🌐 **Dashboard** | Discord OAuth2, Live editing of all settings, Beautiful UI |
-| 📝 **Logging** | Full audit log for every moderation action |
-| � **Embeds Flow Builder** | Visual XState flow canvas — design multi-state embed messages with buttons/select menus, transitions, triggers, version history & recycle bin |
-| �🌍 **Multi-language** | 11 languages: English, Arabic, French, German, Spanish, Russian, Portuguese, Hindi, Bengali, Urdu, Chinese |
+| 🔧 **Utility** | Server/User info, Avatar, Banners, Ping, AFK, Help |
+| 🌐 **Dashboard** | Discord OAuth2, real-time live editing, guild switcher, full mobile-responsive UI |
+| 📝 **Logging** | Full audit log for every moderation and protection action |
+| 🌍 **Multi-language** | 11 languages: English, Arabic, French, German, Spanish, Russian, Portuguese, Hindi, Bengali, Urdu, Chinese |
 
 ---
 

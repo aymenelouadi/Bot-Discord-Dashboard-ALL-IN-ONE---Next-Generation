@@ -27,6 +27,7 @@ cache/
 _*.js
 _*.css
 _*.ts
+_verify.js
 
 # Backup files
 *.bak
@@ -72,4 +73,11 @@ coverage/
 # Lock files (let deployers manage their own)
 package-lock.json
 yarn.lock
+
+# Sensitive runtime config — contains secrets, never commit
+settings.json
+
+# Internal folders not for distribution
+cmd/
+configs/
 
