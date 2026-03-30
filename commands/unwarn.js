@@ -9,6 +9,7 @@ const db         = require('../systems/schemas');
 const logSystem  = require('../systems/log.js');
 const adminGuard = require('../utils/adminGuard');
 const { t, langOf } = require('../utils/cmdLang');
+const settingsUtil   = require('../utils/settings');
 
 /* ── Components V2 ─────────────────────────────────── */
 const CV2 = 1 << 15;
@@ -152,7 +153,7 @@ module.exports = {
         await adminGuard.cleanup(g.cfg, isSlash ? null : ctx, botReply);
 
         /* ── DM ────────────────────────────────────────── */
-        const settings = require('../utils/settings');
+        const settings = settingsUtil.get();
         if (settings.actions?.unwarn?.dm && user) {
             user.send(t(lang, 'unwarn.dm_msg', {
                 guild: guild.name, case: caseId, mod: moderator.id,

@@ -5,7 +5,6 @@
  */
 
 ﻿const { SlashCommandBuilder, PermissionFlagsBits, ChannelType } = require('discord.js');
-const path   = require('path');
 const adminGuard = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
 const logSystem  = require('../systems/log.js');

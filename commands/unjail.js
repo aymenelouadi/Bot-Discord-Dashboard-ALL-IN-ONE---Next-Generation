@@ -6,7 +6,8 @@
 
 const { SlashCommandBuilder, PermissionFlagsBits, ChannelType } = require('discord.js');
 const db      = require('../systems/schemas');
-const logSystem = require('../systems/log.js');
+const logSystem    = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
 
 const generateCaseId = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -35,7 +36,7 @@ const restoreChannelPermissions = async (guild, userId) => {
 };
 
 const autoUnjail = async (client, guild, userId, reason) => {
-    const settings = require('../utils/settings');
+    const settings = settingsUtil.get();
 
     const jailRecord = await db.Jail.findOneAndUpdate(
         { guildId: guild.id, userId, active: true },
@@ -90,7 +91,7 @@ module.exports = {
         let user, reason, moderator, guild;
         
         try {
-            const settings = require('../utils/settings');
+            const settings     = settingsUtil.get();
             const commandConfig = settings.actions?.unjail;
 
             if (commandConfig && !commandConfig.enabled) {

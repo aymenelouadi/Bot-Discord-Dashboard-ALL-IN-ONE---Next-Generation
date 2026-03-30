@@ -11,8 +11,6 @@ const {
     StringSelectMenuBuilder, StringSelectMenuOptionBuilder,
     ButtonBuilder, ButtonStyle
 } = require('discord.js');
-const fs   = require('fs');
-const path = require('path');
 const adminGuard = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
 const logSystem  = require('../systems/log.js');

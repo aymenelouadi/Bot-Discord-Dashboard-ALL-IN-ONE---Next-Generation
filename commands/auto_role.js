@@ -5,8 +5,9 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const guildDb   = require('../dashboard/utils/guildDb');
-const logSystem = require('../systems/log.js');
+const guildDb      = require('../dashboard/utils/guildDb');
+const logSystem    = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -22,8 +23,7 @@ module.exports = {
         const isSlash = interactionOrMessage.isCommand?.();
         
         try {
-            const settings = require('../utils/settings');
-            const commandConfig = settings.actions?.auto_role;
+            const commandConfig = settingsUtil.get().actions?.auto_role;
             
             if (commandConfig && !commandConfig.enabled) {
                 return this.sendResponse(interactionOrMessage, 'This command is currently disabled', isSlash);

@@ -10,6 +10,7 @@ const logSystem  = require('../systems/log.js');
 const adminGuard = require('../utils/adminGuard');
 const { t, langOf } = require('../utils/cmdLang');
 const validators     = require('../utils/validators');
+const settingsUtil   = require('../utils/settings');
 
 /* ── Components V2 ─────────────────────────────────── */
 const CV2 = 1 << 15;
@@ -119,7 +120,7 @@ module.exports = {
         }
 
         /* ── Record ────────────────────────────────────── */
-        const settings = require('../utils/settings');
+        const settings = settingsUtil.get();
         const caseId   = genCaseId();
         const date     = new Date().toLocaleString('en-US');
 
