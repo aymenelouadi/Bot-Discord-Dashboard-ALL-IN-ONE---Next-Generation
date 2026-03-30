@@ -5,9 +5,8 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, SectionBuilder, TextDisplayBuilder, ThumbnailBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
-const logSystem = require('../systems/log.js');
+const logSystem    = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -32,8 +31,7 @@ module.exports = {
         let user, reason, moderator, guild, messageId, channelId;
         
         try {
-            const settingsPath = path.join(__dirname, '../settings.json');
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             
             const commandName = 'come';
             const commandConfig = settings.actions[commandName];
