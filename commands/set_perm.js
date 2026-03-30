@@ -16,6 +16,7 @@ const path = require('path');
 const adminGuard = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
 const logSystem  = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
 
 function errCard(lines) {
     const c = new ContainerBuilder().setAccentColor(0xef4444)
@@ -38,8 +39,7 @@ module.exports = {
         const guard = await adminGuard.check('set_perm', guild.id, ctx.channel || ctx.channelId, ctx.member);
         if (!guard.ok) return adminGuard.deny(ctx, guard.reason);
 
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
 
         const adminCommands = Object.entries(settings.actions)
             .filter(([_, cmd]) => cmd.admin === true)
@@ -138,8 +138,7 @@ module.exports = {
     },
 
     async showRoleActions(interaction, commandId) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         const command = settings.actions[commandId];
         const currentRoles = command.rolesAllowed || [];
 
@@ -174,8 +173,7 @@ module.exports = {
 
     async showRoleSelection(interaction, commandId, action) {
         const guild = interaction.guild;
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         const currentRoles = settings.actions[commandId].rolesAllowed || [];
 
         const allRoles = guild.roles.cache.filter(r => r.id !== guild.id).sort((a, b) => b.position - a.position);
@@ -249,8 +247,7 @@ module.exports = {
     },
 
     async updateCommandRoles(commandId, roleId, action) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         if (!settings.actions[commandId].rolesAllowed) settings.actions[commandId].rolesAllowed = [];
         if (action === 'add') {
             if (!settings.actions[commandId].rolesAllowed.includes(roleId))
@@ -258,16 +255,15 @@ module.exports = {
         } else {
             settings.actions[commandId].rolesAllowed = settings.actions[commandId].rolesAllowed.filter(id => id !== roleId);
         }
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+        settingsUtil.save(settings);
         return settings.actions[commandId].rolesAllowed;
     },
 
     async handleButton(interaction) {
         const id = interaction.customId;
-        const settingsPath = path.join(__dirname, '../settings.json');
 
         const getAdminCmds = () => {
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             return Object.entries(settings.actions)
                 .filter(([_, cmd]) => cmd.admin === true)
                 .map(([key, cmd]) => ({ id: key, name: cmd.label || key, emoji: cmd.emoji || '', roles: cmd.rolesAllowed || [] }));
@@ -294,7 +290,7 @@ module.exports = {
             const action    = parts[4];
             const dir       = parts[5];
             const page      = parseInt(parts[6]);
-            const settings  = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings  = settingsUtil.get();
             const currentRoles = settings.actions[commandId].rolesAllowed || [];
             const allRoles = interaction.guild.roles.cache.filter(r => r.id !== interaction.guild.id).sort((a, b) => b.position - a.position);
             const available = action === 'remove'

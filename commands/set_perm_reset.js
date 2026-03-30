@@ -5,11 +5,10 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const fs   = require('fs');
-const path = require('path');
-const adminGuard = require('../utils/adminGuard.js');
+const adminGuard   = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
-const logSystem  = require('../systems/log.js');
+const logSystem    = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
 
 const CV2 = 1 << 15;
 const C   = { Container: 17, Text: 10, Sep: 14 };
@@ -38,17 +37,16 @@ module.exports = {
         const author    = isSlash ? ctx.user : ctx.author;
         const authorMsg = isSlash ? null : ctx;
 
-        const settingsPath = path.join(__dirname, '../settings.json');
         let settings, count = 0;
         try {
-            settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-            for (const [key, cmd] of Object.entries(settings.actions)) {
-                if (cmd.admin === true && Array.isArray(cmd.rolesAllowed)) {
+            settings = settingsUtil.get();
+            for (const [key, cmd] of Object.entries(settings.actions)) {        
+                if (cmd.admin === true && Array.isArray(cmd.rolesAllowed)) {    
                     settings.actions[key].rolesAllowed = [];
                     count++;
                 }
             }
-            fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+            settingsUtil.save(settings);
         } catch {
             const err = buildCard(0xef4444, [`❌  ${t(lang,'set_perm_reset.failed')}`]);
             if (isSlash) return ctx.reply({ ...err, ephemeral: true });

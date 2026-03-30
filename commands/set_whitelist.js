@@ -5,11 +5,10 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const fs   = require('fs');
-const path = require('path');
-const adminGuard = require('../utils/adminGuard.js');
+const adminGuard   = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
-const logSystem  = require('../systems/log.js');
+const logSystem    = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
 
 const CV2 = 1 << 15;
 const C   = { Container: 17, Text: 10, Sep: 14 };
@@ -58,10 +57,9 @@ module.exports = {
             }
         }
 
-        const settingsPath = path.join(__dirname, '../settings.json');
         let settings;
         try {
-            settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            settings = settingsUtil.get();
             if (!Array.isArray(settings.protection.whitelist_roles)) settings.protection.whitelist_roles = [];
         } catch {
             const err = buildCard(0xef4444, [`❌  ${t(lang,'set_whitelist.failed')}`]);
@@ -89,7 +87,7 @@ module.exports = {
         }
 
         try {
-            fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+            settingsUtil.save(settings);
         } catch {
             const err = buildCard(0xef4444, [`❌  ${t(lang,'set_whitelist.failed')}`]);
             if (isSlash) return ctx.reply({ ...err, ephemeral: true });

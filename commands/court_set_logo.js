@@ -5,11 +5,10 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits, ChannelType } = require('discord.js');
-const fs         = require('fs');
-const path       = require('path');
-const adminGuard = require('../utils/adminGuard.js');
+const adminGuard   = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
-const logSystem  = require('../systems/log.js');
+const logSystem    = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
 
 const CV2 = 1 << 15;
 const C   = { Container: 17, Text: 10, Sep: 14 };
@@ -56,11 +55,10 @@ module.exports = {
             const m = await ctx.channel.send(err); setTimeout(() => m.delete().catch(() => {}), 8000); return;
         }
 
-        const settingsPath = path.join(__dirname, '../settings.json');
         try {
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             settings.court.logo = url;
-            fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+            settingsUtil.save(settings);
         } catch {
             const err = buildCard(0xef4444, [`❌  ${t(lang,'court_set_logo.failed')}`]);
             if (isSlash) return ctx.reply({ ...err, ephemeral: true });

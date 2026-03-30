@@ -5,11 +5,11 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const path       = require('path');
-const adminGuard = require('../utils/adminGuard.js');
+const adminGuard   = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
-const logSystem      = require('../systems/log.js');
-const validators     = require('../utils/validators');
+const logSystem    = require('../systems/log.js');
+const validators   = require('../utils/validators');
+const settingsUtil = require('../utils/settings');
 
 const CV2 = 1 << 15;
 const C   = { Container: 17, Text: 10, Sep: 14 };
@@ -61,12 +61,11 @@ module.exports = {
         prefix = vPfx.data.prefix; // trimmed
 
         /* persist */
-        const settingsPath = require('path').join(__dirname, '../settings.json');
         let settings;
         try {
-            settings = JSON.parse(require('fs').readFileSync(settingsPath, 'utf8'));
+            settings = settingsUtil.get();
             settings.system.PREFIX = prefix;
-            require('fs').writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+            settingsUtil.save(settings);
         } catch {
             const err = buildCard(0xef4444, [`❌  ${t(lang,'set_prefix.failed')}`]);
             if (isSlash) return ctx.reply({ ...err, ephemeral: true });

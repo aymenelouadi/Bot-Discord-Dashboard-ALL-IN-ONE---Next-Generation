@@ -5,10 +5,11 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const path       = require('path');
-const adminGuard = require('../utils/adminGuard.js');
+const path         = require('path');
+const adminGuard   = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
-const logSystem  = require('../systems/log.js');
+const logSystem    = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
 
 const CV2 = 1 << 15;
 const C   = { Container: 17, Text: 10, Sep: 14 };
@@ -53,20 +54,19 @@ module.exports = {
             }
         }
 
-        const settingsPath = require('path').join(__dirname, '../settings.json');
         let settings, count = 0;
         try {
-            settings = JSON.parse(require('fs').readFileSync(settingsPath, 'utf8'));
-            for (const [key, cmd] of Object.entries(settings.actions)) {
+            settings = settingsUtil.get();
+            for (const [key, cmd] of Object.entries(settings.actions)) {        
                 if (cmd.admin === true) {
                     if (!Array.isArray(settings.actions[key].rolesAllowed)) settings.actions[key].rolesAllowed = [];
                     if (!settings.actions[key].rolesAllowed.includes(role.id)) {
-                        settings.actions[key].rolesAllowed.push(role.id);
+                        settings.actions[key].rolesAllowed.push(role.id);       
                         count++;
                     }
                 }
             }
-            require('fs').writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+            settingsUtil.save(settings);
         } catch {
             const err = buildCard(0xef4444, [`❌  ${t(lang,'set_perm_all.failed')}`]);
             if (isSlash) return ctx.reply({ ...err, ephemeral: true });
