@@ -10,6 +10,7 @@ const adminGuard = require('../utils/adminGuard');
 const { t, langOf } = require('../utils/cmdLang');
 const validators     = require('../utils/validators');
 const settingsUtil   = require('../utils/settings');
+const db             = require('../systems/schemas');
 
 /* ── Components V2 ─────────────────────────────────── */
 const CV2 = 1 << 15;
@@ -34,6 +35,14 @@ function parseDurationLabel(raw, lang) {
                     w: { en: 'Week', ar: 'أسبوع' } };
     const unit = units[u.toLowerCase()]?.[lang] ?? u;
     return `${n} ${unit}`;
+}
+
+function parseDurationMs(raw) {
+    if (!raw || /^permanent$/i.test(raw)) return null;
+    const m = raw.match(/^(\d+)([dhmw])$/i);
+    if (!m) return null;
+    const ms = { d: 86400000, h: 3600000, m: 60000, w: 604800000 };
+    return parseInt(m[1]) * (ms[m[2].toLowerCase()] ?? 0) || null;
 }
 
 
@@ -174,7 +183,20 @@ module.exports = {
         const caseId  = genCaseId();
         const date    = new Date().toLocaleString('en-US');
         const durationLabel = parseDurationLabel(rawDuration, lang);
-        // saveRecord for ban is handled via logSystem below
+
+        if (settings.actions?.ban?.saveRecord) {
+            const durMs = parseDurationMs(rawDuration);
+            await new db.Ban({
+                guildId,
+                userId:      user.id,
+                username:    user.username,
+                caseId,
+                reason,
+                moderatorId: moderator.id,
+                duration:    durMs,
+                expiresAt:   durMs ? new Date(Date.now() + durMs) : null,
+            }).save().catch(err => console.error('[ban] Ban.save error:', err));
+        }
 
         if (g.cfg.log) {
             await logSystem.logCommandUsage({

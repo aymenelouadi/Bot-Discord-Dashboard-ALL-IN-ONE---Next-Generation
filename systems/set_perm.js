@@ -4,9 +4,7 @@
  * https://discord.gg/BhJStSa89s
  */
 
-const fs = require('fs');
 const logger = require('../utils/logger');
-const path = require('path');
 
 module.exports = {
     name: 'set-perm-system',

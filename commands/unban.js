@@ -9,6 +9,7 @@ const logSystem  = require('../systems/log.js');
 const adminGuard = require('../utils/adminGuard');
 const { t, langOf } = require('../utils/cmdLang');
 const settingsUtil   = require('../utils/settings');
+const db             = require('../systems/schemas');
 
 /* ── Components V2 ─────────────────────────────────── */
 const CV2 = 1 << 15;
@@ -140,6 +141,11 @@ module.exports = {
         const settings = settingsUtil.get();
         const caseId   = genCaseId();
         const date     = new Date().toLocaleString('en-US');
+
+        if (settings.actions?.ban?.saveRecord) {
+            await db.Ban.end(guildId, userId)
+                .catch(err => console.error('[unban] Ban.end error:', err));
+        }
 
         if (g.cfg.log) {
             await logSystem.logCommandUsage({

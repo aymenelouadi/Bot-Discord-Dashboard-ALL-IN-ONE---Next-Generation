@@ -184,6 +184,8 @@ module.exports = {
     get WelcomeJoin()      { return require('./WelcomeJoin'); },
     get WelcomeImage()     { return require('./WelcomeImage'); },
     get GlobalConfig()     { return require('./GlobalConfig'); },
+    get Ban()              { return require('./BanAction'); },
+    get Kick()             { return require('./KickAction'); },
 
     /** Re-export plugins for use in new schemas */
     plugins: {

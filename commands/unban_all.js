@@ -5,9 +5,11 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const adminGuard = require('../utils/adminGuard.js');
+const adminGuard   = require('../utils/adminGuard.js');
 const { langOf, t } = require('../utils/cmdLang.js');
-const logSystem  = require('../systems/log.js');
+const logSystem    = require('../systems/log.js');
+const settingsUtil = require('../utils/settings');
+const db           = require('../systems/schemas');
 
 const CV2 = 1 << 15;
 const C   = { Container: 17, Text: 10, Sep: 14 };
@@ -86,6 +88,11 @@ module.exports = {
         } else {
             await progressMsg.edit(card);
             setTimeout(() => adminGuard.cleanup(guard.cfg, authorMsg, progressMsg), 10000);
+        }
+
+        const settings = settingsUtil.get();
+        if (settings.actions?.ban?.saveRecord) {
+            await db.Ban.endAll(guild.id).catch(() => {});
         }
 
         if (guard.cfg?.log !== false) {
