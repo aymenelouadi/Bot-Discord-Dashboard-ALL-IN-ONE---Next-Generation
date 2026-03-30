@@ -217,8 +217,48 @@ async function _writeToMongo(guildId, filename, data) {
             return;
         }
 
-        // Other filenames (ticket_cooldowns, etc.) — JSON only, no MongoDB mapping needed
-        return; // success
+        // ── ticket_cooldowns ─────────────────────────────────────────
+        if (filename === 'ticket_cooldowns') {
+            await schemas.Guild.findOneAndUpdate(
+                { guildId },
+                { $set: { guildId, ticketCooldowns: data } },
+                { upsert: true }
+            );
+            return;
+        }
+
+        // ── suggestions_data ─────────────────────────────────────────────
+        if (filename === 'suggestions_data') {
+            await schemas.Guild.findOneAndUpdate(
+                { guildId },
+                { $set: { guildId, suggestionsData: data } },
+                { upsert: true }
+            );
+            return;
+        }
+
+        // ── activity (hourly counters per guild) ──────────────────────────
+        if (filename === 'activity') {
+            await schemas.Guild.findOneAndUpdate(
+                { guildId },
+                { $set: { guildId, activityStats: data } },
+                { upsert: true }
+            );
+            return;
+        }
+
+        // ── welcome_join ─────────────────────────────────────────────────
+        if (filename === 'welcome_join') {
+            const { _id, __v, createdAt, updatedAt, guildId: _gid, ...fields } = data || {};
+            await schemas.WelcomeJoin.findOneAndUpdate(
+                { guildId },
+                { $set: { guildId, ...fields } },
+                { upsert: true }
+            );
+            return;
+        }
+
+        return; // no MongoDB mapping for this filename
     } catch (e) {
         if (attempt < MAX_RETRIES && _TRANSIENT_ERR.test(e.message)) {
             await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
@@ -295,6 +335,8 @@ async function readAsync(guildId, filename = 'settings', defaultValue = {}) {
             const data = JSON.parse(fs.readFileSync(file, 'utf8'));
             _cacheSet(guildId, filename, data);
             cache.set(guildId, filename, data).catch(() => {});
+            // Auto-migrate: push JSON data into MongoDB now that we found it
+            _writeToMongo(guildId, filename, data).catch(() => {});
             return data;
         } catch { /* fall through */ }
     }
@@ -324,6 +366,9 @@ async function _fetchFromMongo(guildId, filename) {
             staff_points:       'staffPointsConfig',
             interaction_points: 'interactionPointsConfig',
             suggestions_config: 'suggestionsConfig',
+            ticket_cooldowns:   'ticketCooldowns',
+            suggestions_data:   'suggestionsData',
+            activity:           'activityStats',
         };
 
         if (GUILD_FIELD_MAP[filename]) {
@@ -397,6 +442,18 @@ async function _fetchFromMongo(guildId, filename) {
             })) };
         }
 
+        if (filename === 'welcome_join') {
+            const doc = await schemas.WelcomeJoin.findOne({ guildId }).lean();
+            if (!doc) return null;
+            const { _id, __v, createdAt, updatedAt, guildId: _gid, ...rest } = doc;
+            return rest;
+        }
+
+        if (filename === 'commands') {
+            const doc = await schemas.Guild.findOne({ guildId }).select('settings').lean();
+            return doc?.settings?.commandsConfig ?? null;
+        }
+
         return null; // no MongoDB mapping for this filename
     } catch (e) {
         logger.error(`[guildDb] _fetchFromMongo error (${guildId}/${filename}):`, e.message);
@@ -421,15 +478,6 @@ function write(guildId, filename = 'settings', data = {}) {
 
     // L0 — immediate sync update with fresh TTL
     _cacheSet(guildId, filename, data);
-
-    // JSON file — sync fallback persistence
-    try {
-        const dir  = ensureDir(guildId);
-        const file = path.join(dir, `${filename}.json`);
-        fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
-    } catch (e) {
-        logger.error(`[guildDb] JSON write error (${guildId}/${filename}):`, e.message);
-    }
 
     // L1 Keyv + MongoDB — async, never blocks the event loop
     cache.set(guildId, filename, data).catch(e =>
@@ -464,6 +512,10 @@ async function loadFromMongoDB() {
             if (g.interactionPointsConfig) _cacheSet(gid, 'interaction_points', g.interactionPointsConfig);
             if (g.suggestionsConfig)       _cacheSet(gid, 'suggestions_config', g.suggestionsConfig);
             if (g.stats?.ticketStats)      _cacheSet(gid, 'ticket_stats',       g.stats.ticketStats);
+            if (g.ticketCooldowns)         _cacheSet(gid, 'ticket_cooldowns',    g.ticketCooldowns);
+            if (g.suggestionsData)         _cacheSet(gid, 'suggestions_data',    g.suggestionsData);
+            if (g.activityStats)           _cacheSet(gid, 'activity',            g.activityStats);
+            if (g.settings?.commandsConfig) _cacheSet(gid, 'commands',           g.settings.commandsConfig);
             if (g.ticketGeneral || g.ticketPanels) {
                 _cacheSet(gid, 'tickets', { ...(g.ticketGeneral || {}), panels: g.ticketPanels || [] });
             }
@@ -531,11 +583,15 @@ async function loadFromMongoDB() {
             const maxNum = data.tickets.reduce((m, t) => Math.max(m, t.number || 0), 0);
             data.nextNumber = maxNum + 1;
             _cacheSet(gid, 'open_tickets', data);
-            // Write JSON fallback so sync read() works even after L0 cache expires
-            try {
-                const dir = ensureDir(gid);
-                fs.writeFileSync(path.join(dir, 'open_tickets.json'), JSON.stringify(data, null, 2), 'utf8');
-            } catch (_) { /* non-critical */ }
+        }
+
+        // ── WelcomeJoin ───────────────────────────────────────────────────
+        const wjDocs = await schemas.WelcomeJoin.find({}).lean();
+        for (const wj of wjDocs) {
+            const gid = wj.guildId;
+            if (!gid) continue;
+            const { _id, __v, createdAt, updatedAt, guildId: _gid, ...rest } = wj;
+            _cacheSet(gid, 'welcome_join', rest);
         }
 
         // ── TicketFeedback ────────────────────────────────────────────────

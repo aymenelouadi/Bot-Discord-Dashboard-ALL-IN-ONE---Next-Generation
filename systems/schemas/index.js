@@ -183,6 +183,7 @@ module.exports = {
     get AutomationLink()   { return require('./AutomationLink'); },
     get WelcomeJoin()      { return require('./WelcomeJoin'); },
     get WelcomeImage()     { return require('./WelcomeImage'); },
+    get GlobalConfig()     { return require('./GlobalConfig'); },
 
     /** Re-export plugins for use in new schemas */
     plugins: {

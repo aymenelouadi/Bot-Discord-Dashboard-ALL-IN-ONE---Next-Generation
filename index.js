@@ -365,6 +365,7 @@ function formatTimeSince(timestamp) {
 (async () => {
     try {
         await dbSchemas.connect();
+        await require('./utils/settings').loadFromMongoDB();
         await guildDb.loadFromMongoDB();
     } catch (e) {
         logger.error('MongoDB bootstrap error', { category: 'db', error: e.message, stack: e.stack });

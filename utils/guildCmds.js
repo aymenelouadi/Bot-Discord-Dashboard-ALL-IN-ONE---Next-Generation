@@ -1,20 +1,14 @@
 ﻿/**
  * Per-guild command config manager.
  *
- * Each guild gets its own file: database/guilds/{guildId}/commands.json
+ * Each guild gets its own commands config stored in MongoDB via guildDb
+ * (under Guild.settings.commandsConfig).
  * Guild-level settings override the global settings.json defaults.
  *
  * Fields that can be overridden per-guild:
  *   enabled, aliases, ignoredChannels, ignoredRoles,
  *   enabledChannels, allowedRoles, autoDeleteAuthor, autoDeleteReply
  */
-
-const fs   = require('fs');
-const path = require('path');
-
-function cfgPath(guildId) {
-    return path.join(__dirname, '..', 'dashboard', 'database', guildId, 'commands.json');
-}
 
 /**
  * Get the raw per-guild config for one command (or the full guild object).
@@ -24,38 +18,27 @@ function cfgPath(guildId) {
  */
 function get(guildId, cmdKey) {
     if (!guildId) return {};
-    const p = cfgPath(guildId);
-    if (!fs.existsSync(p)) return {};
-    try {
-        const data = JSON.parse(fs.readFileSync(p, 'utf8'));
-        return cmdKey ? (data[cmdKey] || {}) : data;
-    } catch {
-        return {};
-    }
+    const guildDb = require('../dashboard/utils/guildDb');
+    const data = guildDb.read(guildId, 'commands', {});
+    return cmdKey ? (data[cmdKey] || {}) : data;
 }
 
 /**
- * Initialise a guild's commands.json from settings.json defaults.
+ * Initialise a guild's command config from settings.json defaults.
  * Only adds keys that are not already present (never overwrites existing guild settings).
  * @param {string} guildId
  */
 function init(guildId) {
     if (!guildId) return;
+    const guildDb      = require('../dashboard/utils/guildDb');
     const settingsUtil = require('./settings');
-    const actions = settingsUtil.get().actions || {};
+    const actions      = settingsUtil.get().actions || {};
 
-    const p   = cfgPath(guildId);
-    const dir = path.dirname(p);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const data    = guildDb.read(guildId, 'commands', {});
+    let changed   = false;
 
-    let data = {};
-    if (fs.existsSync(p)) {
-        try { data = JSON.parse(fs.readFileSync(p, 'utf8')); } catch {}
-    }
-
-    let changed = false;
     for (const [key, cfg] of Object.entries(actions)) {
-        if (data[key]) continue; // already has guild-level entry — skip
+        if (data[key]) continue;
         data[key] = {
             enabled:              typeof cfg.enabled === 'boolean' ? cfg.enabled : true,
             aliases:              Array.isArray(cfg.aliases) ? [...cfg.aliases] : [],
@@ -71,7 +54,7 @@ function init(guildId) {
         changed = true;
     }
 
-    if (changed) fs.writeFileSync(p, JSON.stringify(data, null, 2));
+    if (changed) guildDb.write(guildId, 'commands', data);
 }
 
 /**
@@ -81,16 +64,10 @@ function init(guildId) {
  * @param {object} updates
  */
 function set(guildId, cmdKey, updates) {
-    const p   = cfgPath(guildId);
-    const dir = path.dirname(p);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    let data = {};
-    if (fs.existsSync(p)) {
-        try { data = JSON.parse(fs.readFileSync(p, 'utf8')); } catch {}
-    }
-    data[cmdKey] = { ...(data[cmdKey] || {}), ...updates };
-    fs.writeFileSync(p, JSON.stringify(data, null, 2));
+    const guildDb = require('../dashboard/utils/guildDb');
+    const data    = guildDb.read(guildId, 'commands', {});
+    data[cmdKey]  = { ...(data[cmdKey] || {}), ...updates };
+    guildDb.write(guildId, 'commands', data);
 }
 
 /**

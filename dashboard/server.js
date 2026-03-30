@@ -4261,9 +4261,14 @@ function start() {
     // so all Mongoose queries (WelcomeJoin, embeds, etc.) persist to the database.
     const _dbSchemas = require('../systems/schemas');
     if (!_dbSchemas.isConnected()) {
-        _dbSchemas.connect().catch(err =>
-            logger.error('Dashboard: MongoDB connect failed', { category: 'db', error: err.message })
-        );
+        _dbSchemas.connect()
+            .then(() => Promise.all([
+                require('../utils/settings').loadFromMongoDB(),
+                require('./utils/guildDb').loadFromMongoDB(),
+            ]))
+            .catch(err =>
+                logger.error('Dashboard: MongoDB connect failed', { category: 'db', error: err.message })
+            );
     }
 
     const publicURL = IS_PROD

@@ -5,10 +5,9 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits, StringSelectMenuBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, RoleSelectMenuBuilder, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
 const logSystem  = require('../systems/log.js');
 const adminGuard = require('../utils/adminGuard.js');
+const settingsUtil = require('../utils/settings');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -29,8 +28,7 @@ module.exports = {
         const guard = await adminGuard.check('actions_role_mute', guild.id, interactionOrMessage.channel || interactionOrMessage.channelId, interactionOrMessage.member);
         if (!guard.ok) return adminGuard.deny(interactionOrMessage, guard.reason);
 
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         const commandConfig = settings.actions['actions_role_mute'];
 
             const muteCommand = settings.actions.mute;
@@ -150,12 +148,11 @@ module.exports = {
     },
 
     async updateMuteRole(interaction, roleId) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
 
         settings.actions.mute.muteRole = roleId;
 
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+        settingsUtil.save(settings);
 
         const role = interaction.guild?.roles.cache.get(roleId);
         return {
@@ -166,13 +163,12 @@ module.exports = {
     },
 
     async removeMuteRole(interaction) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
 
         const oldRoleId = settings.actions.mute.muteRole;
         settings.actions.mute.muteRole = '';
 
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+        settingsUtil.save(settings);
 
         const oldRole = oldRoleId ? interaction.guild?.roles.cache.get(oldRoleId) : null;
         return {
@@ -184,7 +180,7 @@ module.exports = {
 
     async handleButton(interaction) {
         const customId = interaction.customId;
-        const commandConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../settings.json'), 'utf8')).actions['actions_role_mute'];
+        const commandConfig = settingsUtil.get().actions['actions_role_mute'];
 
         if (customId === 'mute_role_set') {
             await this.showRoleSelector(interaction);
@@ -206,8 +202,7 @@ module.exports = {
             await this.showMainMenu(interaction, '');
         }
         else if (customId === 'mute_role_back') {
-            const settingsPath = path.join(__dirname, '../settings.json');
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             await this.showMainMenu(interaction, settings.actions.mute.muteRole || '');
         }
     },
@@ -218,7 +213,7 @@ module.exports = {
         const roleId = interaction.values[0];
         const result = await this.updateMuteRole(interaction, roleId);
 
-        const commandConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../settings.json'), 'utf8')).actions['actions_role_mute'];
+        const commandConfig = settingsUtil.get().actions['actions_role_mute'];
         
         if (commandConfig?.log) {
             await logSystem.logCommandUsage({
@@ -231,8 +226,7 @@ module.exports = {
             });
         }
 
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         await this.showMainMenu(interaction, settings.actions.mute.muteRole || '');
     },
 

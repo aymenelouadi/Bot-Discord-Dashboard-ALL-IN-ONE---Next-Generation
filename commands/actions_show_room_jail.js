@@ -5,10 +5,9 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits, StringSelectMenuBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelSelectMenuBuilder, ChannelType, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
 const logSystem  = require('../systems/log.js');
 const adminGuard = require('../utils/adminGuard.js');
+const settingsUtil = require('../utils/settings');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -29,8 +28,7 @@ module.exports = {
         const guard = await adminGuard.check('actions_show_room_jail', guild.id, interactionOrMessage.channel || interactionOrMessage.channelId, interactionOrMessage.member);
         if (!guard.ok) return adminGuard.deny(interactionOrMessage, guard.reason);
 
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         const commandConfig = settings.actions['actions_show_room_jail'];
 
             const jailCommand = settings.actions.jail;
@@ -139,8 +137,7 @@ module.exports = {
                     .setStyle(ButtonStyle.Secondary)
             );
 
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         const currentRooms = settings.actions.jail.showRoom || [];
 
         let embedDescription = '';
@@ -179,8 +176,7 @@ module.exports = {
     },
 
     async updateShowRooms(interaction, selectedChannels, action) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
 
         if (!settings.actions.jail.showRoom) {
             settings.actions.jail.showRoom = [];
@@ -190,7 +186,7 @@ module.exports = {
             const newRooms = selectedChannels.filter(id => !settings.actions.jail.showRoom.includes(id));
             settings.actions.jail.showRoom.push(...newRooms);
             
-            fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+            settingsUtil.save(settings);
             
             const addedRooms = newRooms.map(id => {
                 const room = interaction.guild?.channels.cache.get(id);
@@ -206,7 +202,7 @@ module.exports = {
             const removedRooms = selectedChannels.filter(id => settings.actions.jail.showRoom.includes(id));
             settings.actions.jail.showRoom = settings.actions.jail.showRoom.filter(id => !selectedChannels.includes(id));
             
-            fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+            settingsUtil.save(settings);
             
             const removedRoomsNames = removedRooms.map(id => {
                 const room = interaction.guild?.channels.cache.get(id);
@@ -222,13 +218,12 @@ module.exports = {
     },
 
     async clearAllRooms(interaction) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
 
         const oldCount = settings.actions.jail.showRoom?.length || 0;
         settings.actions.jail.showRoom = [];
 
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+        settingsUtil.save(settings);
 
         return {
             success: true,
@@ -239,7 +234,7 @@ module.exports = {
 
     async handleButton(interaction) {
         const customId = interaction.customId;
-        const commandConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../settings.json'), 'utf8')).actions['actions_show_room_jail'];
+        const commandConfig = settingsUtil.get().actions['actions_show_room_jail'];
 
         if (customId === 'jail_rooms_add') {
             await this.showChannelSelector(interaction, 'add');
@@ -264,8 +259,7 @@ module.exports = {
             await this.showMainMenu(interaction, []);
         }
         else if (customId === 'jail_rooms_back') {
-            const settingsPath = path.join(__dirname, '../settings.json');
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             await this.showMainMenu(interaction, settings.actions.jail.showRoom || []);
         }
     },
@@ -281,7 +275,7 @@ module.exports = {
 
             const result = await this.updateShowRooms(interaction, selectedChannels, action);
 
-            const commandConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../settings.json'), 'utf8')).actions['actions_show_room_jail'];
+            const commandConfig = settingsUtil.get().actions['actions_show_room_jail'];
             
             if (commandConfig?.log) {
                 await logSystem.logCommandUsage({
@@ -294,8 +288,7 @@ module.exports = {
                 });
             }
 
-            const settingsPath = path.join(__dirname, '../settings.json');
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             await this.showMainMenu(interaction, settings.actions.jail.showRoom || []);
         }
     },

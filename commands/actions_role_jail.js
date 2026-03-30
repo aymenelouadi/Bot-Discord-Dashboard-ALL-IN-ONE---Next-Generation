@@ -5,10 +5,9 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, RoleSelectMenuBuilder, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
 const logSystem  = require('../systems/log.js');
 const adminGuard = require('../utils/adminGuard.js');
+const settingsUtil = require('../utils/settings');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -29,8 +28,7 @@ module.exports = {
         const guard = await adminGuard.check('actions_role_jail', guild.id, interactionOrMessage.channel || interactionOrMessage.channelId, interactionOrMessage.member);
         if (!guard.ok) return adminGuard.deny(interactionOrMessage, guard.reason);
 
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         const commandConfig = settings.actions['actions_role_jail'];
 
             const jailCommand = settings.actions.jail;
@@ -69,8 +67,7 @@ module.exports = {
                 await this.handleRoleRemove(interaction);
             }
             else if (customId === 'jail_role_back' || customId === 'jail_role_cancel') {
-                const settingsPath = path.join(__dirname, '../settings.json');
-                const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+                const settings = settingsUtil.get();
                 await this.showMainMenu(interaction, settings.actions.jail.addRole || '');
             }
             else if (customId.startsWith('jail_role_confirm_')) {
@@ -297,11 +294,10 @@ module.exports = {
             return interaction.update({ content: 'حدث خطأ: لم يتم تحديد رتبة', components: [] });
         }
 
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
 
         settings.actions.jail.addRole = roleId;
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+        settingsUtil.save(settings);
 
         const role = interaction.guild?.roles.cache.get(roleId);
         
@@ -321,14 +317,13 @@ module.exports = {
     },
 
     async handleRoleRemove(interaction) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
 
         const oldRoleId = settings.actions.jail.addRole;
         const oldRole = oldRoleId ? interaction.guild?.roles.cache.get(oldRoleId) : null;
 
         settings.actions.jail.addRole = '';
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+        settingsUtil.save(settings);
 
         const commandConfig = settings.actions['actions_role_jail'];
         if (commandConfig?.log) {

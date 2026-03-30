@@ -24,11 +24,13 @@ const path       = require('path');
 const validators = require('./validators');
 
 const SETTINGS_PATH = path.join(__dirname, '../settings.json');
+const GLOBAL_CONFIG_KEY = 'global_settings';
 
 let cache = null;
 
 /**
- * Load settings from disk and update cache.
+ * Load settings from JSON file (initial baseline / migration source only).
+ * Never writes back to disk.
  */
 function load() {
     try {
@@ -36,7 +38,6 @@ function load() {
         // Strip UTF-8 BOM if present
         if (raw[0] === 0xEF && raw[1] === 0xBB && raw[2] === 0xBF) raw = raw.slice(3);
         cache = JSON.parse(raw.toString('utf8'));
-        // Warn on schema mismatch — never reject, to support old/extended configs
         const vLoad = validators.SettingsSchema.safeParse(cache);
         if (!vLoad.success)
             logger.warn('[Settings] Schema warning on load:', validators.formatError(vLoad.error));
@@ -48,7 +49,43 @@ function load() {
 }
 
 /**
- * Get settings. Returns from cache if available, otherwise reads from disk.
+ * Load global settings from MongoDB GlobalConfig (deep-merges on top of JSON baseline).
+ * Must be called once at startup after the DB is connected.
+ */
+async function loadFromMongoDB() {
+    try {
+        const mongoose = require('mongoose');
+        if (mongoose.connection.readyState < 1) return;
+        const GlobalConfig = require('../systems/schemas/GlobalConfig');
+        const doc = await GlobalConfig.findOne({ key: GLOBAL_CONFIG_KEY }).lean();
+        if (doc?.data && Object.keys(doc.data).length > 0) {
+            // Deep-merge MongoDB overrides on top of JSON baseline
+            if (!cache) load();
+            cache = deepMerge(cache, doc.data);
+            logger.info('[Settings] Global settings loaded from MongoDB');
+        }
+    } catch (e) {
+        logger.error('[Settings] Failed to load from MongoDB:', e.message);
+    }
+}
+
+function deepMerge(base, override) {
+    const out = { ...base };
+    for (const key of Object.keys(override)) {
+        if (
+            override[key] && typeof override[key] === 'object' && !Array.isArray(override[key]) &&
+            base[key]    && typeof base[key]     === 'object' && !Array.isArray(base[key])
+        ) {
+            out[key] = deepMerge(base[key], override[key]);
+        } else {
+            out[key] = override[key];
+        }
+    }
+    return out;
+}
+
+/**
+ * Get settings. Returns from cache (always synchronous).
  * @returns {object} settings
  */
 function get() {
@@ -57,41 +94,47 @@ function get() {
 }
 
 /**
- * Save a modified settings object to disk and update the cache.
+ * Save a modified settings object to MongoDB GlobalConfig and update cache.
+ * Never writes to disk.
  * @param {object} newSettings - The full settings object to save.
  */
 function save(newSettings) {
-    try {
-        // Warn before persisting if schema is violated
-        const vSave = validators.SettingsSchema.safeParse(newSettings);
-        if (!vSave.success)
-            logger.warn('[Settings] Schema warning on save:', validators.formatError(vSave.error));
-        fs.writeFileSync(SETTINGS_PATH, JSON.stringify(newSettings, null, 4), 'utf8');
-        cache = newSettings;
-    } catch (e) {
-        logger.error('[Settings] Failed to save settings.json:', e.message);
-        throw e;
-    }
+    // Warn on schema violations
+    const vSave = validators.SettingsSchema.safeParse(newSettings);
+    if (!vSave.success)
+        logger.warn('[Settings] Schema warning on save:', validators.formatError(vSave.error));
+
+    cache = newSettings;
+
+    // Persist to MongoDB asynchronously — never blocks the caller
+    _saveToMongo(newSettings).catch(e =>
+        logger.error('[Settings] MongoDB save failed:', e.message)
+    );
+}
+
+async function _saveToMongo(data) {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState < 1) return;
+    const GlobalConfig = require('../systems/schemas/GlobalConfig');
+    await GlobalConfig.findOneAndUpdate(
+        { key: GLOBAL_CONFIG_KEY },
+        { $set: { key: GLOBAL_CONFIG_KEY, data } },
+        { upsert: true }
+    );
 }
 
 /**
- * Force reload from disk (useful after external edits).
+ * Force reload from disk (dev utility — overwrites MongoDB overrides in cache).
  */
 function reload() {
     cache = null;
     return load();
 }
 
-// Watch file for external changes (e.g. manual edits) and auto-reload cache.
-fs.watchFile(SETTINGS_PATH, { interval: 2000 }, () => {
-    logger.info('[Settings] settings.json changed on disk — reloading cache...');
-    reload();
-});
-
-// Initial load
+// Initial load from JSON baseline
 load();
 
-module.exports = { get, save, reload };
+module.exports = { get, save, reload, loadFromMongoDB };
 
 
 /*

@@ -92,6 +92,24 @@ const GuildSchema = new Schema({
         default: [],
     },
 
+    // ── Ticket cooldowns (per-user panel cooldowns) ───────────────────────
+    ticketCooldowns: {
+        type: Schema.Types.Mixed,
+        default: {},
+    },
+
+    // ── Suggestions runtime data (nextId, userCooldowns, suggestions map) ─
+    suggestionsData: {
+        type: Schema.Types.Mixed,
+        default: {},
+    },
+
+    // ── Per-guild hourly activity counters (date → hour → {joins,leaves,messages,voice}) ─
+    activityStats: {
+        type: Schema.Types.Mixed,
+        default: {},
+    },
+
     // ── Aggregate stats ───────────────────────────────────────────────────
     stats: {
         ticketStats: { type: Schema.Types.Mixed, default: {} },

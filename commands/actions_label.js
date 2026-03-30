@@ -5,10 +5,9 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits, StringSelectMenuBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuOptionBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
 const logSystem  = require('../systems/log.js');
 const adminGuard = require('../utils/adminGuard.js');
+const settingsUtil = require('../utils/settings');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -29,8 +28,7 @@ module.exports = {
         const guard = await adminGuard.check('actions_label', guild.id, interactionOrMessage.channel || interactionOrMessage.channelId, interactionOrMessage.member);
         if (!guard.ok) return adminGuard.deny(interactionOrMessage, guard.reason);
 
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         const commandConfig = settings.actions['actions_label'];
 
             const commands = Object.entries(settings.actions)
@@ -167,8 +165,7 @@ module.exports = {
     },
 
     async showLabelModal(interaction, commandId) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
         const command = settings.actions[commandId];
         const currentLabel = command.label || commandId;
 
@@ -193,12 +190,11 @@ module.exports = {
     },
 
     async updateCommandLabel(commandId, newLabel) {
-        const settingsPath = path.join(__dirname, '../settings.json');
-        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        const settings = settingsUtil.get();
 
         settings.actions[commandId].label = newLabel;
 
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 4));
+        settingsUtil.save(settings);
         return settings.actions[commandId];
     },
 
@@ -211,8 +207,7 @@ module.exports = {
         
         if (customId.startsWith('label_prev_')) {
             const page = parseInt(customId.split('_')[2]);
-            const settingsPath = path.join(__dirname, '../settings.json');
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             const commands = Object.entries(settings.actions)
                 .filter(([key]) => key !== 'actions_label')
                 .map(([key, cmd]) => ({
@@ -226,8 +221,7 @@ module.exports = {
         
         else if (customId.startsWith('label_next_')) {
             const page = parseInt(customId.split('_')[2]);
-            const settingsPath = path.join(__dirname, '../settings.json');
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             const commands = Object.entries(settings.actions)
                 .filter(([key]) => key !== 'actions_label')
                 .map(([key, cmd]) => ({
@@ -265,8 +259,7 @@ module.exports = {
             
             await this.updateCommandLabel(commandId, newLabel);
             
-            const settingsPath = path.join(__dirname, '../settings.json');
-            const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+            const settings = settingsUtil.get();
             const command = settings.actions[commandId];
             const commandConfig = settings.actions['actions_label'];
             
