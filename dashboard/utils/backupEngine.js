@@ -16,14 +16,11 @@
 
 'use strict';
 
-const fs     = require('fs');
-const path   = require('path');
-const crypto = require('crypto');
-const https  = require('https');
-const http   = require('http');
-const logger = require('../../utils/logger');
-
-const SETTINGS_PATH = path.join(__dirname, '../../settings.json');
+const crypto       = require('crypto');
+const https        = require('https');
+const http         = require('http');
+const logger       = require('../../utils/logger');
+const settingsUtil = require('../../utils/settings');
 
 /* ═══════════════════════════════════════════════════════════════════════════
    AES-256-GCM helper — encrypt / decrypt target URIs
@@ -72,27 +69,16 @@ function maskWebhook(url) {
    Settings helpers (standalone — no circular dep with server.js)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function _readCfg() {
-    try {
-        const raw = fs.readFileSync(SETTINGS_PATH, 'utf8').replace(/^\uFEFF/, '');
-        return JSON.parse(raw);
-    } catch (_) { return {}; }
-}
-
-function _writeCfg(cfg) {
-    fs.writeFileSync(SETTINGS_PATH, JSON.stringify(cfg, null, 4), 'utf8');
-}
-
 function _getTargets() {
-    const cfg = _readCfg();
+    const cfg = settingsUtil.get();
     return Array.isArray(cfg.BACKUP?.targets) ? cfg.BACKUP.targets : [];
 }
 
 function _saveTargets(targets) {
-    const cfg = _readCfg();
+    const cfg = settingsUtil.get();
     if (!cfg.BACKUP) cfg.BACKUP = {};
     cfg.BACKUP.targets = targets;
-    _writeCfg(cfg);
+    settingsUtil.save(cfg);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

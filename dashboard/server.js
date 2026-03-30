@@ -9,28 +9,10 @@ const express       = require('express');
 const http          = require('http');
 const { Server: SocketServer } = require('socket.io');
 const logger        = require('../utils/logger');
+const settingsUtil  = require('../utils/settings');
 
-/* ── settings.json helpers ── */
-let _cfgCache = null, _cfgCacheAt = 0;
-const _cfgTTL = 4000; // 4 s — fast enough for live edits
-function readSettingsCfg() {
-    const now = Date.now();
-    if (_cfgCache && (now - _cfgCacheAt) < _cfgTTL) return _cfgCache;
-    try {
-        let raw = require('fs').readFileSync(require('path').join(__dirname, '../settings.json'), 'utf8');
-        raw = raw.replace(/^\uFEFF/, '');
-        _cfgCache   = JSON.parse(raw);
-        _cfgCacheAt = now;
-        return _cfgCache;
-    } catch (_) { return _cfgCache || {}; }
-}
-function writeSettingsCfg(cfg) {
-    require('fs').writeFileSync(require('path').join(__dirname, '../settings.json'), JSON.stringify(cfg, null, 4), 'utf8');
-    _cfgCache   = cfg;           // keep cache in sync
-    _cfgCacheAt = Date.now();
-}
 function getIsShip(userId) {
-    const cfg   = readSettingsCfg();
+    const cfg   = settingsUtil.get();
     const ships = (cfg.DASHBOARD && Array.isArray(cfg.DASHBOARD.SHIPS)) ? cfg.DASHBOARD.SHIPS : [];
     return ships.includes(String(userId));
 }
@@ -149,7 +131,7 @@ app.post('/intro/done', (req, res) => {
 /* ─────────────────────────────────────────────────────── */
 
 app.get('/', (req, res) => {
-    const cfg       = readSettingsCfg();
+    const cfg       = settingsUtil.get();
     const showIntro = cfg.DASHBOARD?.INTRO !== false;
     if (showIntro && !req.session?.introSeen) return res.redirect('/intro');
     if (req.session?.user?.verified) return res.redirect('/dashboard');
@@ -192,7 +174,7 @@ app.post('/verify', _verifyLimiter, (req, res) => {
     if (!req.session?.user) return res.redirect('/?error=unauthorized');
     if (req.session.user.verified) return res.redirect('/dashboard');
     const { code } = req.body;
-    const _vcfg    = readSettingsCfg();
+    const _vcfg    = settingsUtil.get();
     const expected = (_vcfg.DASHBOARD?.CODE || process.env.CODE || '').trim();
     if (!code || code.trim() !== expected) {
         const error = req.query.error || null;
@@ -217,7 +199,7 @@ app.get('/logout', (req, res) => {
 app.get('/settings', require('./middleware/auth'), (req, res) => {
     const userId = req.session.user?.id;
     if (!getIsShip(userId)) return res.status(403).redirect('/dashboard');
-    const cfg = readSettingsCfg();
+    const cfg = settingsUtil.get();
     const srv = cfg.DASHBOARD?.SERVERS || {};
     const wh  = cfg.DASHBOARD?.WEBHOOK_LOG || {};
     res.render('system_settings', {
@@ -252,13 +234,13 @@ app.get('/settings', require('./middleware/auth'), (req, res) => {
 app.post('/settings/webhook-config', require('./middleware/auth'), express.json(), async (req, res) => {
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
     try {
-        const cfg = readSettingsCfg();
+        const cfg = settingsUtil.get();
         if (!cfg.DASHBOARD) cfg.DASHBOARD = {};
         if (!cfg.DASHBOARD.WEBHOOK_LOG) cfg.DASHBOARD.WEBHOOK_LOG = {};
         const { URL: url, COLOR: color, test: doTest } = req.body;
         if (typeof url   === 'string') cfg.DASHBOARD.WEBHOOK_LOG.URL   = url.trim();
         if (typeof color === 'string') cfg.DASHBOARD.WEBHOOK_LOG.COLOR = color.trim();
-        writeSettingsCfg(cfg);
+        settingsUtil.save(cfg);
         // Send test message
         if (doTest && cfg.DASHBOARD.WEBHOOK_LOG.URL) {
             const dashLogs = require('./utils/dashboardLogs');
@@ -278,7 +260,7 @@ app.post('/settings/webhook-config', require('./middleware/auth'), express.json(
 /* ── GET /settings/active-sessions (SHIPS only) ── */
 app.get('/settings/active-sessions', require('./middleware/auth'), (req, res) => {
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
-    const cfg   = readSettingsCfg();
+    const cfg   = settingsUtil.get();
     const ships = new Set((cfg.DASHBOARD?.SHIPS || []).map(String));
     req.sessionStore.all((err, sessions) => {
         if (err || !sessions) return res.json([]);
@@ -314,12 +296,12 @@ app.post('/settings/ships', require('./middleware/auth'), express.json(), (req, 
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
     const { userId } = req.body;
     if (!userId || !/^\d{10,20}$/.test(String(userId))) return res.status(400).json({ error: 'Invalid user ID' });
-    const cfg = readSettingsCfg();
+    const cfg = settingsUtil.get();
     if (!cfg.DASHBOARD) cfg.DASHBOARD = {};
     if (!Array.isArray(cfg.DASHBOARD.SHIPS)) cfg.DASHBOARD.SHIPS = [];
     const id = String(userId);
     if (!cfg.DASHBOARD.SHIPS.includes(id)) cfg.DASHBOARD.SHIPS.push(id);
-    writeSettingsCfg(cfg);
+    settingsUtil.save(cfg);
     res.json({ success: true, ships: cfg.DASHBOARD.SHIPS });
 });
 
@@ -328,9 +310,9 @@ app.delete('/settings/ships/:userId', require('./middleware/auth'), (req, res) =
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
     const id  = String(req.params.userId);
     if (id === String(req.session.user?.id)) return res.status(400).json({ error: 'Cannot remove yourself' });
-    const cfg = readSettingsCfg();
+    const cfg = settingsUtil.get();
     if (cfg.DASHBOARD?.SHIPS) cfg.DASHBOARD.SHIPS = cfg.DASHBOARD.SHIPS.filter(s => s !== id);
-    writeSettingsCfg(cfg);
+    settingsUtil.save(cfg);
     res.json({ success: true, ships: cfg.DASHBOARD?.SHIPS || [] });
 });
 
@@ -339,12 +321,12 @@ app.post('/settings/owners', require('./middleware/auth'), express.json(), (req,
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
     const { userId } = req.body;
     if (!userId || !/^\d{10,20}$/.test(String(userId))) return res.status(400).json({ error: 'Invalid user ID' });
-    const cfg = readSettingsCfg();
+    const cfg = settingsUtil.get();
     if (!cfg.DASHBOARD) cfg.DASHBOARD = {};
     if (!Array.isArray(cfg.DASHBOARD.OWNERS)) cfg.DASHBOARD.OWNERS = [];
     const id = String(userId);
     if (!cfg.DASHBOARD.OWNERS.includes(id)) cfg.DASHBOARD.OWNERS.push(id);
-    writeSettingsCfg(cfg);
+    settingsUtil.save(cfg);
     res.json({ success: true, owners: cfg.DASHBOARD.OWNERS });
 });
 
@@ -352,9 +334,9 @@ app.post('/settings/owners', require('./middleware/auth'), express.json(), (req,
 app.delete('/settings/owners/:userId', require('./middleware/auth'), (req, res) => {
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
     const id  = String(req.params.userId);
-    const cfg = readSettingsCfg();
+    const cfg = settingsUtil.get();
     if (cfg.DASHBOARD?.OWNERS) cfg.DASHBOARD.OWNERS = cfg.DASHBOARD.OWNERS.filter(o => o !== id);
-    writeSettingsCfg(cfg);
+    settingsUtil.save(cfg);
     res.json({ success: true, owners: cfg.DASHBOARD?.OWNERS || [] });
 });
 
@@ -371,7 +353,7 @@ app.get('/settings/geo', require('./middleware/auth'), (req, res) => {
 app.post('/settings/dashboard-config', require('./middleware/auth'), express.json(), (req, res) => {
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
     try {
-        const cfg = readSettingsCfg();
+        const cfg = settingsUtil.get();
         if (!cfg.DASHBOARD) cfg.DASHBOARD = {};
         if (!cfg.DASHBOARD.SERVERS) cfg.DASHBOARD.SERVERS = {};
         const { INTRO, CODE_ACCESS, CODE, ADD_BOT_ON_MANY_SERVER, SERVER_ALLOWED, LEAVE_AUTO } = req.body;
@@ -384,7 +366,7 @@ app.post('/settings/dashboard-config', require('./middleware/auth'), express.jso
         cfg.DASHBOARD.SERVERS.SERVER_ALLOWED = Array.isArray(SERVER_ALLOWED) ? SERVER_ALLOWED.map(String) : [];
         // If ADD_BOT_ON_MANY_SERVER is true, LEAVE_AUTO is forced false
         cfg.DASHBOARD.SERVERS.LEAVE_AUTO = addOnMany ? false : Boolean(LEAVE_AUTO);
-        writeSettingsCfg(cfg);
+        settingsUtil.save(cfg);
         res.json({ success: true, serversCfg: cfg.DASHBOARD.SERVERS });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -397,7 +379,7 @@ app.get('/settings/bot-guilds', require('./middleware/auth'), async (req, res) =
     const { getClient } = require('./utils/botClient');
     const botClient = getClient();
     if (!botClient) return res.json({ guilds: [] });
-    const cfg = readSettingsCfg();
+    const cfg = settingsUtil.get();
     const allowed = (cfg.DASHBOARD?.SERVERS?.SERVER_ALLOWED) || [];
     const guilds = [];
     for (const [, guild] of botClient.guilds.cache) {
@@ -455,42 +437,50 @@ app.post('/settings/guild-leave', require('./middleware/auth'), express.json(), 
 });
 
 /* ── GET /settings/logs (SHIPS only) ── */
-app.get('/settings/logs', require('./middleware/auth'), (req, res) => {
+app.get('/settings/logs', require('./middleware/auth'), async (req, res) => {
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
-    const data = dashLogs.getAll();
-    // Attach ships list so UI knows who needs to approve
-    const cfg   = readSettingsCfg();
-    const ships = (cfg.DASHBOARD?.SHIPS || []).map(String);
-    res.json({ entries: data.entries, clearRequest: data.clearRequest, ships });
+    try {
+        const data = await dashLogs.getAll();
+        // Attach ships list so UI knows who needs to approve
+        const cfg   = settingsUtil.get();
+        const ships = (cfg.DASHBOARD?.SHIPS || []).map(String);
+        res.json({ entries: data.entries, clearRequest: data.clearRequest, ships });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 /* ── POST /settings/logs/clear-request (SHIPS only) ── */
-app.post('/settings/logs/clear-request', require('./middleware/auth'), express.json(), (req, res) => {
+app.post('/settings/logs/clear-request', require('./middleware/auth'), express.json(), async (req, res) => {
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
-    const cfg   = readSettingsCfg();
-    const ships = (cfg.DASHBOARD?.SHIPS || []).map(String);
-    const user  = req.session.user;
-    const existing = dashLogs.getAll().clearRequest;
-    if (existing) return res.status(409).json({ error: 'already_pending', clearRequest: existing });
-    const clearRequest = dashLogs.requestClear(user.id, user.username || user.displayName, ships);
-    res.json({ success: true, clearRequest });
+    try {
+        const cfg   = settingsUtil.get();
+        const ships = (cfg.DASHBOARD?.SHIPS || []).map(String);
+        const user  = req.session.user;
+        const { clearRequest: existing } = await dashLogs.getAll();
+        if (existing) return res.status(409).json({ error: 'already_pending', clearRequest: existing });
+        const clearRequest = await dashLogs.requestClear(user.id, user.username || user.displayName, ships);
+        res.json({ success: true, clearRequest });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 /* ── POST /settings/logs/clear-vote (SHIPS only) ── */
-app.post('/settings/logs/clear-vote', require('./middleware/auth'), express.json(), (req, res) => {
+app.post('/settings/logs/clear-vote', require('./middleware/auth'), express.json(), async (req, res) => {
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
-    const { approve } = req.body;
-    const result = dashLogs.vote(req.session.user.id, !!approve);
-    if (result.error) return res.status(400).json(result);
-    res.json(result);
+    try {
+        const { approve } = req.body;
+        const result = await dashLogs.vote(req.session.user.id, !!approve);
+        if (result.error) return res.status(400).json(result);
+        res.json(result);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 /* ── POST /settings/logs/clear-cancel (SHIPS only) ── */
-app.post('/settings/logs/clear-cancel', require('./middleware/auth'), express.json(), (req, res) => {
+app.post('/settings/logs/clear-cancel', require('./middleware/auth'), express.json(), async (req, res) => {
     if (!getIsShip(req.session.user?.id)) return res.status(403).json({ error: 'Forbidden' });
-    const result = dashLogs.cancelRequest(req.session.user.id);
-    if (result.error) return res.status(400).json(result);
-    res.json(result);
+    try {
+        const result = await dashLogs.cancelRequest(req.session.user.id);
+        if (result.error) return res.status(400).json(result);
+        res.json(result);
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -892,9 +882,9 @@ app.get('/dashboard/:guildId/setting', require('./middleware/auth'), async (req,
 
     // Protection page access permissions
     const guildProtData  = guildDb.read(guildId, 'protection', null);
-    const globalProtCfg  = (readSettingsCfg().protection) || {};
+    const globalProtCfg  = (settingsUtil.get().protection) || {};
     const protUserPerms  = ((guildProtData || globalProtCfg).user_permissions || []).map(String);
-    const protOwners     = ((readSettingsCfg().DASHBOARD || {}).OWNERS || []).map(String);
+    const protOwners     = ((settingsUtil.get().DASHBOARD || {}).OWNERS || []).map(String);
     const actorId        = String(req.session.user?.id || '');
     const isOwner        = protUserPerms.length === 0
         ? protOwners.includes(actorId)
@@ -2855,7 +2845,7 @@ app.get('/dashboard/:guildId/utility', require('./middleware/auth'), (req, res) 
 
     const guildCmdsUtil = require('../utils/guildCmds');
     const utilityActions = guildCmdsUtil.resolveAllPublic(guildId);
-    const sCfg = readSettingsCfg();
+    const sCfg = settingsUtil.get();
     const botPrefix = (sCfg.system && sCfg.system.PREFIX) ? sCfg.system.PREFIX : '!';
 
     res.render('utility', {
@@ -2884,7 +2874,7 @@ app.post('/dashboard/:guildId/utility/save', require('./middleware/auth'), (req,
 
     try {
         const guildCmdsUtil = require('../utils/guildCmds');
-        const sCfg = readSettingsCfg();
+        const sCfg = settingsUtil.get();
         Object.entries(commands).forEach(([key, updates]) => {
             if (!sCfg.actions[key] || sCfg.actions[key].public !== true) return;
             const patch = {};
@@ -2943,7 +2933,7 @@ app.get('/dashboard/:guildId/moderation', require('./middleware/auth'), (req, re
 
     const guildCmdsUtil = require('../utils/guildCmds');
     const moderationActions = guildCmdsUtil.resolveAllAdmin(guildId);
-    const sCfg = readSettingsCfg();
+    const sCfg = settingsUtil.get();
     const botPrefix = (sCfg.system && sCfg.system.PREFIX) ? sCfg.system.PREFIX : '!';
 
     res.render('moderation', {
@@ -2972,7 +2962,7 @@ app.post('/dashboard/:guildId/moderation/save', require('./middleware/auth'), (r
 
     try {
         const guildCmdsUtil = require('../utils/guildCmds');
-        const sCfg = readSettingsCfg();
+        const sCfg = settingsUtil.get();
         Object.entries(commands).forEach(([key, updates]) => {
             if (!sCfg.actions[key] || sCfg.actions[key].admin !== true) return;
             const patch = {};
@@ -3118,7 +3108,7 @@ app.get('/dashboard/:guildId/protection', require('./middleware/auth'), (req, re
 
 
     // Per-guild protection config (fallback to global defaults)
-    const globalCfg      = readSettingsCfg();
+    const globalCfg      = settingsUtil.get();
     const guildProtData  = guildDb.read(guildId, 'protection', null);
     const protectionCfg  = guildProtData || Object.assign({}, globalCfg.protection || {});
 
@@ -3167,7 +3157,7 @@ app.post('/dashboard/:guildId/protection/save', require('./middleware/auth'), (r
     if (!raw.find(g => g.id === guildId)) return res.status(403).json({ error: 'Access denied' });
 
     // Re-check canEdit
-    const globalCfg     = readSettingsCfg();
+    const globalCfg     = settingsUtil.get();
     const guildProtData = guildDb.read(guildId, 'protection', null);
     const existing      = guildProtData || Object.assign({}, globalCfg.protection || {});
     const userId        = String(req.session.user?.id || '');
@@ -3214,7 +3204,7 @@ app.post('/api/:guildId/protection/perms/add', require('./middleware/auth'), (re
     const { userId: targetId } = req.body || {};
     if (!targetId) return res.status(400).json({ error: 'userId required' });
 
-    const globalCfg     = readSettingsCfg();
+    const globalCfg     = settingsUtil.get();
     const guildProtData = guildDb.read(guildId, 'protection', null);
     const existing      = guildProtData || Object.assign({}, globalCfg.protection || {});
     const actorId       = String(req.session.user?.id || '');
@@ -3240,7 +3230,7 @@ app.delete('/api/:guildId/protection/perms/:uid', require('./middleware/auth'), 
     const guildDb = require('./utils/guildDb');
     const { guildId, uid } = req.params;
 
-    const globalCfg     = readSettingsCfg();
+    const globalCfg     = settingsUtil.get();
     const guildProtData = guildDb.read(guildId, 'protection', null);
     const existing      = guildProtData || Object.assign({}, globalCfg.protection || {});
     const actorId       = String(req.session.user?.id || '');

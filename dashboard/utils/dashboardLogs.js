@@ -6,18 +6,33 @@
 
 /**
  * dashboardLogs.js
- * Stores and manages dashboard activity logs.
+ * Stores and manages dashboard activity logs in MongoDB.
  * Log types: login | guild_join | guild_leave | dashboard_action
  */
-const fs     = require('fs');
-const path   = require('path');
-const crypto = require('crypto');
-const https  = require('https');
+'use strict';
 
-const LOG_FILE  = path.join(__dirname, '../data/dashboard-logs.json');
-const MAX_ENTRIES = 500;
+const crypto   = require('crypto');
+const https    = require('https');
+const mongoose = require('mongoose');
 
-/* ── Webhook sender ──────────────────────────────── */
+const MAX_ENTRIES     = 500;
+const CLEAR_REQ_KEY   = 'dashboard_clear_request';
+
+/* ── Lazy MongoDB model ─────────────────────────────── */
+function _getModel() {
+    if (mongoose.models.SystemLog) return mongoose.models.SystemLog;
+    const schema = new mongoose.Schema({}, {
+        strict: false, timestamps: false, versionKey: false,
+        collection: 'system_logs',
+    });
+    return mongoose.model('SystemLog', schema);
+}
+
+function _GlobalConfig() {
+    return require('../../systems/schemas/GlobalConfig');
+}
+
+/* ── Webhook sender ──────────────────────────────────── */
 function _colorToInt(hex) {
     try { return parseInt((hex || '#7c3aed').replace('#', ''), 16); } catch { return 0x7c3aed; }
 }
@@ -84,80 +99,79 @@ function _sendWebhook(entry) {
     } catch (_) {}
 }
 
-/* ── File helpers ─────────────────────────────────── */
-function _read() {
+/* ── Public API ───────────────────────────────────────── */
+
+/**
+ * Add a log entry (fire-and-forget safe).
+ */
+async function addEntry(entry) {
     try {
-        if (!fs.existsSync(LOG_FILE)) return { entries: [], clearRequest: null };
-        return JSON.parse(fs.readFileSync(LOG_FILE, 'utf8'));
-    } catch { return { entries: [], clearRequest: null }; }
-}
-
-function _write(data) {
-    const dir = path.dirname(LOG_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(LOG_FILE, JSON.stringify(data, null, 2), 'utf8');
-}
-
-/* ── Public API ───────────────────────────────────── */
-
-/**
- * Add a log entry (auto-prepends, keeps max MAX_ENTRIES).
- * @param {object} entry - Fields to store (type, userId, etc.)
- */
-function addEntry(entry) {
-    const data = _read();
-    const full = {
-        id:        crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        ...entry,
-    };
-    data.entries.unshift(full);
-    if (data.entries.length > MAX_ENTRIES) data.entries = data.entries.slice(0, MAX_ENTRIES);
-    _write(data);
-    _sendWebhook(full);
+        const SystemLog = _getModel();
+        const full = {
+            id:        crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
+            ...entry,
+        };
+        await SystemLog.create(full);
+        // Prune oldest if over MAX_ENTRIES
+        const count = await SystemLog.countDocuments();
+        if (count > MAX_ENTRIES) {
+            const oldest = await SystemLog.find({}, { _id: 1 })
+                .sort({ timestamp: 1 })
+                .limit(count - MAX_ENTRIES)
+                .lean();
+            if (oldest.length) await SystemLog.deleteMany({ _id: { $in: oldest.map(d => d._id) } });
+        }
+        _sendWebhook(full);
+    } catch (_) {}
 }
 
 /**
- * Returns the full data object { entries, clearRequest }.
+ * Returns { entries, clearRequest }.
  */
-function getAll() {
-    return _read();
+async function getAll() {
+    try {
+        const SystemLog   = _getModel();
+        const GlobalConfig = _GlobalConfig();
+        const [entries, crDoc] = await Promise.all([
+            SystemLog.find({}, { _id: 0, __v: 0 }).sort({ timestamp: -1 }).limit(MAX_ENTRIES).lean(),
+            GlobalConfig.findOne({ key: CLEAR_REQ_KEY }).lean(),
+        ]);
+        return { entries, clearRequest: crDoc?.data || null };
+    } catch (_) { return { entries: [], clearRequest: null }; }
 }
 
 /**
  * Initiate a clear-all request.
- * The requester auto-approves; all other ships must also approve.
- * @param {string} userId
- * @param {string} username
- * @param {string[]} allShipIds  - All ship/owner IDs
- * @returns {object} clearRequest
  */
-function requestClear(userId, username, allShipIds) {
-    const data = _read();
+async function requestClear(userId, username, allShipIds) {
+    const GlobalConfig = _GlobalConfig();
     const needed = allShipIds.map(String).filter(id => id !== String(userId));
-    data.clearRequest = {
+    const data = {
         id:                crypto.randomUUID(),
         requestedBy:       String(userId),
         requestedByName:   username,
         timestamp:         new Date().toISOString(),
-        needed,            // other ships that must approve
-        approvals:         [String(userId)], // requester auto-approves
+        needed,
+        approvals:         [String(userId)],
         rejections:        [],
     };
-    _write(data);
-    return data.clearRequest;
+    await GlobalConfig.findOneAndUpdate(
+        { key: CLEAR_REQ_KEY },
+        { $set: { key: CLEAR_REQ_KEY, data } },
+        { upsert: true },
+    );
+    return data;
 }
 
 /**
  * Vote on an existing clear request.
- * @param {string} userId
- * @param {boolean} approve  true = approve, false = reject
- * @returns {{ error?, done, cleared, rejected, pending? }}
  */
-function vote(userId, approve) {
-    const data = _read();
-    if (!data.clearRequest) return { error: 'no_request' };
-    const req = data.clearRequest;
+async function vote(userId, approve) {
+    const GlobalConfig = _GlobalConfig();
+    const doc = await GlobalConfig.findOne({ key: CLEAR_REQ_KEY }).lean();
+    if (!doc?.data) return { error: 'no_request' };
+    const req = { ...doc.data, approvals: [...doc.data.approvals], rejections: [...doc.data.rejections] };
 
     if (req.approvals.includes(String(userId)) || req.rejections.includes(String(userId))) {
         return { error: 'already_voted' };
@@ -165,43 +179,33 @@ function vote(userId, approve) {
 
     if (approve) {
         req.approvals.push(String(userId));
-        // All ships = needed + original requester
-        const allNeeded = [req.requestedBy, ...req.needed];
+        const allNeeded  = [req.requestedBy, ...req.needed];
         const allApproved = allNeeded.every(id => req.approvals.includes(id));
         if (allApproved) {
-            data.entries      = [];
-            data.clearRequest = null;
-            _write(data);
+            const SystemLog = _getModel();
+            await SystemLog.deleteMany({});
+            await GlobalConfig.deleteOne({ key: CLEAR_REQ_KEY });
             return { done: true, cleared: true };
         }
-        _write(data);
+        await GlobalConfig.findOneAndUpdate({ key: CLEAR_REQ_KEY }, { $set: { data: req } });
         return { done: false, pending: req };
     } else {
         req.rejections.push(String(userId));
-        data.clearRequest = null; // cancel on any rejection
-        _write(data);
+        await GlobalConfig.deleteOne({ key: CLEAR_REQ_KEY });
         return { done: true, cleared: false, rejected: true };
     }
 }
 
 /**
  * Cancel an existing clear request (only by the requester).
- * @param {string} userId
  */
-function cancelRequest(userId) {
-    const data = _read();
-    if (!data.clearRequest) return { error: 'no_request' };
-    if (data.clearRequest.requestedBy !== String(userId)) return { error: 'not_owner' };
-    data.clearRequest = null;
-    _write(data);
+async function cancelRequest(userId) {
+    const GlobalConfig = _GlobalConfig();
+    const doc = await GlobalConfig.findOne({ key: CLEAR_REQ_KEY }).lean();
+    if (!doc?.data) return { error: 'no_request' };
+    if (doc.data.requestedBy !== String(userId)) return { error: 'not_owner' };
+    await GlobalConfig.deleteOne({ key: CLEAR_REQ_KEY });
     return { success: true };
 }
 
 module.exports = { addEntry, getAll, requestClear, vote, cancelRequest };
-
-
-/*
- * This project was programmed by the Next Generation team.
- * If you encounter any problems, open an Issue or log into the Discord server:
- * https://discord.gg/BhJStSa89s
- */
