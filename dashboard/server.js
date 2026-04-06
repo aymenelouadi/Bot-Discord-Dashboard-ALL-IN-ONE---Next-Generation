@@ -72,6 +72,24 @@ app.use(requestIp.mw());
 app.use(compression({ level: 6 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Uploads directory — served with strict headers to prevent XSS via uploaded files
+app.use('/uploads', (req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'");
+    next();
+}, express.static(UPLOADS_ROOT, {
+    maxAge: '7d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+        const allowedExts = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
+        const ext = filePath.split('.').pop().toLowerCase();
+        if (!allowedExts.has(ext)) {
+            // Block serving any non-image file from uploads as a browser resource
+            res.setHeader('Content-Type', 'application/octet-stream');
+        }
+    },
+}));
 // Static assets with aggressive browser caching (7 days for JS/CSS/images)
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: '7d',
@@ -1509,6 +1527,17 @@ app.post('/dashboard/:guildId/embeds/api/save', require('./middleware/auth'), ex
     if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
     if (!channelId) return res.status(400).json({ error: 'Channel is required' });
 
+    // ── Security: verify the target channel belongs to this guild ────────────
+    {
+        const botClient = require('./utils/botClient').getClient();
+        if (botClient) {
+            const ch = await botClient.channels.fetch(channelId).catch(() => null);
+            if (!ch || ch.guildId !== guildId) {
+                return res.status(403).json({ error: 'Channel does not belong to this guild' });
+            }
+        }
+    }
+
     // ── Compute flat componentIds index from machine definition ──────────────
     // Includes all button.customId + selectMenu.customId values for fast lookup.
     const componentIds = [];
@@ -2381,10 +2410,12 @@ app.post('/dashboard/:guildId/tickets/upload-banner', require('./middleware/auth
     const uploadDir = path.join(__dirname, 'public', 'uploads', guildId);
     fs.mkdirSync(uploadDir, { recursive: true });
 
+    const BANNER_MIME_TO_EXT = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp' };
     const storage = multer.diskStorage({
         destination: (_req, _file, cb) => cb(null, uploadDir),
         filename:    (_req,  file, cb) => {
-            const ext = path.extname(file.originalname).toLowerCase() || '.png';
+            // Always derive extension from MIME type — never trust originalname
+            const ext = BANNER_MIME_TO_EXT[file.mimetype] || '.png';
             cb(null, `banner_${Date.now()}${ext}`);
         },
     });
@@ -2423,6 +2454,11 @@ app.post('/dashboard/:guildId/tickets/panels/send', require('./middleware/auth')
     // If channelId provided in request (e.g. user set channel then clicked Send without saving first),
     // persist it to the panel so sendPanel can use it
     if (reqChannelId && reqChannelId !== panel.panelChannel) {
+        // ── Security: verify the channel belongs to this guild ───────────────
+        const verifyChannel = await client.channels.fetch(reqChannelId).catch(() => null);
+        if (!verifyChannel || verifyChannel.guildId !== guildId) {
+            return res.status(403).json({ error: 'Channel does not belong to this guild' });
+        }
         panel.panelChannel = reqChannelId;
         const idx = ticketData.panels.findIndex(p => p.id === panelId);
         if (idx >= 0) ticketData.panels[idx].panelChannel = reqChannelId;
@@ -4172,6 +4208,7 @@ app.get('/dashboard/proxy-image', require('./middleware/auth'), (req, res) => {
 });
 
 /* ── Welcome/Join Background Image Upload ─────────────── */
+const UPLOAD_MIME_TO_EXT = { 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
 const multerWiBg = multer({
     storage: multer.diskStorage({
         destination: (req, file, cb) => {
@@ -4179,8 +4216,9 @@ const multerWiBg = multer({
             fs.mkdirSync(dir, { recursive: true });
             cb(null, dir);
         },
-        filename: (_req, _file, cb) => {
-            const ext = _file.originalname.split('.').pop().replace(/[^a-z0-9]/gi, '') || 'jpg';
+        filename: (_req, file, cb) => {
+            // Always derive extension from MIME type — never trust originalname
+            const ext = UPLOAD_MIME_TO_EXT[file.mimetype] || 'jpg';
             cb(null, `bg_${Date.now()}.${ext}`);
         },
     }),

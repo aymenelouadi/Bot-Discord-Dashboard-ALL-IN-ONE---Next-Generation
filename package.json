@@ -1,6 +1,6 @@
 {
   "name": "next-generation",
-  "version": "5.7.0",
+  "version": "5.7.1",
   "description": "discord-bot-all-in-one-next-generation",
   "main": "index.js",
   "scripts": {

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v5.7.1] — 2026-04-06 🔒 Security Patch
+
+### Fixed — Security
+
+#### 🛡️ XSS via Malicious File Upload (Stored XSS)
+- **Welcome background image upload** (`/dashboard/:guildId/welcome/join/image/upload-bg`): file extension was previously derived from `originalname`, allowing an attacker to upload a file named `payload.html` with a valid image MIME type and have it served as an executable HTML page. Extension is now always derived from the verified MIME type.
+- **Ticket panel banner upload**: same issue — `path.extname(file.originalname)` replaced with a MIME-to-extension mapping.
+- **`/uploads` static serving**: added dedicated middleware with `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'`, and forced `application/octet-stream` for any non-image file as defense-in-depth.
+
+#### 🔐 IDOR — Cross-Guild Channel Injection
+- **Embeds save endpoint** (`/dashboard/:guildId/embeds/api/save`): `channelId` from the request body was used directly to send Discord messages without verifying ownership. An attacker with access to Guild A could intercept the request, replace `channelId` with a channel from Guild B, and cause the bot to send messages there. Now validated against the bot client before any DB write or Discord send.
+- **Ticket panel send endpoint** (`/dashboard/:guildId/tickets/panels/send`): `channelId` from the request body was persisted to the database and forwarded to the bot without guild ownership verification. Same validation added.
+
+---
+
 ## [v5.7.0] — 2026-03-30 ✨ Components Flow Builder + Full Audit
 
 ### Added — Components Messages System (`/dashboard/:id/components`)

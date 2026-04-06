@@ -3,14 +3,14 @@
 <img src="media/login.png" alt="Bot Discord Dashboard Banner" width="800"/>
 
 # 🤖 Bot Discord Dashboard ALL-IN-ONE
-### Next Generation — v5.7.0
+### Next Generation — v5.7.1
 
 **A full-featured Discord bot with an integrated web dashboard built for modern Discord servers.**  
 Protection · Moderation · Tickets · Embeds Flow Builder · Auto Roles · Levels · Dashboard · and more.
 
 [![Discord](https://img.shields.io/badge/Support-Discord-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/BhJStSa89s)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-5.7.0-brightgreen?style=for-the-badge)](https://github.com/aymenelouadi/next-generation/releases/tag/v5.7.0)
+[![Version](https://img.shields.io/badge/Version-5.7.1-brightgreen?style=for-the-badge)](https://github.com/aymenelouadi/next-generation/releases/tag/v5.7.1)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=node.js)](https://nodejs.org)
 [![discord.js](https://img.shields.io/badge/discord.js-v14-5865F2?style=for-the-badge)](https://discord.js.org)
 
